@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import './Auth.css';
+import Input from '../components/Input';
+import Select from '../components/Select';
+import Button from '../components/Button';
+import ErrorMessage from '../components/ErrorMessage';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -13,6 +16,11 @@ const SignUp = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const roleOptions = [
+    { value: 'buyer', label: 'Buyer' },
+    { value: 'seller', label: 'Seller' },
+  ];
 
   const handleChange = (e) => {
     setFormData({
@@ -76,87 +84,75 @@ const SignUp = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2 className="auth-title">Create Account</h2>
-        <p className="auth-subtitle">Join FarmKonnect today</p>
+    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-700 px-5">
+      <div className="bg-white p-10 rounded-xl shadow-2xl w-full max-w-md">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">Create Account</h2>
+        <p className="text-sm text-gray-600 mb-8 text-center">Join FarmKonnect today</p>
 
-        {error && <div className="error-message">{error}</div>}
+        <ErrorMessage message={error} onClose={() => setError('')} />
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="name">Full Name</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter your name"
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit}>
+          <Input
+            type="text"
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Enter your name"
+            label="Full Name"
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
+          <Input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Enter your email"
+            label="Email Address"
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="role">Account Type</label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <option value="buyer">Buyer</option>
-              <option value="seller">Seller</option>
-            </select>
-          </div>
+          <Select
+            id="role"
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            options={roleOptions}
+            label="Account Type"
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create a password"
-              required
-            />
-          </div>
+          <Input
+            type="password"
+            id="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Create a password"
+            label="Password"
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-              required
-            />
-          </div>
+          <Input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            placeholder="Confirm your password"
+            label="Confirm Password"
+            required
+          />
 
-          <button type="submit" className="auth-button" disabled={loading}>
-            {loading ? 'Creating Account...' : 'Sign Up'}
-          </button>
+          <Button type="submit" fullWidth loading={loading}>
+            Sign Up
+          </Button>
         </form>
 
-        <p className="auth-footer">
-          Already have an account? <Link to="/signin">Sign In</Link>
+        <p className="text-center mt-6 text-sm text-gray-600">
+          Already have an account? <Link to="/signin" className="text-purple-600 font-semibold hover:text-purple-700 transition-colors">Sign In</Link>
         </p>
       </div>
     </div>

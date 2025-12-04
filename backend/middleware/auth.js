@@ -1,7 +1,5 @@
-const jwt = require('jsonwebtoken');
+const authService = require('../services/authService');
 const User = require('../models/User');
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 exports.protect = async (req, res, next) => {
   try {
@@ -20,8 +18,8 @@ exports.protect = async (req, res, next) => {
     }
 
     try {
-      // Verify token
-      const decoded = jwt.verify(token, JWT_SECRET);
+      // Verify token using service
+      const decoded = authService.verifyToken(token);
       
       // Get user from token
       req.user = await User.findById(decoded.id);
@@ -37,7 +35,7 @@ exports.protect = async (req, res, next) => {
     } catch (error) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token',
+        message: error.message || 'Invalid token',
       });
     }
   } catch (error) {
