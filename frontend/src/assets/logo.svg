@@ -1,0 +1,18 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Leaf 1 -->
+  <path d="M100 60 C80 60, 70 70, 70 90 C70 110, 80 120, 100 120 Z" fill="#22c55e" opacity="0.8"/>
+  <!-- Leaf 2 -->
+  <path d="M100 60 C120 60, 130 70, 130 90 C130 110, 120 120, 100 120 Z" fill="#16a34a" opacity="0.8"/>
+  <!-- Stem -->
+  <rect x="96" y="80" width="8" height="60" rx="4" fill="#15803d"/>
+  <!-- Connect circle -->
+  <circle cx="100" cy="140" r="25" fill="#16a34a"/>
+  <circle cx="100" cy="140" r="18" fill="#22c55e"/>
+  <!-- Connection nodes -->
+  <circle cx="85" cy="140" r="6" fill="#fff"/>
+  <circle cx="115" cy="140" r="6" fill="#fff"/>
+  <circle cx="100" cy="128" r="6" fill="#fff"/>
+  <circle cx="100" cy="152" r="6" fill="#fff"/>
+  <!-- Inner detail -->
+  <path d="M100 135 L95 140 L100 145 L105 140 Z" fill="#15803d"/>
+</svg>

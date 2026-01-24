@@ -82,3 +82,108 @@ exports.getMe = async (req, res) => {
     });
   }
 };
+// @desc    Get users count
+// @route   GET /api/auth/stats/users
+// @access  Private
+exports.getUsersCount = async (req, res) => {
+  try {
+    const result = await authService.getUsersCount();
+    
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    console.error('Get users count error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching users count',
+    });
+  }
+};
+
+// @desc    Get all users
+// @route   GET /api/auth/users
+// @access  Private/Admin
+exports.getAllUsers = async (req, res) => {
+  try {
+    const { page, limit } = req.query;
+    const result = await authService.getAllUsers({}, page, limit);
+    
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    console.error('Get all users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching users',
+    });
+  }
+};
+
+// @desc    Create user (Admin)
+// @route   POST /api/auth/users
+// @access  Private/Admin
+exports.createUser = async (req, res) => {
+  try {
+    const result = await authService.registerUser(req.body);
+    
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully',
+      user: result.user
+    });
+  } catch (error) {
+    console.error('Create user error:', error);
+    const statusCode = error.message.includes('already exists') ? 400 : 500;
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || 'Error creating user',
+    });
+  }
+};
+
+// @desc    Update user
+// @route   PUT /api/auth/users/:id
+// @access  Private/Admin
+exports.updateUser = async (req, res) => {
+  try {
+    const result = await authService.updateUser(req.params.id, req.body);
+    
+    res.status(200).json({
+      success: true,
+      message: 'User updated successfully',
+      user: result,
+    });
+  } catch (error) {
+    console.error('Update user error:', error);
+    const statusCode = error.message.includes('not found') ? 404 : 500;
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || 'Error updating user',
+    });
+  }
+};
+
+// @desc    Delete user
+// @route   DELETE /api/auth/users/:id
+// @access  Private/Admin
+exports.deleteUser = async (req, res) => {
+  try {
+    await authService.deleteUser(req.params.id);
+    
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    const statusCode = error.message.includes('not found') ? 404 : 500;
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || 'Error deleting user',
+    });
+  }
+};

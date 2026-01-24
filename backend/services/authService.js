@@ -143,6 +143,7 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
+      createdAt: user.createdAt,
     };
   }
 
@@ -181,6 +182,15 @@ class AuthService {
       })),
       pagination: result.pagination,
     };
+  }
+
+  /**
+   * Get total count of users
+   * @returns {Object} Count of users
+   */
+  async getUsersCount() {
+    const count = await users.count();
+    return { count };
   }
 
   /**
