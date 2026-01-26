@@ -440,27 +440,36 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
   // Render chart based on type
   const renderChart = () => {
+    const isMobile = window.innerWidth < 640;
     const commonProps = {
       data,
-      margin: { top: 10, right: 30, left: 5, bottom: 5 }
+      margin: { top: 10, right: isMobile ? 10 : 30, left: 5, bottom: 5 }
     };
 
     const xAxisProps = {
       dataKey: "date",
-      tick: { fontSize: 13, fill: "#6b7280", fontWeight: 500 },
-      interval: data.length > 14 ? Math.floor(data.length / 5) : 0,
+      tick: { fontSize: isMobile ? 10 : 13, fill: "#6b7280", fontWeight: 500 },
+      tickFormatter: (value) => {
+        // Shorter Format for Mobile (DD/MM) vs Full (MMM D)
+        if (isMobile) {
+          const parts = value.split(' '); // Assuming format like "Jan 12"
+          return parts.length > 1 ? `${parts[1]}/${new Date(Date.parse(value + " 2024")).getMonth() + 1}` : value;
+        }
+        return value;
+      },
+      interval: data.length > (isMobile ? 8 : 14) ? Math.floor(data.length / (isMobile ? 4 : 5)) : 0,
       axisLine: false,
       tickLine: false,
-      tickMargin: 10,
+      tickMargin: 8,
     };
 
     const yAxisProps = {
-      tick: { fontSize: 13, fill: "#6b7280", fontWeight: 500 },
+      tick: { fontSize: isMobile ? 10 : 13, fill: "#6b7280", fontWeight: 500 },
       tickFormatter: (value) => `₨${value.toLocaleString()}`,
       domain: ["auto", "auto"],
       axisLine: false,
       tickLine: false,
-      width: 80,
+      width: isMobile ? 50 : 80,
     };
 
     switch (chartType) {
@@ -481,7 +490,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
               type="monotone"
               dataKey="price"
               stroke="url(#lineGradient)"
-              strokeWidth={2.5}
+              strokeWidth={isMobile ? 2 : 2.5}
               dot={false}
               activeDot={{ r: 5, fill: "#059669", stroke: "#fff", strokeWidth: 2 }}
             />
@@ -526,7 +535,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
               type="monotone"
               dataKey="price"
               stroke="url(#areaStroke)"
-              strokeWidth={2.5}
+              strokeWidth={isMobile ? 2 : 2.5}
               fill="url(#areaGradient)"
             />
           </AreaChart>
