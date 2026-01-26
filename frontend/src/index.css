@@ -26,7 +26,7 @@ body {
 }
 
 .animate-ticker {
-  animation: ticker 40s linear infinite;
+  animation: ticker 60s linear infinite;
   will-change: transform;
 }
 
