@@ -684,31 +684,6 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
             </div>
             )}
 
-            {/* Dark Mode Toggle - Desktop */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-              aria-label="Toggle dark mode"
-            >
-              {isDark ? (
-                <Sun className="w-5 h-5 text-yellow-500" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-700" />
-              )}
-            </button>
-
-            {/* Language Toggle - Desktop */}
-            <button
-              onClick={toggleLanguage}
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-sm hover:shadow-md"
-              aria-label="Toggle language"
-              title={isUrdu ? "Switch to English" : "اردو میں تبدیل کریں"}
-            >
-              <span className="text-sm font-bold text-white">
-                {isUrdu ? "EN" : "اردو"}
-              </span>
-            </button>
-
             {/* User Info - Desktop */}
             <div className="flex items-center gap-3 ml-2 border-l border-gray-200 dark:border-gray-700 pl-4">
               {user ? (
@@ -958,34 +933,12 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
               </Link>
             )}
 
-            {/* Dark Mode Toggle - Mobile */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-              aria-label="Toggle dark mode"
-            >
-              {isDark ? (
-                <Sun className="w-5 h-5 text-yellow-500" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              )}
-            </button>
 
-            {/* Language Toggle - Mobile */}
-            <button
-              onClick={toggleLanguage}
-              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-sm"
-              aria-label="Toggle language"
-            >
-              <span className="text-xs font-bold text-white">
-                {isUrdu ? "EN" : "اردو"}
-              </span>
-            </button>
 
             {/* Hamburger Menu - Using raw SVG to ensure visibility */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden relative z-50 p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2 block w-10 h-10 flex items-center justify-center"
+              className="xl:hidden relative z-50 p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2 flex items-center justify-center w-10 h-10 shrink-0"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
@@ -1041,6 +994,22 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
+                  </button>
+                </div>
+                {/* Mobile Settings Row */}
+                <div className="flex gap-2 mb-4 px-2">
+                  <button
+                    onClick={toggleTheme}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    {isDark ? <Sun className="w-4 h-4 text-yellow-500" /> : <Moon className="w-4 h-4" />}
+                    <span className="text-sm font-medium">{isDark ? "Light Mode" : "Dark Mode"}</span>
+                  </button>
+                  <button
+                    onClick={toggleLanguage}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/50 transition-colors"
+                  >
+                    <span className="text-sm font-bold">{isUrdu ? "English" : "اردو"}</span>
                   </button>
                 </div>
               </>
