@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import { Sun, Moon, Menu, X, Home, TrendingUp, ShoppingBag, Info, Phone } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 
 const GuestNavbar = () => {
   const navigate = useNavigate();
@@ -191,7 +191,7 @@ const GuestNavbar = () => {
             {/* Hamburger Menu - Using raw SVG to ensure visibility */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="relative z-50 p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2 flex items-center justify-center shrink-0 w-10 h-10"
+              className="xl:hidden relative z-50 p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2 block w-10 h-10 flex items-center justify-center"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
