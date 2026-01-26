@@ -162,36 +162,11 @@ const GuestNavbar = () => {
             </button>
           </div>
 
-          {/* Mobile Menu Button & Icons */}
+          {/* Mobile Menu Button - Only Hamburger */}
           <div className="flex xl:hidden items-center gap-2">
-            {/* Theme Toggle - Mobile */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-              aria-label="Toggle dark mode"
-            >
-              {isDark ? (
-                <Sun className="w-5 h-5 text-yellow-500" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              )}
-            </button>
-
-            {/* Language Toggle - Mobile */}
-            <button
-              onClick={toggleLanguage}
-              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-sm"
-              aria-label="Toggle language"
-            >
-              <span className="text-xs font-bold text-white">
-                {isUrdu ? "EN" : "اردو"}
-              </span>
-            </button>
-
-            {/* Hamburger Menu - Using raw SVG to ensure visibility */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden relative z-50 p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2 block w-10 h-10 flex items-center justify-center"
+              className="xl:hidden relative z-50 p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2 flex items-center justify-center w-10 h-10 shrink-0"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
@@ -226,6 +201,25 @@ const GuestNavbar = () => {
               >
                 {t("nav.getStarted")}
               </Link>
+            </div>
+
+            {/* Mobile Settings Row */}
+            <div className="flex gap-2 px-2 pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
+              <button
+                onClick={toggleTheme}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Toggle dark mode"
+              >
+                {isDark ? <Sun className="w-4 h-4 text-yellow-500" /> : <Moon className="w-4 h-4" />}
+                <span className="text-sm font-medium">{isDark ? "Light Mode" : "Dark Mode"}</span>
+              </button>
+              <button
+                onClick={toggleLanguage}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/50 transition-colors"
+                aria-label="Toggle language"
+              >
+                <span className="text-sm font-bold">{isUrdu ? "English" : "اردو"}</span>
+              </button>
             </div>
 
             {/* Navigation Links - Mobile */}
