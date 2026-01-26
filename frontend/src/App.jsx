@@ -30,29 +30,58 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error("Error caught by boundary:", error, errorInfo);
+    
+    // Check if it's a chunk load error - these happen after new deployments
+    const isChunkError = 
+      error.name === 'ChunkLoadError' || 
+      error.message?.includes('Failed to fetch dynamically imported module') ||
+      error.message?.includes('Loading chunk');
+
+    if (isChunkError) {
+      const hasReloaded = sessionStorage.getItem('chunk_error_reload');
+      if (!hasReloaded) {
+        sessionStorage.setItem('chunk_error_reload', 'true');
+        window.location.reload();
+      }
+    }
   }
 
   render() {
     if (this.state.hasError) {
+      const isChunkError = 
+        this.state.error?.name === 'ChunkLoadError' || 
+        this.state.error?.message?.includes('Failed to fetch dynamically imported module') ||
+        this.state.error?.message?.includes('Loading chunk');
+
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
           <div className="text-center p-8 max-w-md">
             <div className="text-6xl mb-4">⚠️</div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Something went wrong
+              {isChunkError ? "App Update Required" : "Something went wrong"}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {this.state.error?.message || "An unexpected error occurred"}
+              {isChunkError 
+                ? "A new version of the app is available. Please reload to continue." 
+                : (this.state.error?.message || "An unexpected error occurred")}
             </p>
             <button
               onClick={() => {
-                this.setState({ hasError: false, error: null });
-                window.location.href = "/";
+                sessionStorage.removeItem('chunk_error_reload');
+                window.location.reload();
               }}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="px-6 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg"
             >
-              Go to Home
+              {isChunkError ? "Reload Now" : "Try Again"}
             </button>
+            {!isChunkError && (
+              <button
+                onClick={() => window.location.href = "/"}
+                className="mt-4 block w-full text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                Go to Home
+              </button>
+            )}
           </div>
         </div>
       );
