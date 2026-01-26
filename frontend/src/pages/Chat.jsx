@@ -1,18 +1,22 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MessageCircle } from "lucide-react";
 import ConversationItem from "../components/ConversationItem";
 import MessageBubble from "../components/MessageBubble";
 import MessageInput from "../components/MessageInput";
+import TypingIndicator from "../components/TypingIndicator";
 import Navbar from "../components/Navbar";
 import Loader from "../components/Loader";
+import ConfirmModal from "../components/ConfirmModal";
 import socketService from "../utils/socket";
 import chatAPI from "../utils/chatApi";
 import useUserSync from "../hooks/useUserSync";
+import { useSocket } from "../contexts/SocketContext";
 
 const Chat = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { resetMessageCount, initializeSocket, unreadConversations: globalUnread, markConversationRead } = useSocket();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -20,21 +24,52 @@ const Chat = () => {
 
   // Auto-sync user data (role updates)
   useUserSync(user, setUser, navigate);
+
+  // Reset message count when entering chat
+  useEffect(() => {
+    resetMessageCount();
+  }, [resetMessageCount]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [currentUser, setCurrentUser] = useState(null);
-  const [unreadConversations, setUnreadConversations] = useState(new Set());
+  // Initialize with global unread state from SocketContext
+  const [unreadConversations, setUnreadConversations] = useState(() => new Set(globalUnread));
   const [unreadCount, setUnreadCount] = useState(0);
+  const [deleteModal, setDeleteModal] = useState({ open: false, conversationId: null, userName: "" });
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const selectedConversationRef = useRef(null);
   const hasAttemptedReloadRef = useRef(false);
+  const currentUserRef = useRef(null);
+  const unreadConversationsRef = useRef(new Set());
 
-  // Keep ref in sync with state
+  // Keep refs in sync with state
   useEffect(() => {
     selectedConversationRef.current = selectedConversation;
   }, [selectedConversation]);
+
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
+  // Keep unreadConversationsRef in sync with state
+  useEffect(() => {
+    unreadConversationsRef.current = unreadConversations;
+  }, [unreadConversations]);
+
+  // Sync with global unread state from SocketContext
+  useEffect(() => {
+    if (globalUnread && globalUnread.size > 0) {
+      setUnreadConversations(prev => {
+        const newSet = new Set(prev);
+        globalUnread.forEach(id => newSet.add(id));
+        return newSet;
+      });
+      // Also update the ref
+      globalUnread.forEach(id => unreadConversationsRef.current.add(id));
+    }
+  }, [globalUnread]);
 
   // Load unread count
   const loadUnreadCount = async () => {
@@ -48,10 +83,9 @@ const Chat = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
     const userData = sessionStorage.getItem("user");
 
-    if (!token || !userData) {
+    if (!userData) {
       // Set loading to false before navigating to prevent white screen
       setLoading(false);
       navigate("/signin");
@@ -62,8 +96,10 @@ const Chat = () => {
     const user = JSON.parse(userData);
     setCurrentUser(user);
 
-    // Connect socket (singleton - only one instance will be created)
-    socketService.connect(token);
+    // Ensure socket is connected (global SocketContext handles this, but ensure it's initialized)
+    if (!socketService.isConnected()) {
+      initializeSocket();
+    }
 
     // Load conversations and unread count
     const initializeData = async () => {
@@ -86,27 +122,36 @@ const Chat = () => {
     };
     initializeData();
 
-    // Socket event listeners
-    socketService.onNewMessage(async (message) => {
+    // Socket event listeners - attach directly to socket like SocketContext does
+
+    const messageHandler = async (message) => {
+      try {
+
       // Handle null conversation gracefully
       if (!message.conversation && !message.conversationId) {
         return;
       }
-      
+
       const currentConvId = selectedConversationRef.current?._id;
-      // Handle both string and object conversation IDs
-      const messageConvId =
+      // Handle both string and object conversation IDs - ALWAYS convert to string
+      const messageConvId = String(
         typeof message.conversation === "object" && message.conversation !== null
           ? message.conversation._id
-          : message.conversation;
-      const isCurrentConversation = messageConvId === currentConvId;
-      const isOwnMessage = message.sender._id === user.id;
+          : (message.conversation || message.conversationId)
+      );
+      const isCurrentConversation = currentConvId ? String(currentConvId) === messageConvId : false;
+
+      // Use ref for current user to avoid stale closure
+      const currentUserId = String(currentUserRef.current?.id || user.id);
+      const senderId = String(message.sender?._id || message.sender);
+      const isOwnMessage = senderId === currentUserId;
+
 
       // Add message to messages list if it matches current conversation
       setMessages((prevMessages) => {
         if (isCurrentConversation) {
           // Check if message already exists to prevent duplicates
-          const messageExists = prevMessages.some((m) => m._id === message._id);
+          const messageExists = prevMessages.some((m) => String(m._id) === String(message._id));
           if (!messageExists) {
             return [...prevMessages, message];
           }
@@ -116,17 +161,17 @@ const Chat = () => {
 
       // Update or check if conversation exists
       setConversations((prev) => {
-        const existingConv = prev.find((conv) => conv._id === messageConvId);
+        const existingConv = prev.find((conv) => String(conv._id) === messageConvId);
 
         if (existingConv) {
           // Update existing conversation
           return prev.map((conv) =>
-            conv._id === messageConvId
+            String(conv._id) === messageConvId
               ? {
-                  ...conv,
-                  lastMessage: message.content,
-                  lastMessageAt: message.createdAt,
-                }
+                ...conv,
+                lastMessage: message.content,
+                lastMessageAt: message.createdAt,
+              }
               : conv
           );
         } else {
@@ -140,6 +185,16 @@ const Chat = () => {
               response.data.forEach((conversation) => {
                 socketService.joinConversation(conversation._id);
               });
+
+              // Also mark this new conversation as unread if message is from someone else
+              if (!isOwnMessage) {
+                unreadConversationsRef.current.add(messageConvId);
+                setUnreadConversations((prevUnread) => {
+                  const newSet = new Set(prevUnread);
+                  newSet.add(messageConvId);
+                  return newSet;
+                });
+              }
             } catch (error) {
               console.error("Error loading new conversation:", error);
             }
@@ -150,19 +205,50 @@ const Chat = () => {
       });
 
       // Handle unread notifications for messages from others
-      if (!isOwnMessage) {
-        // Add to unread conversations if not viewing this conversation
-        if (!isCurrentConversation) {
-          setUnreadConversations((prev) => {
-            const newSet = new Set(prev);
-            newSet.add(messageConvId);
-            return newSet;
-          });
-          // Increment unread count
-          setUnreadCount((prev) => prev + 1);
-        }
+      if (!isOwnMessage && !isCurrentConversation) {
+        // Update both ref and state to ensure consistency
+        unreadConversationsRef.current.add(messageConvId);
+        setUnreadConversations((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(messageConvId);
+          return newSet;
+        });
+        // Increment unread count
+        setUnreadCount((prev) => prev + 1);
       }
-    });
+      } catch (error) {
+        console.error("Chat.jsx: ERROR in messageHandler:", error);
+        console.error("Chat.jsx: Error stack:", error.stack);
+      }
+    };
+
+    // Attach listener directly to socket for more reliable handling
+    const attachListener = () => {
+      if (!socketService.socket) {
+        return false;
+      }
+
+      // Remove any existing listener with this exact handler
+      socketService.socket.off("new_message", messageHandler);
+
+      // Attach the listener
+      socketService.socket.on("new_message", messageHandler);
+      return true;
+    };
+
+    // Try to attach immediately
+    if (!attachListener()) {
+      // If socket not ready, wait for it
+      const checkInterval = setInterval(() => {
+        if (attachListener()) {
+          clearInterval(checkInterval);
+        }
+      }, 100);
+      setTimeout(() => clearInterval(checkInterval), 10000);
+    }
+
+    // Store handler reference for cleanup
+    const handlerRef = messageHandler;
 
     socketService.onUserTyping(({ userName }) => {
       setTypingUsers((prev) => new Set(prev).add(userName));
@@ -208,8 +294,10 @@ const Chat = () => {
     }
 
     return () => {
-      // Don't disconnect socket on cleanup - it's a singleton
-      // Just cleanup will happen when user actually leaves the app
+      // Remove the listener directly from socket
+      if (socketService.socket) {
+        socketService.socket.off("new_message", handlerRef);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once on mount
@@ -316,15 +404,19 @@ const Chat = () => {
   // Handle conversation selection
   useEffect(() => {
     if (selectedConversation) {
-      // Check if conversation was unread
-      const wasUnread = unreadConversations.has(selectedConversation._id);
+      // Check if conversation was unread - use String() for consistent comparison
+      const convIdStr = String(selectedConversation._id);
+      const wasUnread = unreadConversationsRef.current.has(convIdStr);
 
-      // Remove from unread when opening conversation
+      // Remove from unread when opening conversation - update both ref, state, and global
+      unreadConversationsRef.current.delete(convIdStr);
       setUnreadConversations((prev) => {
         const newSet = new Set(prev);
-        newSet.delete(selectedConversation._id);
+        newSet.delete(convIdStr);
         return newSet;
       });
+      // Also mark as read in global context
+      markConversationRead(convIdStr);
 
       // Decrement unread count if conversation was unread
       if (wasUnread) {
@@ -358,16 +450,62 @@ const Chat = () => {
   const loadConversations = useCallback(async () => {
     try {
       const response = await chatAPI.getUserConversations();
-      setConversations(response.data);
 
-      // Join all conversation rooms to receive new messages
-      response.data.forEach((conversation) => {
-        socketService.joinConversation(conversation._id);
-      });
+      // Validate response has data
+      if (response && Array.isArray(response.data)) {
+        setConversations(response.data);
+
+        // Join all conversation rooms to receive new messages
+        response.data.forEach((conversation) => {
+          socketService.joinConversation(conversation._id);
+        });
+      }
     } catch (error) {
       console.error("Error loading conversations:", error);
     }
   }, []);
+
+  // Refresh conversations when tab becomes visible (only if hidden for a while)
+  useEffect(() => {
+    let lastRefreshTime = Date.now();
+    const MIN_REFRESH_INTERVAL = 60000; // At least 60 seconds between refreshes
+
+    // Only refresh when tab becomes visible again after being hidden
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && !loading) {
+        const timeSinceLastRefresh = Date.now() - lastRefreshTime;
+        // Only refresh if it's been more than 60 seconds since last refresh
+        if (timeSinceLastRefresh > MIN_REFRESH_INTERVAL) {
+          lastRefreshTime = Date.now();
+          loadConversations();
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [loading, loadConversations]);
+
+  // Sort conversations: unread first, then by last message time
+  const sortedConversations = useMemo(() => {
+    return [...conversations]
+      .filter((conv) => conv && conv.seller && conv.buyer && conv.product)
+      .sort((a, b) => {
+        // Use String() for consistent ID comparison
+        const aUnread = unreadConversations.has(String(a._id));
+        const bUnread = unreadConversations.has(String(b._id));
+
+        // Unread conversations come first
+        if (aUnread && !bUnread) return -1;
+        if (!aUnread && bUnread) return 1;
+
+        // Then sort by last message time (most recent first)
+        return new Date(b.lastMessageAt) - new Date(a.lastMessageAt);
+      });
+  }, [conversations, unreadConversations]);
 
   const loadMessages = useCallback(async (conversationId) => {
     try {
@@ -386,16 +524,30 @@ const Chat = () => {
     }
 
     if (!socketService.isConnected()) {
-      console.error("Socket is not connected. Reconnecting...");
-      const token = sessionStorage.getItem("token");
-      socketService.connect(token);
-      // Wait a bit for connection
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const userData = sessionStorage.getItem("user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        if (user.token) {
+          socketService.connect(user.token);
+          try {
+            await socketService.waitForConnection(3000);
+          } catch (error) {
+            console.error("Failed to connect socket:", error);
+            alert("Connection failed. Please refresh the page and try again.");
+            setSending(false);
+            return;
+          }
+        }
+      }
     }
 
     setSending(true);
     try {
-      socketService.sendMessage(selectedConversation._id, content, "text");
+      const sent = socketService.sendMessage(selectedConversation._id, content, "text");
+      if (!sent) {
+        alert("Failed to send message. Please refresh the page and try again.");
+        return;
+      }
       socketService.sendStopTyping(selectedConversation._id);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -410,7 +562,7 @@ const Chat = () => {
 
     setSending(true);
     try {
-      const content = `Offer: $${amount.toLocaleString()}`;
+      const content = `Offer: Rs. ${amount.toLocaleString()}`;
       socketService.sendMessage(
         selectedConversation._id,
         content,
@@ -448,15 +600,33 @@ const Chat = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     // Properly disconnect socket on logout
     socketService.disconnect();
-    sessionStorage.removeItem("token");
+    try {
+      const { authAPI } = await import("../utils/api");
+      await authAPI.logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
     sessionStorage.removeItem("user");
     navigate("/signin");
   };
 
-  const handleDeleteConversation = async (conversationId) => {
+  const confirmDeleteConversation = (conversationId, userName) => {
+    setDeleteModal({ open: true, conversationId, userName });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ open: false, conversationId: null, userName: "" });
+  };
+
+  const handleDeleteConversation = async () => {
+    const conversationId = deleteModal.conversationId;
+    if (!conversationId) return;
+
+    closeDeleteModal();
+
     try {
       await chatAPI.deleteConversation(conversationId);
 
@@ -472,12 +642,16 @@ const Chat = () => {
         socketService.leaveConversation(conversationId);
       }
 
-      // Remove from unread set if present
+      // Remove from unread set if present - use String() for consistent comparison
+      const convIdStr = String(conversationId);
+      unreadConversationsRef.current.delete(convIdStr);
       setUnreadConversations((prev) => {
         const newSet = new Set(prev);
-        newSet.delete(conversationId);
+        newSet.delete(convIdStr);
         return newSet;
       });
+      // Also mark as read in global context
+      markConversationRead(convIdStr);
 
       // Reload unread count
       await loadUnreadCount();
@@ -492,7 +666,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-950 pt-16 sm:pt-20">
       <Navbar
         user={currentUser}
         onLogout={handleLogout}
@@ -501,39 +675,46 @@ const Chat = () => {
       <div className="flex flex-1 overflow-hidden relative">
         {/* Conversations List - Hidden on mobile when conversation is selected */}
         <div className={`
-          ${selectedConversation ? 'hidden md:flex' : 'flex'} 
-          w-full md:w-80 lg:w-96 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex-col
+          ${selectedConversation ? 'hidden md:flex' : 'flex'}
+          w-full md:w-80 lg:w-96 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex-col
           absolute md:relative inset-0 z-10 md:z-auto
         `}>
-          <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              Messages
-            </h1>
+          <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Messages
+              </h1>
+              {unreadConversations.size > 0 && (
+                <span className="px-2.5 py-0.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-xs font-semibold rounded-full shadow-sm">
+                  {unreadConversations.size} new
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {conversations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400 p-4 text-center">
-                <div className="text-4xl mb-3">💬</div>
-                <p>No conversations yet</p>
-                <p className="text-sm mt-1">Start a conversation from the Marketplace</p>
+            {sortedConversations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400 p-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
+                  <MessageCircle className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                </div>
+                <p className="font-medium text-gray-700 dark:text-gray-300">No conversations yet</p>
+                <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">Start a conversation from the Marketplace</p>
               </div>
             ) : (
-              conversations
-                .filter(
-                  (conv) => conv && conv.seller && conv.buyer && conv.product
-                )
-                .map((conversation) => (
+              <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                {sortedConversations.map((conversation) => (
                   <ConversationItem
                     key={conversation._id}
                     conversation={conversation}
                     isActive={selectedConversation?._id === conversation._id}
                     onClick={() => setSelectedConversation(conversation)}
                     currentUserId={currentUser?.id || ""}
-                    hasUnread={unreadConversations.has(conversation._id)}
-                    onDelete={handleDeleteConversation}
+                    hasUnread={unreadConversations.has(String(conversation._id))}
+                    onDelete={confirmDeleteConversation}
                   />
-                ))
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -547,46 +728,112 @@ const Chat = () => {
           {selectedConversation ? (
             <>
               {/* Chat Header */}
-              <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center gap-3">
+              <div className="p-3 sm:p-4 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center gap-3">
                 {/* Back Button - Mobile Only */}
                 <button
                   onClick={() => setSelectedConversation(null)}
-                  className="md:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="md:hidden p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   aria-label="Back to conversations"
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 </button>
-                
+
+                {/* Avatar */}
+                {(() => {
+                  const otherUser = selectedConversation.seller._id.toString() === currentUser.id.toString()
+                    ? selectedConversation.buyer
+                    : selectedConversation.seller;
+                  return otherUser.avatar ? (
+                    <img
+                      src={otherUser.avatar}
+                      alt={otherUser.name}
+                      className="w-10 h-10 rounded-full object-cover shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold shadow-sm">
+                      {otherUser.name?.charAt(0)?.toUpperCase() || "?"}
+                    </div>
+                  );
+                })()}
+
                 <div className="flex-1 min-w-0">
-                  <h2 className="font-semibold text-base sm:text-lg text-gray-900 dark:text-white truncate">
+                  <h2 className="font-semibold text-base text-gray-900 dark:text-white truncate">
                     {selectedConversation.seller._id.toString() ===
-                    currentUser.id.toString()
+                      currentUser.id.toString()
                       ? selectedConversation.buyer.name
                       : selectedConversation.seller.name}
                   </h2>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                    {selectedConversation.product.title} - Rs.{" "}
-                    {selectedConversation.product.price.toLocaleString()}
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {selectedConversation.product?.title || "Product"}
+                    </span>
+                    <span className="text-xs font-semibold text-primary-600 dark:text-primary-400">
+                      Rs. {(selectedConversation.product?.price || 0).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-gray-50 dark:bg-gray-900">
-                {messages.map((message) => (
-                  <MessageBubble
-                    key={message._id}
-                    message={message}
-                    isOwnMessage={message.sender._id === currentUser.id}
-                    onAcceptOffer={handleAcceptOffer}
-                    onRejectOffer={handleRejectOffer}
-                  />
-                ))}
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-900">
+                {messages.map((message, index) => {
+                  // Check if we need a date separator
+                  const messageDate = new Date(message.createdAt);
+                  const prevMessage = messages[index - 1];
+                  const showDateSeparator =
+                    !prevMessage ||
+                    new Date(prevMessage.createdAt).toDateString() !==
+                    messageDate.toDateString();
+
+                  // Check if messages are grouped (same sender, close in time)
+                  const isGrouped =
+                    prevMessage &&
+                    prevMessage.sender._id === message.sender._id &&
+                    new Date(message.createdAt) - new Date(prevMessage.createdAt) <
+                    60000; // 1 minute
+
+                  const formatDateSeparator = (date) => {
+                    const today = new Date();
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+
+                    if (date.toDateString() === today.toDateString()) {
+                      return "Today";
+                    } else if (date.toDateString() === yesterday.toDateString()) {
+                      return "Yesterday";
+                    } else {
+                      return date.toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "short",
+                        day: "numeric",
+                      });
+                    }
+                  };
+
+                  return (
+                    <React.Fragment key={message._id}>
+                      {showDateSeparator && (
+                        <div className="flex items-center justify-center my-4">
+                          <div className="px-4 py-1.5 bg-gray-200 dark:bg-gray-800 rounded-full text-xs font-medium text-gray-600 dark:text-gray-400 shadow-sm">
+                            {formatDateSeparator(messageDate)}
+                          </div>
+                        </div>
+                      )}
+                      <MessageBubble
+                        message={message}
+                        isOwnMessage={message.sender._id === currentUser.id}
+                        onAcceptOffer={handleAcceptOffer}
+                        onRejectOffer={handleRejectOffer}
+                        isGrouped={isGrouped}
+                      />
+                    </React.Fragment>
+                  );
+                })}
 
                 {typingUsers.size > 0 && (
-                  <div className="text-sm text-gray-500 italic mb-2">
-                    {Array.from(typingUsers).join(", ")} typing...
-                  </div>
+                  <TypingIndicator
+                    userName={Array.from(typingUsers).join(", ")}
+                  />
                 )}
 
                 <div ref={messagesEndRef} />
@@ -600,14 +847,35 @@ const Chat = () => {
               />
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-900 p-4">
-              <div className="text-6xl mb-4">💬</div>
-              <p className="text-lg font-medium">Select a conversation</p>
-              <p className="text-sm mt-1">Choose a conversation to start chatting</p>
+            <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
+              <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-5">
+                <MessageCircle className="w-10 h-10 text-gray-300 dark:text-gray-600" />
+              </div>
+              <p className="text-lg font-medium text-gray-700 dark:text-gray-300">Select a conversation</p>
+              <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">Choose a conversation to start chatting</p>
             </div>
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.open}
+        onClose={closeDeleteModal}
+        onConfirm={handleDeleteConversation}
+        title="Delete Conversation"
+        message={
+          <>
+            Are you sure you want to delete your conversation with{" "}
+            <span className="font-semibold text-gray-900 dark:text-white">
+              {deleteModal.userName}
+            </span>
+            ? This will only remove it from your view.
+          </>
+        }
+        confirmText="Delete"
+        variant="danger"
+      />
     </div>
   );
 };

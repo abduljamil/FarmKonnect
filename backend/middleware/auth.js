@@ -5,8 +5,12 @@ exports.protect = async (req, res, next) => {
   try {
     let token;
 
-    // Check for token in headers
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    // Check for token in cookies first
+    if (req.cookies.token) {
+      token = req.cookies.token;
+    }
+    // Fallback to checking headers for backward compatibility
+    else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
 
@@ -58,4 +62,54 @@ exports.authorize = (...roles) => {
     }
     next();
   };
+};
+
+// Check if user is admin
+exports.isAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Not authenticated',
+    });
+  }
+  
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Admin access required',
+    });
+  }
+  
+  next();
+};
+
+// Optional authentication - doesn't fail if no token, just sets req.user if present
+exports.optionalAuth = async (req, res, next) => {
+  try {
+    let token;
+
+    // Check for token in cookies first
+    if (req.cookies.token) {
+      token = req.cookies.token;
+    }
+    // Fallback to checking headers
+    else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (token) {
+      try {
+        const decoded = authService.verifyToken(token);
+        req.user = await User.findById(decoded.id);
+      } catch (error) {
+        // Token invalid, continue without user
+        req.user = null;
+      }
+    }
+
+    next();
+  } catch (error) {
+    console.error('Optional auth error:', error);
+    next();
+  }
 };

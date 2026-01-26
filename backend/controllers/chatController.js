@@ -6,6 +6,22 @@ exports.getOrCreateConversation = async (req, res) => {
     const { productId, sellerId } = req.body;
     const buyerId = req.user._id;
 
+    // console.log("Creating conversation with:", { productId, buyerId: buyerId?.toString(), sellerId });
+
+    if (!productId) {
+      return res.status(400).json({
+        success: false,
+        message: "Product ID is required",
+      });
+    }
+
+    if (!sellerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Seller ID is required",
+      });
+    }
+
     const conversation = await chatService.getOrCreateConversation(
       productId,
       buyerId,
@@ -26,6 +42,7 @@ exports.getOrCreateConversation = async (req, res) => {
       data: conversation,
     });
   } catch (error) {
+    console.error("Error in getOrCreateConversation:", error);
     res.status(500).json({
       success: false,
       message: error.message,

@@ -2,3 +2,7 @@ requests
 beautifulsoup4
 pandas
 lxml
+pymongo
+python-dotenv
+fastapi
+uvicorn

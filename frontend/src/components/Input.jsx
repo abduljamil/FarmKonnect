@@ -16,7 +16,7 @@ const Input = ({
   return (
     <div className={`mb-6 ${className}`}>
       {label && (
-        <label htmlFor={id} className="block mb-2 font-medium text-gray-700 text-sm">
+        <label htmlFor={id} className="block mb-2 font-medium text-gray-700 dark:text-gray-300 text-sm">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -30,11 +30,12 @@ const Input = ({
         placeholder={placeholder}
         required={required}
         disabled={disabled}
-        className={`w-full px-3 py-3 border rounded-lg text-base transition-all duration-200 
-          ${error ? 'border-red-500 focus:ring-red-100' : 'border-gray-300 focus:border-primary-500 focus:ring-primary-100'} 
-          focus:outline-none focus:ring-4 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+        className={`w-full px-3 py-3 border rounded-lg text-base transition-all duration-200
+          bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500
+          ${error ? 'border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30' : 'border-gray-300 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-100 dark:focus:ring-primary-900/30'}
+          focus:outline-none focus:ring-4 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed`}
       />
-      {error && <span className="block mt-2 text-red-500 text-sm">{error}</span>}
+      {error && <span className="block mt-2 text-red-500 dark:text-red-400 text-sm">{error}</span>}
     </div>
   );
 };

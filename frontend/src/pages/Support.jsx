@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import API_URL from "../config";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { MessageSquare, Send, ArrowLeft, Clock, CheckCircle, AlertCircle, User, Shield, Plus } from "lucide-react";
 import Navbar from "../components/Navbar";
@@ -10,6 +11,7 @@ const Support = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const transactionId = searchParams.get("transaction");
+    const ticketIdParam = searchParams.get("ticket");
 
     const userData = sessionStorage.getItem("user");
     const user = userData ? JSON.parse(userData) : null;
@@ -46,9 +48,19 @@ const Support = () => {
         }
     }, [transactionId]);
 
+    // Handle ticket ID from URL (from notification click)
+    useEffect(() => {
+        if (ticketIdParam && tickets.length > 0) {
+            const ticket = tickets.find(t => t._id === ticketIdParam);
+            if (ticket) {
+                fetchTicket(ticket._id);
+            }
+        }
+    }, [ticketIdParam, tickets]);
+
     const fetchTickets = async () => {
         try {
-            const response = await fetch("http://localhost:3000/api/support/tickets", {
+      const response = await fetch(`${API_URL}/support/tickets`, {
                 credentials: "include",
             });
             const data = await response.json();
@@ -64,7 +76,7 @@ const Support = () => {
 
     const fetchTicket = async (ticketId) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/support/tickets/${ticketId}`, {
+      const response = await fetch(`${API_URL}/support/tickets/${ticketId}`, {
                 credentials: "include",
             });
             const data = await response.json();
@@ -83,7 +95,7 @@ const Support = () => {
 
         setSending(true);
         try {
-            const response = await fetch(`http://localhost:3000/api/support/tickets/${selectedTicket._id}/messages`, {
+      const response = await fetch(`${API_URL}/support/tickets/${selectedTicket._id}/messages`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
@@ -109,7 +121,7 @@ const Support = () => {
 
         setSending(true);
         try {
-            const response = await fetch("http://localhost:3000/api/support/tickets", {
+      const response = await fetch(`${API_URL}/support/tickets`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
@@ -169,7 +181,7 @@ const Support = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col pt-16 sm:pt-20">
             <Navbar user={user} />
 
             <div className="flex-1 container mx-auto px-4 py-6">
@@ -255,14 +267,15 @@ const Support = () => {
                                         <select
                                             value={newTicketForm.category}
                                             onChange={(e) => setNewTicketForm(prev => ({ ...prev, category: e.target.value }))}
-                                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            className="w-full min-w-[150px] px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer shadow-sm"
+                                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundSize: '1.25rem', backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat' }}
                                         >
-                                            <option value="other">General</option>
-                                            <option value="dispute">Transaction Dispute</option>
-                                            <option value="payment">Payment Issue</option>
-                                            <option value="delivery">Delivery Issue</option>
-                                            <option value="technical">Technical Problem</option>
-                                            <option value="account">Account Issue</option>
+                                            <option value="other" className="bg-white dark:bg-gray-700">General</option>
+                                            <option value="dispute" className="bg-white dark:bg-gray-700">Transaction Dispute</option>
+                                            <option value="payment" className="bg-white dark:bg-gray-700">Payment Issue</option>
+                                            <option value="delivery" className="bg-white dark:bg-gray-700">Delivery Issue</option>
+                                            <option value="technical" className="bg-white dark:bg-gray-700">Technical Problem</option>
+                                            <option value="account" className="bg-white dark:bg-gray-700">Account Issue</option>
                                         </select>
                                     </div>
                                     {transactionId && (

@@ -14,9 +14,10 @@ const Button = ({
   
   const variants = {
     primary: 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:-translate-y-0.5 hover:shadow-lg',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700 hover:-translate-y-0.5',
+    secondary: 'bg-gray-600 dark:bg-gray-700 text-white hover:bg-gray-700 dark:hover:bg-gray-600 hover:-translate-y-0.5',
     danger: 'bg-red-500 text-white hover:bg-red-600 hover:-translate-y-0.5',
     success: 'bg-primary-500 text-white hover:bg-primary-600 hover:-translate-y-0.5',
+    outline: 'bg-transparent border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:-translate-y-0.5',
   };
 
   const widthClass = fullWidth ? 'w-full' : '';
@@ -37,7 +38,7 @@ Button.propTypes = {
   children: PropTypes.node.isRequired,
   onClick: PropTypes.func,
   type: PropTypes.oneOf(['button', 'submit', 'reset']),
-  variant: PropTypes.oneOf(['primary', 'secondary', 'danger', 'success']),
+  variant: PropTypes.oneOf(['primary', 'secondary', 'danger', 'success', 'outline']),
   disabled: PropTypes.bool,
   fullWidth: PropTypes.bool,
   loading: PropTypes.bool,

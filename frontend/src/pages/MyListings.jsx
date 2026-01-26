@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import API_URL from "../config";
 import { Plus, MapPin, Package, Calendar } from "lucide-react";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import Navbar from "../components/Navbar";
+import ConfirmModal from "../components/ConfirmModal";
 import chatAPI from "../utils/chatApi";
 
 const MyProducts = () => {
@@ -14,24 +16,18 @@ const MyProducts = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [deleting, setDeleting] = useState(null);
   const [toggling, setToggling] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ open: false, product: null });
 
   useEffect(() => {
     const userData = sessionStorage.getItem("user");
-    const token = sessionStorage.getItem("token");
 
-    if (!userData || !token) {
+    if (!userData) {
       navigate("/signin");
       return;
     }
 
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
-
-    // Only sellers and admins can access this page
-    if (parsedUser.role !== "seller" && parsedUser.role !== "admin") {
-      navigate("/");
-      return;
-    }
 
     loadUnreadCount();
     fetchMyProducts();
@@ -48,13 +44,10 @@ const MyProducts = () => {
 
   const fetchMyProducts = async () => {
     try {
-      const token = sessionStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:3000/api/listings/my/listings",
+        `${API_URL}/listings/my/listings`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: 'include',
         }
       );
       const data = await response.json();
@@ -69,21 +62,27 @@ const MyProducts = () => {
     }
   };
 
-  const handleDelete = async (productId) => {
-    if (!window.confirm("Are you sure you want to delete this listing?")) {
-      return;
-    }
+  const openDeleteModal = (product) => {
+    setDeleteModal({ open: true, product });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ open: false, product: null });
+  };
+
+  const handleDelete = async () => {
+    const productId = deleteModal.product?._id;
+    if (!productId) return;
 
     setDeleting(productId);
+    closeDeleteModal();
+
     try {
-      const token = sessionStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3000/api/listings/${productId}`,
+        `${API_URL}/listings/${productId}`,
         {
           method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: 'include',
         }
       );
 
@@ -105,18 +104,17 @@ const MyProducts = () => {
 
   const handleToggleStatus = async (productId, currentStatus) => {
     const newStatus = currentStatus === "active" ? "inactive" : "active";
-    
+
     setToggling(productId);
     try {
-      const token = sessionStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3000/api/listings/${productId}/status`,
+        `${API_URL}/listings/${productId}/status`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
+          credentials: 'include',
           body: JSON.stringify({ status: newStatus }),
         }
       );
@@ -163,7 +161,7 @@ const MyProducts = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pt-16 sm:pt-20">
       {user && (
         <Navbar user={user} onLogout={handleLogout} unreadCount={unreadCount} />
       )}
@@ -281,7 +279,7 @@ const MyProducts = () => {
                       </Button>
                     </div>
                     <Button
-                      onClick={() => handleDelete(product._id)}
+                      onClick={() => openDeleteModal(product)}
                       disabled={deleting === product._id}
                       className="w-full bg-red-600 hover:bg-red-700 text-sm py-2"
                     >
@@ -294,6 +292,25 @@ const MyProducts = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.open}
+        onClose={closeDeleteModal}
+        onConfirm={handleDelete}
+        title="Delete Listing"
+        message={
+          <>
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-gray-900 dark:text-white">
+              "{deleteModal.product?.title}"
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        variant="danger"
+      />
     </div>
   );
 };

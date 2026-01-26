@@ -1,0 +1,46 @@
+
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SCRAPER_SERVICE_URL=${SCRAPER_SERVICE_URL:-http://scraper_service:8000}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+    depends_on:
+      - scraper_service
+    env_file:
+      - ./backend/.env
+    restart: always
+
+  scraper_service:
+    build:
+      context: ./scrapper
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000" # Optional: Expose 8000 if you want to test loopback from host, but backend uses internal DNS
+    environment:
+      - PORT=8000
+    env_file:
+        - ./backend/.env  # Use backend .env because scrapper needs valid MONGO_URI
+        - ./scrapper/.env
+    restart: always
+
+networks:
+  default:
+    driver: bridge

@@ -1,7 +1,18 @@
-const API_URL = "http://localhost:3000/api";
+import API_URL from "../config";
 
 // Get auth token from sessionStorage
-const getToken = () => sessionStorage.getItem("token");
+const getToken = () => {
+  const userData = sessionStorage.getItem("user");
+  if (userData) {
+    try {
+      const user = JSON.parse(userData);
+      return user.token;
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+};
 
 // API helper function
 const apiCall = async (endpoint, options = {}) => {
@@ -15,6 +26,7 @@ const apiCall = async (endpoint, options = {}) => {
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
+    credentials: 'include',
   });
 
   const data = await response.json();

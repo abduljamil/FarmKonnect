@@ -8,22 +8,18 @@ const Home = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    const userData = sessionStorage.getItem('user');
 
-    if (!token) {
+    if (!userData) {
       navigate('/signin');
       return;
     }
 
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
+    setUser(JSON.parse(userData));
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
     navigate('/signin');
   };
 
@@ -32,7 +28,7 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-16 sm:pt-20">
       <Navbar user={user} onLogout={handleLogout} />
 
       <main className="max-w-7xl mx-auto px-8 py-10">

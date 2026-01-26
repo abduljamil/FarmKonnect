@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import API_URL from "../config";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import Navbar from "../components/Navbar";
 import Loader from "../components/Loader";
+import ConfirmModal from "../components/ConfirmModal";
 import chatAPI from "../utils/chatApi";
 
 const Products = () => {
@@ -19,6 +21,8 @@ const Products = () => {
     minPrice: "",
     maxPrice: "",
   });
+  const [deleteModal, setDeleteModal] = useState({ open: false, product: null });
+  const [deleting, setDeleting] = useState(null);
 
   useEffect(() => {
     const userData = sessionStorage.getItem("user");
@@ -52,19 +56,14 @@ const Products = () => {
       if (filter.minPrice) queryParams.append("minPrice", filter.minPrice);
       if (filter.maxPrice) queryParams.append("maxPrice", filter.maxPrice);
 
-      let endpoint = "http://localhost:3000/api/products";
+      let endpoint = `${API_URL}/products`;
       if (activeTab === "my-products") {
-        endpoint = "http://localhost:3000/api/products/my/products";
+        endpoint = `${API_URL}/products/my/products`;
       }
-
-      const token = sessionStorage.getItem("token");
-      const headers = activeTab === "my-products" && token
-        ? { Authorization: `Bearer ${token}` }
-        : {};
 
       const response = await fetch(
         `${endpoint}?${queryParams.toString()}`,
-        { headers }
+        { credentials: 'include' }
       );
       const data = await response.json();
 
@@ -79,22 +78,20 @@ const Products = () => {
   };
 
   const handleStartChat = async (product) => {
-    const currentUser = JSON.parse(sessionStorage.getItem("user"));
-    if (!currentUser) {
+    if (!user) {
       navigate("/signin");
       return;
     }
 
     try {
-      const token = sessionStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:3000/api/chat/conversations",
+        `${API_URL}/chat/conversations`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
+          credentials: 'include',
           body: JSON.stringify({
             productId: product._id,
             sellerId: product.seller._id,
@@ -103,13 +100,9 @@ const Products = () => {
       );
 
       const data = await response.json();
-      console.log("Chat API response:", data);
 
       if (data.success && data.data) {
-        console.log("Navigating to chat with conversation:", data.data._id);
         navigate("/chat", { state: { conversationId: data.data._id } });
-      } else {
-        console.error("Failed to create conversation:", data);
       }
     } catch (error) {
       console.error("Error starting chat:", error);
@@ -125,6 +118,42 @@ const Products = () => {
     fetchProducts();
   };
 
+  const openDeleteModal = (product) => {
+    setDeleteModal({ open: true, product });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ open: false, product: null });
+  };
+
+  const handleDelete = async () => {
+    const productId = deleteModal.product?._id;
+    if (!productId) return;
+
+    setDeleting(productId);
+    closeDeleteModal();
+
+    try {
+      const response = await fetch(
+        `${API_URL}/listings/${productId}`,
+        {
+          method: "DELETE",
+          credentials: 'include',
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setProducts((prev) => prev.filter((p) => p._id !== productId));
+      }
+    } catch (error) {
+      console.error("Error deleting listing:", error);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   const handleLogout = () => {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
@@ -136,7 +165,7 @@ const Products = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pt-16 sm:pt-20">
       {user && (
         <Navbar user={user} onLogout={handleLogout} unreadCount={unreadCount} />
       )}
@@ -222,15 +251,16 @@ const Products = () => {
                 name="category"
                 value={filter.category}
                 onChange={handleFilterChange}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="min-w-[150px] px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none shadow-sm cursor-pointer"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundSize: '1.25rem', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat' }}
               >
-                <option value="">All Categories</option>
-                <option value="crops">Crops</option>
-                <option value="livestock">Livestock</option>
-                <option value="equipment">Equipment</option>
-                <option value="fertilizers">Fertilizers</option>
-                <option value="seeds">Seeds</option>
-                <option value="other">Other</option>
+                <option value="" className="bg-white dark:bg-gray-900">All Categories</option>
+                <option value="crops" className="bg-white dark:bg-gray-900">Crops</option>
+                <option value="livestock" className="bg-white dark:bg-gray-900">Livestock</option>
+                <option value="equipment" className="bg-white dark:bg-gray-900">Equipment</option>
+                <option value="fertilizers" className="bg-white dark:bg-gray-900">Fertilizers</option>
+                <option value="seeds" className="bg-white dark:bg-gray-900">Seeds</option>
+                <option value="other" className="bg-white dark:bg-gray-900">Other</option>
               </select>
               <input
                 type="number"
@@ -320,14 +350,11 @@ const Products = () => {
                         Edit
                       </Button>
                       <Button
-                        onClick={() => {
-                          if (window.confirm('Delete this listing?')) {
-                            // Add delete logic here
-                          }
-                        }}
+                        onClick={() => openDeleteModal(product)}
+                        disabled={deleting === product._id}
                         className="flex-1 bg-red-600 hover:bg-red-700"
                       >
-                        Delete
+                        {deleting === product._id ? "..." : "Delete"}
                       </Button>
                     </div>
                   ) : (
@@ -356,6 +383,24 @@ const Products = () => {
           </>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={deleteModal.open}
+        onClose={closeDeleteModal}
+        onConfirm={handleDelete}
+        title="Delete Listing"
+        message={
+          <>
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-gray-900 dark:text-white">
+              "{deleteModal.product?.title}"
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        variant="danger"
+      />
     </div>
   );
 };

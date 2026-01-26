@@ -1,4 +1,6 @@
 import { useEffect, useCallback } from 'react';
+import { useAuth } from "../utils/auth";
+import API_URL from "../config";
 
 /**
  * Hook to automatically sync user data from the server
@@ -7,19 +9,17 @@ import { useEffect, useCallback } from 'react';
 const useUserSync = (user, setUser, navigate) => {
   const syncUserData = useCallback(async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      if (!token) return;
+      // Check if user exists in sessionStorage
+      const userData = sessionStorage.getItem('user');
+      if (!userData) return;
 
-      const response = await fetch('http://localhost:3000/api/auth/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch(`${API_URL}/auth/me`, {
+        credentials: 'include',
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-          // Token is invalid, logout
-          sessionStorage.removeItem('token');
+          // Session is invalid, logout
           sessionStorage.removeItem('user');
           navigate('/signin');
         }
@@ -33,8 +33,6 @@ const useUserSync = (user, setUser, navigate) => {
         
         // Check if role has changed
         if (currentUser.role !== data.user.role) {
-          console.log('User role updated from', currentUser.role, 'to', data.user.role);
-          
           // Update sessionStorage
           const updatedUser = {
             ...currentUser,

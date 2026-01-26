@@ -25,7 +25,7 @@ const listingSchema = new mongoose.Schema({
       type: String, // URLs to images
     },
   ],
-  seller: {
+  createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,

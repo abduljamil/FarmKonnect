@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import API_URL from "../config";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Select from "../components/Select";
 import Navbar from "../components/Navbar";
+import ImageUpload from "../components/ImageUpload";
+import { uploadAPI } from "../utils/api";
 import chatAPI from "../utils/chatApi";
 
 const EditProduct = () => {
@@ -23,9 +26,11 @@ const EditProduct = () => {
     location: "",
     quantity: "",
     unit: "",
-    images: "",
     status: "",
   });
+  const [imagePreviews, setImagePreviews] = useState([]); // URLs for display
+  const [imageFiles, setImageFiles] = useState([]); // File objects (null for existing images)
+  const [originalImages, setOriginalImages] = useState([]); // Track original images to detect deletions
 
   const categories = [
     { value: "crops", label: "Crops" },
@@ -53,20 +58,14 @@ const EditProduct = () => {
 
   useEffect(() => {
     const userData = sessionStorage.getItem("user");
-    const token = sessionStorage.getItem("token");
 
-    if (!userData || !token) {
+    if (!userData) {
       navigate("/signin");
       return;
     }
 
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
-
-    if (parsedUser.role !== "seller" && parsedUser.role !== "admin") {
-      navigate("/");
-      return;
-    }
 
     loadUnreadCount();
     fetchProduct();
@@ -83,11 +82,8 @@ const EditProduct = () => {
 
   const fetchProduct = async () => {
     try {
-      const token = sessionStorage.getItem("token");
-      const response = await fetch(`http://localhost:3000/api/listings/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch(`${API_URL}/listings/${id}`, {
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -95,11 +91,14 @@ const EditProduct = () => {
       if (data.success) {
         const product = data.data;
 
-        // Check if user is the seller
+        // Check if user is the owner
         const userData = JSON.parse(sessionStorage.getItem("user"));
-        if (product.seller._id !== userData.id) {
+        const ownerId = (product.createdBy?._id || product.createdBy || product.seller?._id || product.seller)?.toString();
+        const userId = (userData._id || userData.id)?.toString();
+
+        if (ownerId && userId && ownerId !== userId) {
           setError("You are not authorized to edit this product");
-          setTimeout(() => navigate("/my-products"), 2000);
+          setTimeout(() => navigate("/my-listings"), 2000);
           return;
         }
 
@@ -111,9 +110,14 @@ const EditProduct = () => {
           location: product.location,
           quantity: product.quantity?.toString() || "",
           unit: product.unit || "",
-          images: product.images?.join("\n") || "",
           status: product.status || "active",
         });
+
+        // Initialize images - existing URLs with null placeholders in files array
+        const existingImages = product.images || [];
+        setImagePreviews(existingImages);
+        setImageFiles(existingImages.map(() => null)); // null for each existing image
+        setOriginalImages(existingImages); // Track original images for deletion detection
       } else {
         setError(data.message || "Failed to load product");
       }
@@ -139,17 +143,36 @@ const EditProduct = () => {
     setLoading(true);
 
     try {
-      const token = sessionStorage.getItem("token");
-      if (!token) {
-        navigate("/signin");
-        return;
+      // Separate existing URLs from new files
+      const existingUrls = [];
+      const newFiles = [];
+
+      imagePreviews.forEach((preview, index) => {
+        if (preview.startsWith('blob:')) {
+          // This is a new file - get corresponding File object
+          const file = imageFiles[index];
+          if (file) newFiles.push(file);
+        } else {
+          // This is an existing URL
+          existingUrls.push(preview);
+        }
+      });
+
+      // Upload new images if any
+      let uploadedUrls = [];
+      if (newFiles.length > 0) {
+        try {
+          const uploadResult = await uploadAPI.uploadListingImages(newFiles);
+          uploadedUrls = uploadResult.data.images;
+        } catch (uploadErr) {
+          setError("Failed to upload images. Please try again.");
+          setLoading(false);
+          return;
+        }
       }
 
-      // Process images (split by comma or newline)
-      const imageUrls = formData.images
-        .split(/[,\n]/)
-        .map((url) => url.trim())
-        .filter((url) => url.length > 0);
+      // Combine existing URLs with newly uploaded URLs
+      const allImageUrls = [...existingUrls, ...uploadedUrls];
 
       const productData = {
         title: formData.title,
@@ -159,23 +182,40 @@ const EditProduct = () => {
         location: formData.location,
         quantity: parseFloat(formData.quantity),
         unit: formData.unit,
-        images: imageUrls,
+        images: allImageUrls,
         status: formData.status,
       };
 
-      const response = await fetch(`http://localhost:3000/api/listings/${id}`, {
+      const response = await fetch(`${API_URL}/listings/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: 'include',
         body: JSON.stringify(productData),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        navigate("/my-listings");
+        // Clean up blob URLs
+        imagePreviews.forEach(url => {
+          if (url.startsWith('blob:')) {
+            URL.revokeObjectURL(url);
+          }
+        });
+
+        // Delete removed images from Cloudinary
+        const removedImages = originalImages.filter(url => !existingUrls.includes(url));
+        for (const imageUrl of removedImages) {
+          try {
+            await uploadAPI.deleteImage(imageUrl);
+          } catch (err) {
+            console.error("Failed to delete image from Cloudinary:", err);
+          }
+        }
+
+        navigate("/listings");
       } else {
         setError(data.message || "Failed to update listing");
       }
@@ -204,7 +244,7 @@ const EditProduct = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-8 pt-20 sm:pt-24">
       {user && (
         <Navbar user={user} onLogout={handleLogout} unreadCount={unreadCount} />
       )}
@@ -309,30 +349,28 @@ const EditProduct = () => {
             />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">
-                Image URLs (one per line or comma separated)
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">
+                Product Images
               </label>
-              <textarea
-                name="images"
-                value={formData.images}
-                onChange={handleChange}
-                placeholder="https://example.com/image1.jpg"
-                rows={3}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-900 dark:text-white dark:border-gray-600 dark:placeholder-gray-500"
+              <ImageUpload
+                images={imagePreviews}
+                onImagesChange={setImagePreviews}
+                maxImages={10}
+                type="product"
+                deferUpload={true}
+                files={imageFiles}
+                onFilesChange={setImageFiles}
               />
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Optional: Add image URLs to showcase your product
-              </p>
             </div>
 
             <div className="flex gap-4">
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? "Updating..." : "Update Product"}
+                {loading ? (imageFiles.some(f => f !== null) ? "Uploading images..." : "Updating...") : "Update Product"}
               </Button>
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => navigate("/my-products")}
+                onClick={() => navigate("/my-listings")}
                 disabled={loading}
               >
                 Cancel

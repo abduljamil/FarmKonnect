@@ -4,9 +4,17 @@
  */
 
 const users = require('./repositories/users');
+const listings = require('./repositories/listings');
+const messages = require('./repositories/messages');
+const conversations = require('./repositories/conversations');
+const prices = require('./repositories/prices');
+const priceAlerts = require('./repositories/priceAlerts');
 
 module.exports = {
   users,
-  // Add other repositories here as you create them
-  // e.g., products, orders, etc.
+  listings,
+  messages,
+  conversations,
+  prices,
+  priceAlerts
 };

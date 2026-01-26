@@ -4,13 +4,13 @@ const ErrorMessage = ({ message, onClose }) => {
   if (!message) return null;
 
   return (
-    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3 text-red-800 animate-[slideIn_0.3s_ease]">
+    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6 flex items-center gap-3 text-red-800 dark:text-red-400 animate-[slideIn_0.3s_ease]">
       <span className="text-xl flex-shrink-0">⚠️</span>
       <span className="flex-1 text-sm font-medium">{message}</span>
       {onClose && (
-        <button 
-          className="w-6 h-6 flex items-center justify-center rounded hover:bg-red-200 transition-colors text-lg"
-          onClick={onClose} 
+        <button
+          className="w-6 h-6 flex items-center justify-center rounded hover:bg-red-200 dark:hover:bg-red-800/50 transition-colors text-lg"
+          onClick={onClose}
           aria-label="Close"
         >
           ✕

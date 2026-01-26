@@ -17,6 +17,30 @@ class AuthService {
   }
 
   /**
+   * Generate JWT token and return user data (for OAuth and email verification)
+   * @param {Object} user - User document
+   * @returns {Object} Token and user data
+   */
+  generateTokenForUser(user) {
+    const token = this.generateToken(user._id);
+    return {
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        phone: user.phone,
+        location: user.location,
+        bio: user.bio,
+        isEmailVerified: user.isEmailVerified,
+        authProvider: user.authProvider,
+      },
+    };
+  }
+
+  /**
    * Register a new user
    * @param {Object} userData - User registration data
    * @param {string} userData.name - User's full name
@@ -40,7 +64,7 @@ class AuthService {
       name,
       email,
       password,
-      role: role || 'buyer',
+      role: role || 'user',
     });
 
     // Generate token
@@ -53,6 +77,7 @@ class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatar: user.avatar,
       },
     };
   }
@@ -89,6 +114,7 @@ class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatar: user.avatar,
       },
     };
   }
@@ -101,7 +127,7 @@ class AuthService {
    */
   async getUserById(userId) {
     const user = await users.findById(userId);
-    
+
     if (!user) {
       throw new Error('User not found');
     }
@@ -111,6 +137,12 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
+      avatar: user.avatar,
+      phone: user.phone,
+      location: user.location,
+      bio: user.bio,
+      isEmailVerified: user.isEmailVerified,
+      authProvider: user.authProvider,
       createdAt: user.createdAt,
     };
   }
@@ -143,7 +175,6 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
-      createdAt: user.createdAt,
     };
   }
 
@@ -174,23 +205,15 @@ class AuthService {
 
     return {
       users: result.data.map(user => ({
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         createdAt: user.createdAt,
       })),
       pagination: result.pagination,
     };
-  }
-
-  /**
-   * Get total count of users
-   * @returns {Object} Count of users
-   */
-  async getUsersCount() {
-    const count = await users.count();
-    return { count };
   }
 
   /**
@@ -205,6 +228,28 @@ class AuthService {
     } catch (error) {
       throw new Error('Invalid or expired token');
     }
+  }
+
+  /**
+   * Get users count statistics
+   * @returns {Object} Total users and count by role
+   */
+  async getUsersCount() {
+    const roleStats = await users.getUserStatsByRole();
+
+    // Calculate total from role stats
+    const total = roleStats.reduce((sum, stat) => sum + stat.count, 0);
+
+    // Convert array to object for easier access
+    const byRole = {};
+    roleStats.forEach(stat => {
+      byRole[stat.role] = stat.count;
+    });
+
+    return {
+      total,
+      byRole,
+    };
   }
 }
 

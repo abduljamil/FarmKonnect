@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Users, Target, Heart, Shield, Leaf, TrendingUp } from "lucide-react";
 import Navbar from "../components/Navbar";
+import GuestNavbar from "../components/GuestNavbar";
 import Footer from "../components/Footer";
 
 const AboutUs = () => {
@@ -51,10 +52,10 @@ const AboutUs = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-            {user && <Navbar user={user} />}
+            {user ? <Navbar user={user} /> : <GuestNavbar />}
 
             {/* Hero Section */}
-            <div className="bg-gradient-to-br from-primary-600 to-emerald-600 dark:from-primary-800 dark:to-emerald-800 text-white">
+            <div className="bg-gradient-to-br from-primary-600 to-emerald-600 dark:from-primary-800 dark:to-emerald-800 text-white pt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
                     <h1 className="text-4xl md:text-5xl font-bold mb-6">
                         Empowering Pakistani Farmers
@@ -156,29 +157,31 @@ const AboutUs = () => {
                 </div>
             </div>
 
-            {/* CTA Section */}
-            <div className="bg-gradient-to-r from-primary-600 to-emerald-600 dark:from-primary-800 dark:to-emerald-800 py-16">
-                <div className="max-w-4xl mx-auto px-4 text-center text-white">
-                    <h2 className="text-3xl font-bold mb-4">Ready to Join FarmKonnect?</h2>
-                    <p className="text-white/90 mb-8">
-                        Start selling your produce directly to buyers and get the best prices for your hard work.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link
-                            to="/signup"
-                            className="px-8 py-3 bg-white text-primary-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-                        >
-                            Get Started Free
-                        </Link>
-                        <Link
-                            to="/contact"
-                            className="px-8 py-3 border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors"
-                        >
-                            Contact Us
-                        </Link>
+            {/* CTA Section - Only show when not logged in */}
+            {!user && (
+                <div className="bg-gradient-to-r from-primary-600 to-emerald-600 dark:from-primary-800 dark:to-emerald-800 py-16">
+                    <div className="max-w-4xl mx-auto px-4 text-center text-white">
+                        <h2 className="text-3xl font-bold mb-4">Ready to Join FarmKonnect?</h2>
+                        <p className="text-white/90 mb-8">
+                            Start selling your produce directly to buyers and get the best prices for your hard work.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <Link
+                                to="/signup"
+                                className="px-8 py-3 bg-white text-primary-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                            >
+                                Get Started Free
+                            </Link>
+                            <Link
+                                to="/contact"
+                                className="px-8 py-3 border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors"
+                            >
+                                Contact Us
+                            </Link>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             <Footer />
         </div>
