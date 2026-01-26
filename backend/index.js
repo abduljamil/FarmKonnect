@@ -18,7 +18,6 @@ const priceAlertRoutes = require("./routes/priceAlerts");
 const paymentRoutes = require("./routes/payments");
 const reviewRoutes = require("./routes/reviews");
 const initializeSocket = require("./config/socket");
-<<<<<<< Updated upstream
 const { runScraper } = require("./services/scraperService");
 const alertService = require("./services/alertService");
 const cron = require("node-cron");
@@ -42,9 +41,6 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Reason:', reason);
   // Don't exit - keep the server running
 });
-=======
-const cookieParser = require("cookie-parser");
->>>>>>> Stashed changes
 
 const app = express();
 const server = http.createServer(app);
@@ -57,10 +53,12 @@ const io = initializeSocket(server);
 configurePassport();
 
 
+app.set('trust proxy', 1);
+
 // Rate limiting
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // Limit each IP to 200 requests per windowMs
+  max: 500, // Increased limit for dashboard burst
   message: { success: false, message: "Too many requests, please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
@@ -88,7 +86,6 @@ app.use(cors({
 }));
 
 // Middleware
-<<<<<<< Updated upstream
 app.use(helmet());
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
@@ -114,11 +111,6 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
-=======
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
->>>>>>> Stashed changes
 
 // Make io instance available to routes via middleware
 app.use((req, res, next) => {
@@ -126,33 +118,8 @@ app.use((req, res, next) => {
   next();
 });
 
-<<<<<<< Updated upstream
 // Static files (Merged from current version)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-=======
-// CORS middleware (for development)
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5175",
-  ];
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-  }
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
->>>>>>> Stashed changes
 
 // Routes
 app.use("/api/auth", authRoutes);

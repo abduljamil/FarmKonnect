@@ -23,14 +23,6 @@ exports.signup = async (req, res) => {
       console.error('Error sending verification email:', emailError);
       // Don't fail signup if email fails
     }
-<<<<<<< Updated upstream
-
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully. Please check your email to verify your account.',
-      ...result,
-=======
-    
     // Set cookie
     res.cookie('token', result.token, {
       httpOnly: true,
@@ -41,10 +33,10 @@ exports.signup = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: 'User registered successfully. Please check your email to verify your account.',
       user: result.user
->>>>>>> Stashed changes
     });
+
   } catch (error) {
     console.error('Signup error:', error);
     
@@ -75,20 +67,11 @@ exports.signin = async (req, res) => {
 
     const result = await authService.loginUser(email, password);
     
-<<<<<<< Updated upstream
-    // Set token as HTTP-only cookie
-    res.cookie('token', result.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-=======
     // Set cookie
     res.cookie('token', result.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
->>>>>>> Stashed changes
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
     res.status(200).json({
