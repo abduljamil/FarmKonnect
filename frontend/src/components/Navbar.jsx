@@ -74,7 +74,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
     }
 
     // Request notification permission
-    if (Notification.permission === "default") {
+    if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
 
@@ -97,7 +97,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
       setOrderNotificationCount((prev) => prev + 1);
 
       // Show browser notification
-      if (Notification.permission === "granted") {
+      if ("Notification" in window && Notification.permission === "granted") {
         new Notification(notification.title, {
           body: notification.message,
           icon: "/favicon.ico",
@@ -130,7 +130,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
       setOrderNotificationCount((prev) => prev + 1);
 
       // Show browser notification
-      if (Notification.permission === "granted") {
+      if ("Notification" in window && Notification.permission === "granted") {
         new Notification(notification.title, {
           body: notification.message,
           icon: "/favicon.ico",
@@ -157,7 +157,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
       setOrderNotificationCount((prev) => prev + 1);
 
       // Show browser notification
-      if (Notification.permission === "granted") {
+      if ("Notification" in window && Notification.permission === "granted") {
         new Notification(notification.title, {
           body: notification.message,
           icon: "/favicon.ico",
@@ -183,7 +183,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
       setSupportNotificationCount((prev) => prev + 1);
 
       // Show browser notification
-      if (Notification.permission === "granted") {
+      if ("Notification" in window && Notification.permission === "granted") {
         new Notification(notification.title, {
           body: notification.message,
           icon: "/favicon.ico",
@@ -211,7 +211,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
         setSupportNotificationCount((prev) => prev + 1);
 
         // Show browser notification
-        if (Notification.permission === "granted") {
+        if ("Notification" in window && Notification.permission === "granted") {
           new Notification(notification.title, {
             body: notification.message,
             icon: "/favicon.ico",
