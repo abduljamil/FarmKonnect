@@ -5,11 +5,19 @@ exports.protect = async (req, res, next) => {
   try {
     let token;
 
+<<<<<<< Updated upstream
     // Check for token in cookies first
     if (req.cookies.token) {
       token = req.cookies.token;
     }
     // Fallback to checking headers for backward compatibility
+=======
+    // Check for token in cookies
+    if (req.cookies.token) {
+      token = req.cookies.token;
+    }
+    // Fallback to header for testing/dev tools (optional, can be removed for strict cookie-only)
+>>>>>>> Stashed changes
     else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }

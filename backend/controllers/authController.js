@@ -23,11 +23,27 @@ exports.signup = async (req, res) => {
       console.error('Error sending verification email:', emailError);
       // Don't fail signup if email fails
     }
+<<<<<<< Updated upstream
 
     res.status(201).json({
       success: true,
       message: 'User registered successfully. Please check your email to verify your account.',
       ...result,
+=======
+    
+    // Set cookie
+    res.cookie('token', result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      user: result.user
+>>>>>>> Stashed changes
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -59,18 +75,26 @@ exports.signin = async (req, res) => {
 
     const result = await authService.loginUser(email, password);
     
+<<<<<<< Updated upstream
     // Set token as HTTP-only cookie
     res.cookie('token', result.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
+=======
+    // Set cookie
+    res.cookie('token', result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+>>>>>>> Stashed changes
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
     res.status(200).json({
       success: true,
       message: 'Login successful',
-      ...result,
+      user: result.user
     });
   } catch (error) {
     console.error('Signin error:', error);
@@ -81,6 +105,28 @@ exports.signin = async (req, res) => {
     res.status(statusCode).json({
       success: false,
       message: error.message || 'Error logging in',
+    });
+  }
+};
+
+// @desc    Logout user
+// @route   GET /api/auth/logout
+// @access  Private
+exports.logout = async (req, res) => {
+  try {
+    res.cookie('token', 'none', {
+      expires: new Date(Date.now() + 10 * 1000),
+      httpOnly: true
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'User logged out successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error logging out'
     });
   }
 };

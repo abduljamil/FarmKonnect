@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
             // Clear storage if used (SignIn uses sessionStorage)
             sessionStorage.removeItem("user");
-            localStorage.removeItem("token");
+            // localStorage.removeItem("token"); // Token is handling by cookie now
             localStorage.removeItem("user");
         } catch (error) {
             console.error('Logout error:', error);
