@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import API_URL from "../config";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Select from "../components/Select";
 import Navbar from "../components/Navbar";
+import ImageUpload from "../components/ImageUpload";
+import { uploadAPI } from "../utils/api";
 import chatAPI from "../utils/chatApi";
 
 const CreateProduct = () => {
@@ -21,8 +24,9 @@ const CreateProduct = () => {
     location: "",
     quantity: "",
     unit: "",
-    images: "",
   });
+  const [imagePreviews, setImagePreviews] = useState([]); // For displaying previews
+  const [imageFiles, setImageFiles] = useState([]); // Actual File objects to upload
 
   const categories = [
     { value: "crops", label: "Crops" },
@@ -47,8 +51,11 @@ const CreateProduct = () => {
     if (userData) {
       setUser(JSON.parse(userData));
       loadUnreadCount();
+    } else {
+      // Redirect to signin if not logged in
+      navigate("/signin");
     }
-  }, []);
+  }, [navigate]);
 
   const loadUnreadCount = async () => {
     try {
@@ -73,17 +80,18 @@ const CreateProduct = () => {
     setLoading(true);
 
     try {
-      const token = sessionStorage.getItem("token");
-      if (!token) {
-        navigate("/signin");
-        return;
+      // Upload images first (if any)
+      let uploadedImageUrls = [];
+      if (imageFiles.length > 0) {
+        try {
+          const uploadResult = await uploadAPI.uploadListingImages(imageFiles);
+          uploadedImageUrls = uploadResult.data.images;
+        } catch (uploadErr) {
+          setError("Failed to upload images. Please try again.");
+          setLoading(false);
+          return;
+        }
       }
-
-      // Process images (split by comma or newline)
-      const imageUrls = formData.images
-        .split(/[,\n]/)
-        .map((url) => url.trim())
-        .filter((url) => url.length > 0);
 
       const productData = {
         title: formData.title,
@@ -93,21 +101,27 @@ const CreateProduct = () => {
         location: formData.location,
         quantity: parseFloat(formData.quantity),
         unit: formData.unit,
-        images: imageUrls,
+        images: uploadedImageUrls,
       };
 
-      const response = await fetch("http://localhost:3000/api/listings", {
+      const response = await fetch(`${API_URL}/listings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: 'include', // Uses cookies for auth
         body: JSON.stringify(productData),
       });
 
       const data = await response.json();
 
       if (data.success) {
+        // Clean up preview URLs
+        imagePreviews.forEach(url => {
+          if (url.startsWith('blob:')) {
+            URL.revokeObjectURL(url);
+          }
+        });
         navigate("/listings");
       } else {
         setError(data.message || "Failed to create listing");
@@ -127,7 +141,7 @@ const CreateProduct = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-4 sm:py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-4 sm:py-8 pt-20 sm:pt-24">
       {user && (
         <Navbar user={user} onLogout={handleLogout} unreadCount={unreadCount} />
       )}
@@ -223,20 +237,18 @@ const CreateProduct = () => {
             />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">
-                Image URLs (one per line or comma separated)
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">
+                Product Images
               </label>
-              <textarea
-                name="images"
-                value={formData.images}
-                onChange={handleChange}
-                placeholder="https://example.com/image1.jpg"
-                rows={3}
-                className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-900 dark:text-white dark:border-gray-600 dark:placeholder-gray-500"
+              <ImageUpload
+                images={imagePreviews}
+                onImagesChange={setImagePreviews}
+                maxImages={10}
+                type="product"
+                deferUpload={true}
+                files={imageFiles}
+                onFilesChange={setImageFiles}
               />
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Optional: Add image URLs to showcase your product
-              </p>
             </div>
 
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-2">
@@ -250,7 +262,7 @@ const CreateProduct = () => {
                 Cancel
               </Button>
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? "Creating..." : "Create Product"}
+                {loading ? (imageFiles.length > 0 ? "Uploading images..." : "Creating...") : "Create Product"}
               </Button>
             </div>
           </form>

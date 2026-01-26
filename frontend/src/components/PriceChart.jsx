@@ -1,163 +1,124 @@
-import React, { useMemo, memo, useState, useCallback } from "react";
+import React, { useEffect, memo, useState, useCallback } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
-import { MapPin, ChevronDown } from "lucide-react";
+import API_URL from "../config";
+import {
+  MapPin,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  ChevronDown,
+  Leaf,
+  RefreshCw,
+  BarChart3,
+  Activity,
+  Layers,
+} from "lucide-react";
 
-// Commodity data with varieties and base prices
-const COMMODITIES = {
-  wheat: {
-    name: "Wheat",
-    icon: "🌾",
-    basePrice: 4200,
-    varieties: [
-      { id: "faisalabad-2008", name: "Faisalabad-2008" },
-      { id: "galaxy-2013", name: "Galaxy-2013" },
-      { id: "punjab-2011", name: "Punjab-2011" },
-      { id: "seher-2006", name: "Seher-2006" },
-    ],
+// Import commodity images
+import wheatImg from "../assets/commodities/wheat.png";
+import riceImg from "../assets/commodities/rice.png";
+import cottonImg from "../assets/commodities/cotton.png";
+import sugarImg from "../assets/commodities/sugar.png";
+import maizeImg from "../assets/commodities/maize.png";
+import flourImg from "../assets/commodities/flour.png";
+
+// Commodity configurations with images
+const COMMODITY_CONFIG = {
+  Wheat: {
+    image: wheatImg,
+    emoji: "🌾",
+    color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-100 dark:bg-amber-900/40",
+    gradient: "from-amber-500 to-amber-600",
   },
-  rice: {
-    name: "Rice",
-    icon: "🍚",
-    basePrice: 8500,
-    varieties: [
-      { id: "basmati-super", name: "Basmati Super" },
-      { id: "basmati-385", name: "Basmati 385" },
-      { id: "basmati-515", name: "Basmati 515" },
-      { id: "irri-6", name: "IRRI-6" },
-      { id: "irri-9", name: "IRRI-9" },
-      { id: "kainat", name: "Kainat" },
-      { id: "pk-386", name: "PK-386" },
-    ],
+  Rice: {
+    image: riceImg,
+    emoji: "🍚",
+    color: "text-sky-600 dark:text-sky-400",
+    bg: "bg-sky-100 dark:bg-sky-900/40",
+    gradient: "from-sky-500 to-sky-600",
   },
-  maize: {
-    name: "Maize",
-    icon: "🌽",
-    basePrice: 3200,
-    varieties: [
-      { id: "yellow", name: "Yellow Maize" },
-      { id: "white", name: "White Maize" },
-      { id: "hybrid", name: "Hybrid" },
-    ],
+  Cotton: {
+    image: cottonImg,
+    emoji: "☁️",
+    color: "text-slate-600 dark:text-slate-400",
+    bg: "bg-slate-100 dark:bg-slate-800/60",
+    gradient: "from-slate-500 to-slate-600",
   },
-  sugar: {
-    name: "Sugar",
-    icon: "🍬",
-    basePrice: 140,
-    varieties: [
-      { id: "refined", name: "Refined (Grade A)" },
-      { id: "mill", name: "Mill Sugar" },
-      { id: "desi", name: "Desi" },
-    ],
+  Sugar: {
+    image: sugarImg,
+    emoji: "🧊",
+    color: "text-pink-600 dark:text-pink-400",
+    bg: "bg-pink-100 dark:bg-pink-900/40",
+    gradient: "from-pink-500 to-pink-600",
   },
-  cotton: {
-    name: "Cotton",
-    icon: "☁️",
-    basePrice: 18000,
-    varieties: [
-      { id: "phutti", name: "Phutti (Seed Cotton)" },
-      { id: "banola", name: "Banola" },
-      { id: "lint", name: "Cotton Lint" },
-    ],
+  Maize: {
+    image: maizeImg,
+    emoji: "🌽",
+    color: "text-yellow-600 dark:text-yellow-400",
+    bg: "bg-yellow-100 dark:bg-yellow-900/40",
+    gradient: "from-yellow-500 to-yellow-600",
+  },
+  Flour: {
+    image: flourImg,
+    emoji: "🍞",
+    color: "text-orange-600 dark:text-orange-400",
+    bg: "bg-orange-100 dark:bg-orange-900/40",
+    gradient: "from-orange-500 to-orange-600",
   },
 };
 
-// Major cities/mandis in Punjab
-const CITIES = [
-  { id: "lahore", name: "Lahore" },
-  { id: "faisalabad", name: "Faisalabad" },
-  { id: "multan", name: "Multan" },
-  { id: "rawalpindi", name: "Rawalpindi" },
-  { id: "gujranwala", name: "Gujranwala" },
-  { id: "sialkot", name: "Sialkot" },
-  { id: "bahawalpur", name: "Bahawalpur" },
-  { id: "sargodha", name: "Sargodha" },
-  { id: "okara", name: "Okara" },
-  { id: "sahiwal", name: "Sahiwal" },
+// Time period options
+const TIME_PERIODS = [
+  { label: "1W", value: 7 },
+  { label: "2W", value: 14 },
+  { label: "1M", value: 30 },
+  { label: "3M", value: 90 },
 ];
 
-// Translation helper
-const translations = {
-  "dashboard.priceChart": "Price Chart",
-  "dashboard.chartDescription": "Historical data and ML-based price forecasts",
-  "dashboard.historicalData": "Historical Data",
-  "dashboard.mlForecast": "ML Forecast",
-  "dashboard.days": "days",
-  "dashboard.chartSource": "Source",
-  "dashboard.scraped": "Scraped",
-  "dashboard.selectVariety": "Select Variety",
-  "dashboard.selectCity": "Select City",
-  "dashboard.currentPrice": "Current Price",
-  "dashboard.change": "Change",
-};
+// Chart type options
+const CHART_TYPES = [
+  { type: "area", icon: Layers, label: "Area" },
+  { type: "line", icon: Activity, label: "Line" },
+  { type: "bar", icon: BarChart3, label: "Bar" },
+];
 
-const t = (key) => translations[key] || key;
+// Loading Skeleton
+const ChartSkeleton = () => (
+  <div className="animate-pulse space-y-4">
+    <div className="flex gap-2 overflow-x-auto pb-2">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div key={i} className="h-14 w-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+      ))}
+    </div>
+    <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+    <div className="h-64 bg-gray-100 dark:bg-gray-800 rounded-xl" />
+  </div>
+);
 
-// Generate mock price data based on commodity, variety, and city
-const generateMockData = (commodityKey, varietyId, cityId) => {
-  const data = [];
-  const today = new Date();
-  const commodity = COMMODITIES[commodityKey];
-  
-  // Use commodity, variety, and city to create deterministic but varied pricing
-  const varietyIndex = commodity.varieties.findIndex(v => v.id === varietyId);
-  const cityIndex = CITIES.findIndex(c => c.id === cityId);
-  const priceMod = (varietyIndex * 50) + (cityIndex * 30);
-  const basePrice = commodity.basePrice + priceMod;
-
-  // Generate 30 days of historical data
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const variance = Math.sin((i + varietyIndex) / 5) * (basePrice * 0.05);
-    const cityVariance = Math.cos((i + cityIndex) / 7) * (basePrice * 0.03);
-    const noise = (Math.random() - 0.5) * (basePrice * 0.02);
-
-    data.push({
-      date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      historical: Math.round(basePrice + variance + cityVariance + noise),
-      forecast: null,
-      type: "historical",
-    });
-  }
-
-  // Generate 7 days of forecast data
-  const lastHistoricalPrice = data[data.length - 1].historical;
-  for (let i = 1; i <= 7; i++) {
-    const date = new Date(today);
-    date.setDate(date.getDate() + i);
-    const trend = Math.sin(i / 3) * (basePrice * 0.04);
-    const forecast = Math.round(lastHistoricalPrice + trend);
-
-    data.push({
-      date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      historical: null,
-      forecast: forecast,
-      type: "forecast",
-    });
-  }
-
-  return data;
-};
-
-// Custom tooltip component
+// Custom Tooltip
 const CustomTooltip = memo(({ active, payload }) => {
   if (active && payload && payload.length) {
     const dataPoint = payload[0].payload;
     const value = payload[0].value;
     return (
-      <div className="bg-white dark:bg-gray-900 p-3 border border-gray-300 dark:border-gray-600 rounded shadow-lg">
+      <div className="bg-white dark:bg-gray-800 px-3 py-2 border border-primary-500 rounded-xl shadow-lg">
         <p className="text-sm font-semibold text-gray-900 dark:text-white">{dataPoint.date}</p>
-        <p className="text-sm text-blue-600 dark:text-blue-400">
-          {payload[0].name}: {value?.toLocaleString()} PKR
+        <p className="text-lg font-bold text-primary-600 dark:text-primary-400">
+          ₨{value?.toLocaleString()}
         </p>
       </div>
     );
@@ -167,202 +128,621 @@ const CustomTooltip = memo(({ active, payload }) => {
 
 CustomTooltip.displayName = "CustomTooltip";
 
-const PriceChart = () => {
-  // State for selections
-  const [selectedCommodity, setSelectedCommodity] = useState("wheat");
-  const [selectedVariety, setSelectedVariety] = useState(COMMODITIES.wheat.varieties[0].id);
-  const [selectedCity, setSelectedCity] = useState("lahore");
-
-  // Handle commodity change
-  const handleCommodityChange = useCallback((commodityKey) => {
-    setSelectedCommodity(commodityKey);
-    // Reset variety to first option of new commodity
-    setSelectedVariety(COMMODITIES[commodityKey].varieties[0].id);
-  }, []);
-
-  // Get current commodity data
-  const currentCommodity = COMMODITIES[selectedCommodity];
-  const currentVariety = currentCommodity.varieties.find(v => v.id === selectedVariety);
-  const currentCity = CITIES.find(c => c.id === selectedCity);
-
-  // Generate chart data based on selections
-  const data = useMemo(
-    () => generateMockData(selectedCommodity, selectedVariety, selectedCity),
-    [selectedCommodity, selectedVariety, selectedCity]
+// Commodity Button Component
+const CommodityButton = memo(({ commodity, config, isSelected, onClick }) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-200
+        ${isSelected
+          ? `bg-gradient-to-r ${config.gradient} text-white shadow-md`
+          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-sm border border-gray-200 dark:border-gray-700"
+        }
+      `}
+    >
+      {config.image ? (
+        <img src={config.image} alt={commodity} className="w-10 h-10 object-contain" />
+      ) : (
+        <span className="text-xl">{config.emoji}</span>
+      )}
+      <span className="text-sm font-semibold">{commodity}</span>
+    </button>
   );
+});
 
-  // Calculate current price and change
-  const currentPrice = data.find(d => d.historical !== null && d.type === "historical");
-  const latestPrice = data.filter(d => d.historical !== null).pop()?.historical || 0;
-  const firstPrice = data[0]?.historical || 0;
-  const priceChange = firstPrice ? ((latestPrice - firstPrice) / firstPrice * 100).toFixed(1) : 0;
-  const isPositive = priceChange >= 0;
+CommodityButton.displayName = "CommodityButton";
+
+// Dropdown Select Component
+const DropdownSelect = memo(({ label, icon: Icon, value, options, onChange, disabled }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-      {/* Commodity Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
-        <div className="flex overflow-x-auto scrollbar-hide">
-          {Object.entries(COMMODITIES).map(([key, commodity]) => (
-            <button
-              key={key}
-              onClick={() => handleCommodityChange(key)}
-              className={`
-                flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap
-                border-b-2 transition-colors duration-200
-                ${selectedCommodity === key
-                  ? "border-emerald-600 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20"
-                  : "border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                }
-              `}
-            >
-              <span className="text-lg">{commodity.icon}</span>
-              <span>{commodity.name}</span>
-            </button>
-          ))}
+    <div className="relative">
+      <button
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`
+          w-full flex items-center justify-between gap-2 px-3 py-2
+          bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
+          rounded-xl text-left transition-all duration-200
+          ${disabled ? "opacity-50 cursor-not-allowed" : "hover:border-primary-500"}
+          ${isOpen ? "border-primary-500 ring-2 ring-primary-100 dark:ring-primary-900/30" : ""}
+        `}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <Icon className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+          <div className="min-w-0">
+            <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+            <p className="text-base font-semibold text-gray-900 dark:text-white truncate">{value || "Select..."}</p>
+          </div>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+          <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+            {options.map((option) => (
+              <button
+                key={option}
+                onClick={() => {
+                  onChange(option);
+                  setIsOpen(false);
+                }}
+                className={`
+                  w-full px-3 py-2 text-left text-sm font-medium transition-colors
+                  ${value === option
+                    ? "bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }
+                `}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+});
+
+DropdownSelect.displayName = "DropdownSelect";
+
+// Price Stats Card
+const PriceStatsCard = memo(({ label, value, unit, icon: Icon, color }) => (
+  <div className={`p-3 rounded-xl ${color}`}>
+    <div className="flex items-center gap-1.5 mb-1">
+      <Icon className="w-4 h-4" />
+      <span className="text-xs font-medium opacity-80">{label}</span>
+    </div>
+    <p className="text-lg font-bold">₨{value?.toLocaleString() || "—"}</p>
+    <p className="text-xs opacity-70">/{unit}</p>
+  </div>
+));
+
+PriceStatsCard.displayName = "PriceStatsCard";
+
+// Chart Type Button
+const ChartTypeButton = memo(({ active, onClick, icon: Icon, label }) => (
+  <button
+    onClick={onClick}
+    title={label}
+    className={`
+      p-2 rounded-lg transition-all duration-200
+      ${active
+        ? "bg-primary-600 text-white shadow-sm"
+        : "text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+      }
+    `}
+  >
+    <Icon className="w-4 h-4" />
+  </button>
+));
+
+ChartTypeButton.displayName = "ChartTypeButton";
+
+const PriceChart = ({ user, onLoginRequired }) => {
+  const { t } = useLanguage();
+  const [commodities, setCommodities] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [varieties, setVarieties] = useState([]);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [chartType, setChartType] = useState("area");
+
+  const [selectedCommodity, setSelectedCommodity] = useState("");
+  const [selectedVariety, setSelectedVariety] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [days, setDays] = useState(30);
+
+  // Fetch initial data
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchInitialData = async () => {
+      try {
+        const [commoditiesRes, citiesRes] = await Promise.all([
+          fetch(`${API_URL}/prices/commodities`),
+          fetch(`${API_URL}/prices/cities`),
+        ]);
+
+        const commoditiesData = await commoditiesRes.json();
+        const citiesData = await citiesRes.json();
+
+        if (!commoditiesRes.ok || !citiesRes.ok) {
+          throw new Error("Failed to fetch price data");
+        }
+
+        if (isMounted) {
+          const TARGET_COMMODITIES = ["Wheat", "Rice", "Cotton", "Sugar", "Maize", "Flour"];
+          const commodityList = (commoditiesData.data || []).filter(c =>
+            TARGET_COMMODITIES.includes(c)
+          );
+          const cityList = citiesData.data || [];
+
+          setCommodities(commodityList);
+          setCities(cityList);
+          setSelectedCommodity(commodityList[0] || "");
+          setSelectedCity(cityList[0] || "");
+          setLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message || "Failed to load price data");
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchInitialData();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Fetch varieties when commodity changes
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchVarieties = async () => {
+      if (!selectedCommodity) return;
+
+      try {
+        const response = await fetch(
+          `${API_URL}/prices/varieties/${encodeURIComponent(selectedCommodity)}`
+        );
+        const responseData = await response.json();
+
+        if (isMounted && response.ok) {
+          const list = responseData.data || [];
+          setVarieties(list);
+          setSelectedVariety(list[0] || "");
+        }
+      } catch {
+        if (isMounted) {
+          setVarieties([]);
+          setSelectedVariety("");
+        }
+      }
+    };
+
+    fetchVarieties();
+    return () => { isMounted = false; };
+  }, [selectedCommodity]);
+
+  // Fetch cities based on commodity/variety
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCities = async () => {
+      if (!selectedCommodity) return;
+
+      try {
+        const params = new URLSearchParams({ commodity: selectedCommodity });
+        if (selectedVariety) params.set("variety", selectedVariety);
+
+        const response = await fetch(
+          `${API_URL}/prices/cities-by-filters?${params.toString()}`
+        );
+        const responseData = await response.json();
+
+        if (isMounted && response.ok) {
+          const list = responseData.data || [];
+          setCities(list);
+          if (!list.includes(selectedCity)) {
+            setSelectedCity(list[0] || "");
+          }
+        }
+      } catch {
+        if (isMounted) {
+          setCities([]);
+          setSelectedCity("");
+        }
+      }
+    };
+
+    fetchCities();
+    return () => { isMounted = false; };
+  }, [selectedCommodity, selectedVariety]);
+
+  // Fetch price history
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchHistory = async () => {
+      if (!selectedCommodity || !selectedCity) return;
+
+      try {
+        const params = new URLSearchParams({
+          commodity: selectedCommodity,
+          city: selectedCity,
+          days: days.toString(),
+        });
+        if (selectedVariety) params.set("variety", selectedVariety);
+
+        const response = await fetch(
+          `${API_URL}/prices/history?${params.toString()}`
+        );
+        const responseData = await response.json();
+
+        if (!response.ok) throw new Error(responseData.message);
+
+        if (isMounted) {
+          const mapped = (responseData.data || []).map((item) => ({
+            date: new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+            price: item.price,
+            unit: item.unit,
+          }));
+
+          setData(mapped);
+          setError("");
+        }
+      } catch (err) {
+        if (isMounted) {
+          setData([]);
+          setError(err.message || "Failed to load price data");
+        }
+      }
+    };
+
+    fetchHistory();
+    return () => { isMounted = false; };
+  }, [selectedCommodity, selectedCity, selectedVariety, days]);
+
+  const handleProtectedAction = useCallback((action) => {
+    if (!user && onLoginRequired) {
+      onLoginRequired();
+      return;
+    }
+    action();
+  }, [user, onLoginRequired]);
+
+  // Calculate statistics
+  const prices = data.map(d => d.price).filter(Boolean);
+  const latestPrice = prices[prices.length - 1] || 0;
+  const firstPrice = prices[0] || 0;
+  const highPrice = Math.max(...prices) || 0;
+  const lowPrice = Math.min(...prices) || 0;
+  const avgPrice = prices.length ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
+  const priceChange = firstPrice ? ((latestPrice - firstPrice) / firstPrice * 100) : 0;
+  const isPositive = priceChange > 0;
+  const isNegative = priceChange < 0;
+
+  const currentConfig = COMMODITY_CONFIG[selectedCommodity] || COMMODITY_CONFIG.Wheat;
+
+  const displayUnit = data.length > 0 && data[data.length - 1]?.unit
+    ? data[data.length - 1].unit.replace('Rs/', '').replace('(Maund)', 'Maund')
+    : (selectedCommodity === 'Sugar' || selectedCommodity === 'Flour' ? 'Kg' : '40Kg Maund');
+
+  const isEmpty = !loading && data.length === 0;
+
+  // Render chart based on type
+  const renderChart = () => {
+    const commonProps = {
+      data,
+      margin: { top: 10, right: 30, left: 5, bottom: 5 }
+    };
+
+    const xAxisProps = {
+      dataKey: "date",
+      tick: { fontSize: 13, fill: "#6b7280", fontWeight: 500 },
+      interval: data.length > 14 ? Math.floor(data.length / 5) : 0,
+      axisLine: false,
+      tickLine: false,
+      tickMargin: 10,
+    };
+
+    const yAxisProps = {
+      tick: { fontSize: 13, fill: "#6b7280", fontWeight: 500 },
+      tickFormatter: (value) => `₨${value.toLocaleString()}`,
+      domain: ["auto", "auto"],
+      axisLine: false,
+      tickLine: false,
+      width: 80,
+    };
+
+    switch (chartType) {
+      case "line":
+        return (
+          <LineChart {...commonProps}>
+            <defs>
+              <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#059669" />
+                <stop offset="100%" stopColor="#10b981" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+            <XAxis {...xAxisProps} />
+            <YAxis {...yAxisProps} />
+            <Tooltip content={<CustomTooltip />} />
+            <Line
+              type="monotone"
+              dataKey="price"
+              stroke="url(#lineGradient)"
+              strokeWidth={2.5}
+              dot={false}
+              activeDot={{ r: 5, fill: "#059669", stroke: "#fff", strokeWidth: 2 }}
+            />
+          </LineChart>
+        );
+
+      case "bar":
+        return (
+          <BarChart {...commonProps}>
+            <defs>
+              <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" />
+                <stop offset="100%" stopColor="#059669" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+            <XAxis {...xAxisProps} />
+            <YAxis {...yAxisProps} />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar dataKey="price" fill="url(#barGradient)" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        );
+
+      default:
+        return (
+          <AreaChart {...commonProps}>
+            <defs>
+              <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="areaStroke" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#059669" />
+                <stop offset="100%" stopColor="#10b981" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+            <XAxis {...xAxisProps} />
+            <YAxis {...yAxisProps} />
+            <Tooltip content={<CustomTooltip />} />
+            <Area
+              type="monotone"
+              dataKey="price"
+              stroke="url(#areaStroke)"
+              strokeWidth={2.5}
+              fill="url(#areaGradient)"
+            />
+          </AreaChart>
+        );
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-primary-50 to-emerald-50 dark:from-primary-900/20 dark:to-emerald-900/20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+              <TrendingUp className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t("priceChart.title")}</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t("priceChart.subtitle")}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Chart Type Toggle */}
+            <div className="flex items-center gap-0.5 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              {CHART_TYPES.map(({ type, icon, label }) => (
+                <ChartTypeButton
+                  key={type}
+                  active={chartType === type}
+                  onClick={() => setChartType(type)}
+                  icon={icon}
+                  label={label}
+                />
+              ))}
+            </div>
+            {/* Live Indicator */}
+            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-green-100 dark:bg-green-900/40 rounded-lg">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span className="text-xs font-medium text-green-700 dark:text-green-400">Live</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="p-6">
-        {/* Filters Row: Variety + City */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          {/* Variety Selector */}
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              {t("dashboard.selectVariety")}
-            </label>
-            <div className="relative">
-              <select
+      {loading ? (
+        <div className="p-4">
+          <ChartSkeleton />
+        </div>
+      ) : (
+        <div className="p-4 space-y-4">
+          {/* Commodity Selection */}
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+            {commodities.map((commodity) => (
+              <CommodityButton
+                key={commodity}
+                commodity={commodity}
+                config={COMMODITY_CONFIG[commodity] || COMMODITY_CONFIG.Wheat}
+                isSelected={selectedCommodity === commodity}
+                onClick={() => setSelectedCommodity(commodity)}
+              />
+            ))}
+          </div>
+
+          {/* Filters Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {/* Variety Dropdown */}
+            {varieties.length > 0 && (
+              <DropdownSelect
+                label={t("priceChart.variety")}
+                icon={Leaf}
                 value={selectedVariety}
-                onChange={(e) => setSelectedVariety(e.target.value)}
-                className="w-full appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
-                         text-gray-900 dark:text-white text-sm rounded-lg px-4 py-2.5 pr-10
-                         focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                {currentCommodity.varieties.map((variety) => (
-                  <option key={variety.id} value={variety.id}>
-                    {variety.name}
-                  </option>
+                options={varieties}
+                onChange={(v) => handleProtectedAction(() => setSelectedVariety(v))}
+              />
+            )}
+
+            {/* City Dropdown */}
+            <DropdownSelect
+              label={t("priceChart.city")}
+              icon={MapPin}
+              value={selectedCity}
+              options={cities}
+              onChange={(c) => handleProtectedAction(() => setSelectedCity(c))}
+            />
+
+            {/* Time Period */}
+            <div className={`${varieties.length > 0 ? "col-span-2 sm:col-span-2" : "col-span-1 sm:col-span-2"}`}>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1.5 ml-1">{t("priceChart.period")}</p>
+              <div className="flex gap-1">
+                {TIME_PERIODS.map((period) => (
+                  <button
+                    key={period.value}
+                    onClick={() => handleProtectedAction(() => setDays(period.value))}
+                    className={`
+                      flex-1 py-2.5 px-2 rounded-lg text-sm font-bold transition-all duration-200
+                      ${days === period.value
+                        ? "bg-primary-600 text-white shadow-md"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                      }
+                    `}
+                  >
+                    {period.label}
+                  </button>
                 ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+              </div>
             </div>
           </div>
 
-          {/* City Selector */}
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              <MapPin className="inline w-3 h-3 mr-1" />
-              {t("dashboard.selectCity")}
-            </label>
-            <div className="relative">
-              <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                className="w-full appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
-                         text-gray-900 dark:text-white text-sm rounded-lg px-4 py-2.5 pr-10
-                         focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                {CITIES.map((city) => (
-                  <option key={city.id} value={city.id}>
-                    {city.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+          {/* Price Display */}
+          <div className="bg-gradient-to-r from-primary-50 to-emerald-50 dark:from-primary-900/20 dark:to-emerald-900/20 rounded-xl p-4 border border-primary-100 dark:border-primary-800/30">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${currentConfig.bg}`}>
+                  {currentConfig.image ? (
+                    <img src={currentConfig.image} alt={selectedCommodity} className="w-12 h-12 object-contain" />
+                  ) : (
+                    <span className="text-2xl">{currentConfig.emoji}</span>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {selectedCommodity} {selectedVariety && `• ${selectedVariety}`} • {selectedCity}
+                  </p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-gray-900 dark:text-white">
+                      ₨{latestPrice.toLocaleString()}
+                    </span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">/{displayUnit}</span>
+                  </div>
+                </div>
+              </div>
+
+              {latestPrice > 0 && (
+                <div className={`
+                  flex items-center gap-2 px-3 py-2 rounded-xl
+                  ${isPositive ? "bg-green-100 dark:bg-green-900/50" : isNegative ? "bg-red-100 dark:bg-red-900/50" : "bg-gray-100 dark:bg-gray-700"}
+                `}>
+                  {isPositive ? (
+                    <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  ) : isNegative ? (
+                    <TrendingDown className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  ) : (
+                    <Minus className="w-5 h-5 text-gray-500" />
+                  )}
+                  <div>
+                    <p className={`text-lg font-bold ${
+                      isPositive ? "text-green-700 dark:text-green-400" : isNegative ? "text-red-700 dark:text-red-400" : "text-gray-600"
+                    }`}>
+                      {isPositive ? "+" : ""}{priceChange.toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Current Price Display */}
-          <div className="flex-1 min-w-[200px] bg-gray-50 dark:bg-gray-700/50 rounded-lg px-4 py-2">
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              {t("dashboard.currentPrice")}
-            </p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                {latestPrice.toLocaleString()}
-              </span>
-              <span className="text-sm text-gray-600 dark:text-gray-400">PKR</span>
-              <span className={`text-sm font-medium ${isPositive ? "text-green-600" : "text-red-600"}`}>
-                {isPositive ? "↑" : "↓"} {Math.abs(priceChange)}%
-              </span>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-3 gap-2">
+            <PriceStatsCard
+              label={t("priceChart.high")}
+              value={highPrice}
+              unit={displayUnit}
+              icon={TrendingUp}
+              color="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+            />
+            <PriceStatsCard
+              label={t("priceChart.avg")}
+              value={avgPrice}
+              unit={displayUnit}
+              icon={Minus}
+              color="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+            />
+            <PriceStatsCard
+              label={t("priceChart.low")}
+              value={lowPrice}
+              unit={displayUnit}
+              icon={TrendingDown}
+              color="bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+            />
+          </div>
+
+          {/* Chart */}
+          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3">
+            <div className="w-full h-64">
+              {error || isEmpty ? (
+                <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                  <div className="text-4xl mb-3">📊</div>
+                  <p className="text-sm font-medium mb-1">{t("priceChart.noData")}</p>
+                  <p className="text-xs text-center max-w-xs mb-3">
+                    {error || t("priceChart.noDataDesc")}
+                  </p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 rounded-lg text-sm font-medium hover:bg-primary-200 dark:hover:bg-primary-900/60 transition-colors"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    {t("priceChart.refresh")}
+                  </button>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  {renderChart()}
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* Chart Title */}
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {currentCommodity.icon} {currentVariety?.name} - {currentCity?.name}
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {t("dashboard.chartDescription")}
-          </p>
-        </div>
-
-        {/* Legend */}
-        <div className="flex gap-6 mb-4 text-sm flex-wrap">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-blue-600"></div>
-            <span className="text-gray-700 dark:text-gray-300">
-              {t("dashboard.historicalData")} (30 {t("dashboard.days")})
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-red-500 border-t-2 border-dashed border-red-500"></div>
-            <span className="text-gray-700 dark:text-gray-300">
-              {t("dashboard.mlForecast")} (7 {t("dashboard.days")})
-            </span>
+          {/* Footer */}
+          <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
+            <p>{t("priceChart.source")}</p>
+            <p>{t("priceChart.updatedHourly")}</p>
           </div>
         </div>
-
-        {/* Chart */}
-        <div className="w-full h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 11, fill: "#6b7280" }}
-                interval={Math.floor(data.length / 7)}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: "#6b7280" }}
-                tickFormatter={(value) => value.toLocaleString()}
-                domain={["auto", "auto"]}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="historical"
-                stroke="#2563eb"
-                strokeWidth={2}
-                dot={false}
-                name={t("dashboard.historicalData")}
-                connectNulls={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="forecast"
-                stroke="#dc2626"
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={false}
-                name={t("dashboard.mlForecast")}
-                connectNulls={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            {t("dashboard.chartSource")}: AMIS Punjab & PBS ({t("dashboard.scraped")})
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
