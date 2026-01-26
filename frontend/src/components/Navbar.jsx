@@ -985,7 +985,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
             {/* Hamburger Menu */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="relative z-50 p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-1"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
