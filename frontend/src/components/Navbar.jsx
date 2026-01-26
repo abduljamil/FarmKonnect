@@ -982,16 +982,20 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
               </span>
             </button>
 
-            {/* Hamburger Menu */}
+            {/* Hamburger Menu - Using raw SVG to ensure visibility */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="relative z-50 p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-1"
+              className="relative z-50 p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2 flex items-center justify-center shrink-0 w-10 h-10"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               ) : (
-                <Menu className="w-6 h-6" />
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
               )}
             </button>
           </div>
