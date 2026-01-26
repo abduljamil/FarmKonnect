@@ -985,7 +985,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
             {/* Hamburger Menu - Using raw SVG to ensure visibility */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden relative z-50 p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2 block w-10 h-10 flex items-center justify-center"
+              className="xl:hidden relative z-50 p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2 block w-10 h-10 flex items-center justify-center"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
