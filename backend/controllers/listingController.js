@@ -1,4 +1,5 @@
 const Listing = require("../models/Listing");
+const { deleteImage, getPublicIdFromUrl } = require("../config/cloudinary");
 
 // Create a new listing
 exports.createListing = async (req, res) => {
@@ -23,7 +24,7 @@ exports.createListing = async (req, res) => {
       location,
       quantity,
       unit,
-      seller: req.user._id,
+      createdBy: req.user._id,
     });
 
     // Emit event to admin panel for real-time update
@@ -43,10 +44,10 @@ exports.createListing = async (req, res) => {
   }
 };
 
-// Get all listings (with filters)
+// Get all listings (with filters and pagination)
 exports.getAllListings = async (req, res) => {
   try {
-    const { category, status, search, minPrice, maxPrice } = req.query;
+    const { category, status, search, minPrice, maxPrice, page = 1, limit = 12 } = req.query;
 
     let query = {};
 
@@ -67,13 +68,28 @@ exports.getAllListings = async (req, res) => {
       if (maxPrice) query.price.$lte = parseFloat(maxPrice);
     }
 
-    const listings = await Listing.find(query)
-      .populate("seller", "name email")
-      .sort({ createdAt: -1 });
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [listings, total] = await Promise.all([
+      Listing.find(query)
+        .populate("createdBy", "name email rating isEmailVerified")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      Listing.countDocuments(query)
+    ]);
 
     res.status(200).json({
       success: true,
       data: listings,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: Math.ceil(total / limitNum)
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -87,8 +103,8 @@ exports.getAllListings = async (req, res) => {
 exports.getListingById = async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id).populate(
-      "seller",
-      "name email role"
+      "createdBy",
+      "name email role rating isEmailVerified"
     );
 
     if (!listing) {
@@ -110,16 +126,34 @@ exports.getListingById = async (req, res) => {
   }
 };
 
-// Get seller's listings
+// Get seller's listings (with pagination)
 exports.getMyListings = async (req, res) => {
   try {
-    const listings = await Listing.find({ seller: req.user._id }).sort({
-      createdAt: -1,
-    });
+    const { page = 1, limit = 12 } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const query = { createdBy: req.user._id };
+
+    const [listings, total] = await Promise.all([
+      Listing.find(query)
+        .populate("createdBy", "name email rating isEmailVerified")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      Listing.countDocuments(query)
+    ]);
 
     res.status(200).json({
       success: true,
       data: listings,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: Math.ceil(total / limitNum)
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -141,9 +175,9 @@ exports.updateListing = async (req, res) => {
       });
     }
 
-    // Check if user is the seller or admin
+    // Check if user is the owner or admin
     if (
-      listing.seller.toString() !== req.user._id.toString() &&
+      listing.createdBy.toString() !== req.user._id.toString() &&
       req.user.role !== "admin"
     ) {
       return res.status(403).json({
@@ -181,15 +215,30 @@ exports.deleteListing = async (req, res) => {
       });
     }
 
-    // Check if user is the seller or admin
+    // Check if user is the owner or admin
     if (
-      listing.seller.toString() !== req.user._id.toString() &&
+      listing.createdBy.toString() !== req.user._id.toString() &&
       req.user.role !== "admin"
     ) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to delete this listing",
       });
+    }
+
+    // Delete images from Cloudinary
+    if (listing.images && listing.images.length > 0) {
+      const deletePromises = listing.images.map(async (imageUrl) => {
+        const publicId = getPublicIdFromUrl(imageUrl);
+        if (publicId) {
+          try {
+            await deleteImage(publicId);
+          } catch (err) {
+            console.error(`Failed to delete image ${publicId} for listing ${listing._id}:`, err);
+          }
+        }
+      });
+      await Promise.all(deletePromises);
     }
 
     await listing.deleteOne();
@@ -227,9 +276,9 @@ exports.updateListingStatus = async (req, res) => {
       });
     }
 
-    // Check if user is the seller or admin
+    // Check if user is the owner or admin
     if (
-      listing.seller.toString() !== req.user._id.toString() &&
+      listing.createdBy.toString() !== req.user._id.toString() &&
       req.user.role !== "admin"
     ) {
       return res.status(403).json({

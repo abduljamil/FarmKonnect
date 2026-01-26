@@ -1,9 +1,9 @@
-const Product = require("../../models/Product");
+const Listing = require("../../models/Listing");
 const BaseRepository = require("../base");
 
-class ProductRepository extends BaseRepository {
+class ListingRepository extends BaseRepository {
   constructor() {
-    super(Product);
+    super(Listing);
   }
 
   async findByCategory(category) {
@@ -49,4 +49,4 @@ class ProductRepository extends BaseRepository {
   }
 }
 
-module.exports = new ProductRepository();
+module.exports = new ListingRepository();
