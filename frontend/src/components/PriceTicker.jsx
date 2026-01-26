@@ -110,7 +110,7 @@ const PriceTicker = ({ prices = [] }) => {
         <div
           className="flex whitespace-nowrap animate-ticker will-change-transform"
           style={{
-            animation: 'ticker 60s linear infinite',
+            animation: 'ticker 120s linear infinite',
             animationPlayState: isPaused ? 'paused' : 'running',
           }}
         >
