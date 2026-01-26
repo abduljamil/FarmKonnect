@@ -6,6 +6,17 @@ class ChatService {
   // Get or create a conversation
   async getOrCreateConversation(productId, buyerId, sellerId) {
     try {
+      // Validate required parameters
+      if (!productId) {
+        throw new Error("Product ID is required");
+      }
+      if (!buyerId) {
+        throw new Error("Buyer ID is required");
+      }
+      if (!sellerId) {
+        throw new Error("Seller ID is required");
+      }
+
       // Prevent sellers from messaging themselves
       if (buyerId.toString() === sellerId.toString()) {
         throw new Error("You cannot message yourself about your own listing");
@@ -16,7 +27,10 @@ class ChatService {
         product: productId,
         buyer: buyerId,
         seller: sellerId,
-      }).populate("product buyer seller", "title name email");
+      })
+        .populate("product", "title price images")
+        .populate("buyer", "name email avatar")
+        .populate("seller", "name email avatar");
 
       // If conversation exists, check if it was deleted by the current user
       if (conversation) {
@@ -32,10 +46,10 @@ class ChatService {
           await conversation.save();
 
           // Reload with populated fields
-          conversation = await Conversation.findById(conversation._id).populate(
-            "product buyer seller",
-            "title name email"
-          );
+          conversation = await Conversation.findById(conversation._id)
+            .populate("product", "title price images")
+            .populate("buyer", "name email")
+            .populate("seller", "name email");
         }
 
         return conversation;
@@ -48,10 +62,10 @@ class ChatService {
         seller: sellerId,
       });
 
-      conversation = await Conversation.findById(conversation._id).populate(
-        "product buyer seller",
-        "title name email"
-      );
+      conversation = await Conversation.findById(conversation._id)
+        .populate("product", "title price images")
+        .populate("buyer", "name email avatar")
+        .populate("seller", "name email avatar");
 
       return conversation;
     } catch (error) {
@@ -59,41 +73,141 @@ class ChatService {
     }
   }
 
-  // Get all conversations for a user
+  // Get all conversations for a user (optimized - no N+1 queries)
   async getUserConversations(userId) {
     try {
-      const conversations = await Conversation.find({
-        $or: [{ buyer: userId }, { seller: userId }],
-      })
-        .populate("product", "title price images status")
-        .populate("buyer seller", "name email")
-        .sort({ lastMessageAt: -1 });
-
-      // Filter out conversations where user deleted AND no new messages after deletion
-      const filteredConversations = [];
-      for (const conv of conversations) {
-        const deletionInfo = conv.deletedBy.find(
-          (del) => del.userId.toString() === userId.toString()
-        );
-
-        if (deletionInfo) {
-          // Check if there are messages after deletion
-          const hasNewMessages = await Message.exists({
-            conversation: conv._id,
-            createdAt: { $gt: deletionInfo.deletedAt },
-          });
-
-          // Only show if there are new messages after deletion
-          if (hasNewMessages) {
-            filteredConversations.push(conv);
-          }
-        } else {
-          // User hasn't deleted this conversation, show it
-          filteredConversations.push(conv);
-        }
+      const mongoose = require('mongoose');
+      let userObjectId;
+      try {
+        userObjectId = typeof userId === 'string'
+          ? new mongoose.Types.ObjectId(userId)
+          : userId;
+      } catch (err) {
+        throw new Error(`Invalid user ID format: ${userId}`);
       }
 
-      return filteredConversations;
+      // Use aggregation to avoid N+1 queries
+      // Add maxTimeMS to prevent hanging queries
+      const conversations = await Conversation.aggregate([
+        // Match conversations where user is buyer or seller
+        {
+          $match: {
+            $or: [{ buyer: userObjectId }, { seller: userObjectId }],
+          },
+        },
+        // Add field to check if user deleted this conversation
+        {
+          $addFields: {
+            userDeletion: {
+              $filter: {
+                input: { $ifNull: ["$deletedBy", []] },
+                as: "del",
+                cond: { $eq: ["$$del.userId", userObjectId] },
+              },
+            },
+          },
+        },
+        // Lookup latest message after deletion (if deleted)
+        {
+          $lookup: {
+            from: "messages",
+            let: {
+              convId: "$_id",
+              deletedAt: { $arrayElemAt: ["$userDeletion.deletedAt", 0] },
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$conversation", "$$convId"] },
+                      { $gt: ["$createdAt", { $ifNull: ["$$deletedAt", new Date(0)] }] },
+                    ],
+                  },
+                },
+              },
+              { $limit: 1 },
+            ],
+            as: "messagesAfterDeletion",
+          },
+        },
+        // Filter: show if not deleted OR has messages after deletion
+        {
+          $match: {
+            $or: [
+              { userDeletion: { $size: 0 } }, // Not deleted by user
+              { messagesAfterDeletion: { $ne: [] } }, // Has new messages after deletion
+            ],
+          },
+        },
+        // Sort by last message time
+        { $sort: { lastMessageAt: -1 } },
+        // Lookup product (collection is "products", not "listings")
+        {
+          $lookup: {
+            from: "products",
+            localField: "product",
+            foreignField: "_id",
+            as: "product",
+          },
+        },
+        { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
+        // Lookup buyer
+        {
+          $lookup: {
+            from: "users",
+            localField: "buyer",
+            foreignField: "_id",
+            as: "buyer",
+          },
+        },
+        { $unwind: { path: "$buyer", preserveNullAndEmptyArrays: true } },
+        // Lookup seller
+        {
+          $lookup: {
+            from: "users",
+            localField: "seller",
+            foreignField: "_id",
+            as: "seller",
+          },
+        },
+        { $unwind: { path: "$seller", preserveNullAndEmptyArrays: true } },
+        // Project only needed fields
+        {
+          $project: {
+            _id: 1,
+            lastMessage: 1,
+            lastMessageAt: 1,
+            unreadCount: 1,
+            deletedBy: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            "product._id": 1,
+            "product.title": 1,
+            "product.price": 1,
+            "product.images": 1,
+            "product.status": 1,
+            "buyer._id": 1,
+            "buyer.name": 1,
+            "buyer.email": 1,
+            "buyer.avatar": 1,
+            "seller._id": 1,
+            "seller.name": 1,
+            "seller.email": 1,
+            "seller.avatar": 1,
+          },
+        },
+        // Filter out conversations with missing data (deleted products/users)
+        {
+          $match: {
+            "product._id": { $exists: true, $ne: null },
+            "buyer._id": { $exists: true, $ne: null },
+            "seller._id": { $exists: true, $ne: null },
+          },
+        },
+      ]);
+
+      return conversations;
     } catch (error) {
       throw new Error(`Error fetching conversations: ${error.message}`);
     }
@@ -137,12 +251,12 @@ class ChatService {
       const message = await Message.create(messageData);
 
       // Populate sender and conversation info
-      await message.populate("sender", "name email");
+      await message.populate("sender", "name email avatar");
       await message.populate({
         path: "conversation",
         populate: [
-          { path: "buyer", select: "name email" },
-          { path: "seller", select: "name email" },
+          { path: "buyer", select: "name email avatar" },
+          { path: "seller", select: "name email avatar" },
           { path: "product", select: "title" },
         ],
       });
@@ -179,7 +293,7 @@ class ChatService {
       }
 
       const messages = await Message.find(query)
-        .populate("sender", "name email")
+        .populate("sender", "name email avatar")
         .sort({ createdAt: -1 })
         .limit(limit)
         .skip(skip);
@@ -213,7 +327,7 @@ class ChatService {
         messageId,
         { offerStatus: status },
         { new: true }
-      ).populate("sender", "name email");
+      ).populate("sender", "name email avatar");
 
       return message;
     } catch (error) {
