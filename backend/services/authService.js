@@ -63,8 +63,7 @@ class AuthService {
     const user = await users.createUser({
       name,
       email,
-      password,
-      role: role || 'user',
+      role: role || 'buyer',
     });
 
     // Generate token
