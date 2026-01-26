@@ -25,7 +25,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - SCRAPER_SERVICE_URL=${SCRAPER_SERVICE_URL:-http://scraper_service:8000}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+      - SCRAPER_SERVICE_URL=${SCRAPER_SERVICE_URL:-http://scraper_service:8000}
     depends_on:
       - scraper_service
     env_file:
