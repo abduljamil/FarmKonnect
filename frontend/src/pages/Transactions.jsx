@@ -302,9 +302,9 @@ export default function Transactions() {
           </div>
         ) : (
           <div className="space-y-4">
-            {transactions.map((transaction) => (
+            {transactions.map((transaction, index) => transaction && (
               <div
-                key={transaction?._id || index}
+                key={transaction._id || index}
                 className={`rounded-xl shadow overflow-hidden ${isDark ? "bg-gray-800" : "bg-white"
                   }`}
               >
@@ -319,7 +319,7 @@ export default function Transactions() {
                       />
                     </div>
 
-                    {/* Details */}
+                    {/* Meta info & actions */}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div>
@@ -328,29 +328,31 @@ export default function Transactions() {
                           </h3>
                           <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                             {isBuyer(transaction) ? (
-                              <>Seller: <span className="font-medium">{transaction.seller?.name}</span></>
+                              <>Seller: <span className="font-medium">{transaction.seller?.name || "Unknown"}</span></>
                             ) : (
-                              <>Buyer: <span className="font-medium">{transaction.buyer?.name}</span></>
+                              <>Buyer: <span className="font-medium">{transaction.buyer?.name || "Unknown"}</span></>
                             )}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
-                            Rs. {transaction.amount?.toLocaleString()}
+                            Rs. {transaction.amount?.toLocaleString() || 0}
                           </p>
-                          <p className={`text-sm capitalize ${paymentStatusColors[transaction.paymentStatus]}`}>
-                            {transaction.paymentMethod === "cod" ? "Cash on Delivery" : transaction.paymentMethod}
+                          <p className={`text-sm capitalize ${paymentStatusColors[transaction.paymentStatus] || "text-gray-500"}`}>
+                            {transaction.paymentMethod === "cod" ? "Cash on Delivery" : (transaction.paymentMethod || "N/A")}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2 mt-3">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${statusColors[transaction.orderStatus]}`}>
-                          {transaction.orderStatus}
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${statusColors[transaction.orderStatus] || "bg-gray-100 text-gray-800"}`}>
+                          {transaction.orderStatus || "unknown"}
                         </span>
-                        <span className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                          {new Date(transaction.createdAt).toLocaleDateString()}
-                        </span>
+                        {transaction.createdAt && (
+                          <span className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                            {new Date(transaction.createdAt).toLocaleDateString()}
+                          </span>
+                        )}
                         {isBuyer(transaction) && (
                           <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-400">
                             Buying
@@ -368,7 +370,11 @@ export default function Transactions() {
                         {/* Seller: Confirm Order */}
                         {isSeller(transaction) && transaction.orderStatus === "pending" && (
                           <button
-                            onClick={() => handleConfirmOrder(transaction._id)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleConfirmOrder(transaction._id);
+                            }}
                             disabled={actionLoading === transaction._id}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
                           >
@@ -380,6 +386,7 @@ export default function Transactions() {
                           <Link
                             to={`/transactions/${transaction._id}`}
                             className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 inline-block"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             📦 Mark Delivered →
                           </Link>
@@ -392,13 +399,14 @@ export default function Transactions() {
                             <Link
                               to={`/transactions/${transaction._id}`}
                               className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 inline-block"
+                              onClick={(e) => e.stopPropagation()}
                             >
                               💵 Confirm Payment Received →
                             </Link>
                           ) : !transaction.buyerConfirmedPayment && (
                             // Waiting for buyer
                             <span className="px-3 py-2 text-sm text-blue-600 dark:text-blue-400">
-                              ⏳ Waiting for buyer confirmation
+                              ⏳ Waiting for buyer to pay
                             </span>
                           )
                         )}
@@ -410,6 +418,7 @@ export default function Transactions() {
                             <Link
                               to={`/transactions/${transaction._id}`}
                               className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 inline-block"
+                              onClick={(e) => e.stopPropagation()}
                             >
                               Complete COD Payment →
                             </Link>

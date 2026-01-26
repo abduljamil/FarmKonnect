@@ -618,11 +618,11 @@ const PriceAlertsPanel = ({ user }) => {
       // Update the alert in the local state
       setAlerts(prevAlerts => 
         prevAlerts.map(alert => 
-          alert._id === data.alert._id 
+          (alert && alert._id === data.alert?._id)
             ? { 
                 ...alert, 
                 status: "triggered", 
-                triggeredAt: data.alert.triggeredAt,
+                triggeredAt: new Date().toISOString(),
                 currentPrice: data.alert.currentPrice 
               }
             : alert
@@ -645,21 +645,21 @@ const PriceAlertsPanel = ({ user }) => {
     fetchAlerts();
   }, [fetchAlerts]);
 
-  const handleDelete = async (alertId) => {
-    try {
-      await alertsApi.deleteAlert(alertId);
-      setAlerts(alerts.filter(a => a._id !== alertId));
-    } catch (err) {
-      console.error("Failed to delete alert:", err);
-    }
-  };
+    const handleDelete = async (alertId) => {
+        try {
+            await reviewsAPI.deletePriceAlert(alertId);
+            setAlerts(alerts.filter(a => a && a._id !== alertId));
+        } catch (error) {
+            console.error("Error deleting alert:", error);
+        }
+    };
 
   const handleReactivate = async (alertId) => {
     try {
       const response = await alertsApi.reactivateAlert(alertId);
       if (response.data.success) {
-        setAlerts(alerts.map(a => 
-          a._id === alertId ? { ...a, status: "active", triggeredAt: null } : a
+        setAlerts(alerts.map(a =>
+          (a && a._id === alertId) ? { ...a, status: "active", triggeredAt: null } : a
         ));
       }
     } catch (err) {

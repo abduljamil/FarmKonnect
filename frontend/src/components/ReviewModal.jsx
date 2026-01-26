@@ -8,7 +8,7 @@ export default function ReviewModal({ isOpen, onClose, onSubmit, transaction, da
   const [error, setError] = useState("");
 
   const sessionUser = JSON.parse(sessionStorage.getItem("user") || "{}");
-  const currentUserId = sessionUser._id || sessionUser.id;
+  const currentUserId = sessionUser?._id || sessionUser?.id;
   const isBuyer = transaction?.buyer?._id?.toString() === currentUserId?.toString();
   const otherUser = isBuyer ? transaction?.seller : transaction?.buyer;
 

@@ -146,7 +146,7 @@ export const SocketProvider = ({ children }) => {
 
           showNotification(`New message from ${senderName}`, {
             body: messagePreview,
-            tag: `message-${message.conversation || message._id}`,
+            tag: `message-${message?.conversation?._id || message?.conversation || message?._id}`,
             url: "/chat",
           });
 
@@ -171,7 +171,7 @@ export const SocketProvider = ({ children }) => {
         // Show notification for new order
         showNotification("New Order Received!", {
           body: `You have a new order${order.product?.title ? ` for ${order.product.title}` : ""}`,
-          tag: `order-${order._id}`,
+          tag: `order-${order?._id}`,
           url: "/transactions",
         });
       });
@@ -181,7 +181,7 @@ export const SocketProvider = ({ children }) => {
         // Show notification for order status update
         showNotification("Order Status Updated", {
           body: `Your order status has been updated to: ${data.status}`,
-          tag: `order-update-${data.orderId}`,
+          tag: `order-update-${data?.orderId || data?._id}`,
           url: "/transactions",
         });
       });

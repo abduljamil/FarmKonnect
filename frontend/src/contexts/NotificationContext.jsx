@@ -112,7 +112,7 @@ export const NotificationProvider = ({ children }) => {
     const markAsSeen = (alertId) => {
         setTriggeredAlerts(prev =>
             prev.map(alert =>
-                alert._id === alertId ? { ...alert, seen: true } : alert
+                (alert && alert._id === alertId) ? { ...alert, seen: true } : alert
             )
         );
         setUnseenCount(prev => Math.max(0, prev - 1));

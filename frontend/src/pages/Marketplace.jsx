@@ -633,7 +633,7 @@ const Products = () => {
                         ) : (
                           <div className="mt-auto">
                             {/* Show contact button if not the seller */}
-                            {(!user || (user._id || user.id) !== product.createdBy._id) && (
+                            {(!user || (user?._id || user?.id) !== product?.createdBy?._id) && (
                               <div className="flex flex-col gap-2">
                                 <Button
                                   onClick={(e) => {
@@ -659,7 +659,7 @@ const Products = () => {
                               </div>
                             )}
 
-                            {user && ((user._id || user.id) === product.createdBy._id) && (
+                            {user && ((user?._id || user?.id) === product?.createdBy?._id) && (
                               <div className="flex items-center justify-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-400 py-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl border border-primary-100 dark:border-primary-800">
                                 <CheckCircle className="w-4 h-4" />
                                 {t("marketplace.listing.yourListing")}
