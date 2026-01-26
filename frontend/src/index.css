@@ -26,7 +26,8 @@ body {
 }
 
 .animate-ticker {
-  animation: ticker 60s linear infinite;
+  animation: ticker 40s linear infinite;
+  will-change: transform;
 }
 
 .ticker-container:hover .animate-ticker {

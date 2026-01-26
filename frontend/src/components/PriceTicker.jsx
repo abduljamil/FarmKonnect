@@ -95,9 +95,9 @@ const PriceTicker = ({ prices = [] }) => {
 
         {/* Scrolling content */}
         <div
-          className="flex whitespace-nowrap animate-ticker"
+          className="flex whitespace-nowrap animate-ticker will-change-transform"
           style={{
-            animation: 'ticker 120s linear infinite',
+            animation: 'ticker 40s linear infinite',
             animationPlayState: isPaused ? 'paused' : 'running',
           }}
         >

@@ -138,8 +138,8 @@ const Dashboard = () => {
 
             {/* Spacer for fixed navbar */}
             <div className="pt-16 sm:pt-20">
-                {/* Live Price Ticker - Wrapped to ensure z-index and spacing */}
-                <div className="relative z-0">
+                {/* Live Price Ticker - Fixed height and z-index ensures visibility */}
+                <div className="relative z-0 h-10 border-b border-primary-100 dark:border-gray-800 bg-primary-50 dark:bg-gray-950">
                     <PriceTicker />
                 </div>
 
