@@ -24,10 +24,11 @@ exports.signup = async (req, res) => {
       // Don't fail signup if email fails
     }
     // Set cookie
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('token', result.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure: isProduction && process.env.COOKIE_SECURE !== 'false', // Allow disabling secure for HTTP testing
+      sameSite: isProduction ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
@@ -68,10 +69,11 @@ exports.signin = async (req, res) => {
     const result = await authService.loginUser(email, password);
     
     // Set cookie
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('token', result.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure: isProduction && process.env.COOKIE_SECURE !== 'false',
+      sameSite: isProduction ? 'strict' : 'lax',
     });
 
     res.status(200).json({
@@ -97,9 +99,11 @@ exports.signin = async (req, res) => {
 // @access  Private
 exports.logout = async (req, res) => {
   try {
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('token', 'none', {
       expires: new Date(Date.now() + 10 * 1000),
-      httpOnly: true
+      httpOnly: true,
+      secure: isProduction && process.env.COOKIE_SECURE !== 'false',
     });
 
     res.status(200).json({
@@ -148,9 +152,10 @@ exports.googleCallback = async (req, res) => {
     const result = authService.generateTokenForUser(user);
     
     // Set token as HTTP-only cookie
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('token', result.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction && process.env.COOKIE_SECURE !== 'false',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
@@ -171,9 +176,10 @@ exports.googleCallback = async (req, res) => {
 exports.logout = async (req, res) => {
   try {
     // Clear the token cookie
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('token', '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction && process.env.COOKIE_SECURE !== 'false',
       sameSite: 'lax',
       path: '/',
       expires: new Date(0)
@@ -231,9 +237,10 @@ exports.verifyEmail = async (req, res) => {
     // Auto-login after verification
     const result = authService.generateTokenForUser(user);
     
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('token', result.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction && process.env.COOKIE_SECURE !== 'false',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
