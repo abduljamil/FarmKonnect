@@ -177,6 +177,10 @@ const startServer = async () => {
     console.log('⚠️ Server is running but database features will be unavailable until connection is restored.');
   }
 
+  // Verify email connection
+  const { verifyConnection } = require('./config/email');
+  verifyConnection();
+
   // Initialize alert service with Socket.io instance
   alertService.setIO(io);
 
