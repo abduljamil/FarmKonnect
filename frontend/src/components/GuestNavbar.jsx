@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Home, TrendingUp, ShoppingBag, Info, Phone } from "lucide-react";
 
 const GuestNavbar = () => {
   const navigate = useNavigate();
