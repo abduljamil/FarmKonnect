@@ -1,10 +1,12 @@
 import React from "react";
+import { Check, CheckCheck } from "lucide-react";
 
 const MessageBubble = ({
   message,
   isOwnMessage,
   onAcceptOffer,
   onRejectOffer,
+  isGrouped = false,
 }) => {
   const formatTime = (date) => {
     return new Date(date).toLocaleTimeString("en-US", {
@@ -16,41 +18,70 @@ const MessageBubble = ({
   const renderOfferMessage = () => {
     if (message.messageType !== "offer") return null;
 
-    const getOfferStatusColor = () => {
+    const getOfferStyles = () => {
       switch (message.offerStatus) {
         case "accepted":
-          return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700";
+          return {
+            bg: isOwnMessage ? "bg-white/15" : "bg-primary-50 dark:bg-primary-900/30",
+            border: isOwnMessage ? "border-white/20" : "border-primary-200 dark:border-primary-700",
+            text: isOwnMessage ? "text-white" : "text-primary-700 dark:text-primary-300",
+            badge: "bg-primary-600 text-white",
+          };
         case "rejected":
-          return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border-red-300 dark:border-red-700";
+          return {
+            bg: isOwnMessage ? "bg-white/15" : "bg-red-50 dark:bg-red-900/30",
+            border: isOwnMessage ? "border-white/20" : "border-red-200 dark:border-red-700",
+            text: isOwnMessage ? "text-white" : "text-red-700 dark:text-red-300",
+            badge: "bg-red-600 text-white",
+          };
         case "countered":
-          return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-700";
+          return {
+            bg: isOwnMessage ? "bg-white/15" : "bg-amber-50 dark:bg-amber-900/30",
+            border: isOwnMessage ? "border-white/20" : "border-amber-200 dark:border-amber-700",
+            text: isOwnMessage ? "text-white" : "text-amber-700 dark:text-amber-300",
+            badge: "bg-amber-600 text-white",
+          };
         default:
-          return "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-700";
+          return {
+            bg: isOwnMessage ? "bg-white/15" : "bg-primary-50 dark:bg-primary-900/30",
+            border: isOwnMessage ? "border-white/20" : "border-primary-200 dark:border-primary-700",
+            text: isOwnMessage ? "text-white" : "text-primary-700 dark:text-primary-300",
+            badge: "bg-primary-600 text-white",
+          };
       }
     };
 
+    const styles = getOfferStyles();
+
     return (
-      <div className={`mt-2 p-3 border-2 rounded-lg ${getOfferStatusColor()}`}>
-        <div className="font-semibold text-lg">
-          Offer: ${message.offerAmount?.toLocaleString()}
-        </div>
-        <div className="text-sm mt-1 capitalize">
-          Status: {message.offerStatus || "pending"}
+      <div className={`mt-3 p-4 rounded-xl border ${styles.bg} ${styles.border}`}>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className={`text-xs uppercase tracking-wide mb-1 ${isOwnMessage ? "text-white/60" : "text-gray-500 dark:text-gray-400"}`}>
+              Price Offer
+            </p>
+            <p className={`text-xl font-bold ${styles.text}`}>
+              Rs. {message.offerAmount?.toLocaleString()}
+            </p>
+          </div>
+          <span className={`px-3 py-1 text-xs font-medium rounded-full capitalize ${styles.badge}`}>
+            {message.offerStatus || "pending"}
+          </span>
         </div>
 
         {!isOwnMessage && message.offerStatus === "pending" && (
-          <div className="mt-3 flex gap-2">
+          <div className="mt-4 flex gap-2">
             <button
               onClick={() => onAcceptOffer(message._id)}
-              className="px-4 py-1 bg-green-600 dark:bg-green-700 text-white rounded hover:bg-green-700 dark:hover:bg-green-600 text-sm transition-colors"
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow"
             >
-              Accept
+              Accept Offer
             </button>
             <button
               onClick={() => onRejectOffer(message._id)}
-              className="px-4 py-1 bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-600 text-sm transition-colors"
+              className="flex-1 px-4 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-semibold transition-all duration-200"
             >
-              Reject
+              Decline
             </button>
           </div>
         )}
@@ -60,33 +91,39 @@ const MessageBubble = ({
 
   return (
     <div
-      className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} mb-4`}
+      className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} ${isGrouped ? "mb-1" : "mb-3"}`}
     >
-      <div className={`max-w-[70%] ${isOwnMessage ? "order-2" : "order-1"}`}>
-        {!isOwnMessage && (
-          <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 ml-1">
+      <div className={`max-w-[75%] sm:max-w-[65%] ${isOwnMessage ? "order-2" : "order-1"}`}>
+        {!isOwnMessage && !isGrouped && (
+          <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 ml-3">
             {message.sender?.name}
           </div>
         )}
 
         <div
-          className={`rounded-2xl px-4 py-2 ${
+          className={`relative px-4 py-2.5 ${
             isOwnMessage
-              ? "bg-primary-600 text-white rounded-br-none shadow-lg"
-              : "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-none"
+              ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl rounded-br-md shadow-md"
+              : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-bl-md shadow-sm border border-gray-200 dark:border-gray-700"
           }`}
         >
-          <div className="break-words">{message.content}</div>
+          <div className="break-words text-[15px] leading-relaxed">{message.content}</div>
           {renderOfferMessage()}
           <div
-            className={`text-xs mt-1 ${
+            className={`flex items-center justify-end gap-1 mt-1 ${
               isOwnMessage
-                ? "text-primary-100"
-                : "text-gray-600 dark:text-gray-400"
+                ? "text-white/70"
+                : "text-gray-400 dark:text-gray-500"
             }`}
           >
-            {formatTime(message.createdAt)}
-            {isOwnMessage && message.read && <span className="ml-2">✓✓</span>}
+            <span className="text-[11px]">{formatTime(message.createdAt)}</span>
+            {isOwnMessage && (
+              message.read ? (
+                <CheckCheck className="w-3.5 h-3.5" />
+              ) : (
+                <Check className="w-3.5 h-3.5" />
+              )
+            )}
           </div>
         </div>
       </div>

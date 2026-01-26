@@ -1,4 +1,5 @@
 import React from "react";
+import { Trash2, MessageSquare } from "lucide-react";
 
 const ConversationItem = ({
   conversation,
@@ -8,32 +9,16 @@ const ConversationItem = ({
   hasUnread = false,
   onDelete,
 }) => {
-  // Safety check for conversation data - be more thorough
-  if (!conversation) {
-    console.error("Conversation is null or undefined");
+  // Safety checks
+  if (!conversation || !conversation.seller?._id || !conversation.buyer?._id || !currentUserId) {
     return null;
   }
 
-  if (!conversation.seller || !conversation.seller._id) {
-    console.error("Invalid seller data in conversation:", conversation);
-    return null;
-  }
-
-  if (!conversation.buyer || !conversation.buyer._id) {
-    console.error("Invalid buyer data in conversation:", conversation);
-    return null;
-  }
-
-  if (!currentUserId || currentUserId === "") {
-    // Silently return null during initial load - don't spam console
-    return null;
-  }
-
-  // Convert IDs to strings for proper comparison
   const currentUserIdStr = String(currentUserId);
   const sellerIdStr = String(conversation.seller._id);
   const isSeller = sellerIdStr === currentUserIdStr;
   const otherUser = isSeller ? conversation.buyer : conversation.seller;
+  const product = conversation.product;
 
   const formatTime = (date) => {
     const messageDate = new Date(date);
@@ -57,123 +42,131 @@ const ConversationItem = ({
   };
 
   const handleDelete = (e) => {
-    e.stopPropagation(); // Prevent triggering onClick
-    if (
-      window.confirm(
-        "Are you sure you want to delete this conversation? This will only remove it from your view."
-      )
-    ) {
-      onDelete(conversation._id);
-    }
+    e.stopPropagation();
+    onDelete(conversation._id, otherUser.name);
+  };
+
+  const getInitial = (name) => {
+    return name?.charAt(0)?.toUpperCase() || "?";
   };
 
   return (
     <div
       onClick={onClick}
-      className={`flex items-start gap-3 p-4 cursor-pointer border-b border-gray-200 dark:border-gray-800 transition-all duration-200 relative ${
+      className={`group relative flex gap-3 p-3 cursor-pointer transition-all duration-300 ${
         isActive
-          ? "bg-primary-100 dark:bg-gray-800 hover:bg-primary-100 dark:hover:bg-gray-800 shadow-sm"
+          ? "bg-gradient-to-r from-primary-500 to-primary-600 shadow-lg"
           : hasUnread
-          ? "bg-gradient-to-r from-primary-100 to-primary-50 dark:from-gray-800 dark:to-gray-850 hover:from-primary-100 hover:to-primary-100 dark:hover:from-gray-800 dark:hover:to-gray-800 border-l-4 border-l-primary-600 dark:border-l-primary-400 shadow-sm"
+          ? "bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30"
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
       }`}
     >
-      {/* Unread indicator */}
-      {hasUnread && !isActive && (
-        <div className="absolute top-2 right-2 w-3 h-3 bg-primary-600 dark:bg-primary-400 rounded-full animate-pulse"></div>
-      )}
-
-      {/* Product Image */}
-      <div className="flex-shrink-0">
-        {conversation.product?.images?.[0] ? (
+      {/* Avatar */}
+      <div className="relative flex-shrink-0">
+        {otherUser.avatar ? (
           <img
-            src={conversation.product.images[0]}
-            alt={conversation.product.title}
-            className="w-14 h-14 rounded-lg object-cover"
+            src={otherUser.avatar}
+            alt={otherUser.name}
+            className={`w-12 h-12 rounded-full object-cover ${isActive ? "ring-2 ring-white/40" : ""}`}
           />
         ) : (
-          <div className="w-14 h-14 rounded-lg bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
-            <span className="text-gray-600 dark:text-gray-400 text-xs">
-              No image
-            </span>
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold text-lg ${
+            isActive
+              ? "bg-white/20 text-white"
+              : "bg-gradient-to-br from-primary-500 to-primary-600 text-white"
+          }`}>
+            {getInitial(otherUser.name)}
           </div>
         )}
       </div>
 
-      {/* Conversation Info */}
+      {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-start">
-          <div className="flex-1 min-w-0">
-            <h3
-              className={`text-gray-900 dark:text-gray-100 truncate ${
-                hasUnread ? "font-bold" : "font-semibold"
-              }`}
-            >
+        {/* Header row - Name and time */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <h3 className={`truncate text-[15px] font-semibold ${
+              isActive
+                ? "text-white"
+                : hasUnread
+                  ? "text-gray-900 dark:text-white"
+                  : "text-gray-800 dark:text-gray-200"
+            }`}>
               {otherUser.name}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-              {conversation.product?.title}
-            </p>
+            {/* Unread indicator - next to name */}
+            {hasUnread && !isActive && (
+              <span className="flex-shrink-0 w-2 h-2 bg-primary-500 rounded-full animate-pulse" />
+            )}
           </div>
-          <span
-            className={`text-xs ml-2 flex-shrink-0 ${
-              hasUnread
-                ? "text-primary-600 dark:text-primary-400 font-semibold"
-                : "text-gray-500 dark:text-gray-400"
-            }`}
-          >
+          <span className={`text-[11px] flex-shrink-0 font-medium ${
+            isActive
+              ? "text-white/70"
+              : hasUnread
+                ? "text-primary-600 dark:text-primary-400"
+                : "text-gray-400 dark:text-gray-500"
+          }`}>
             {formatTime(conversation.lastMessageAt)}
           </span>
         </div>
 
-        {conversation.lastMessage && (
-          <p
-            className={`text-sm truncate mt-1 ${
-              hasUnread
-                ? "text-gray-900 dark:text-gray-100 font-semibold"
-                : "text-gray-600 dark:text-gray-400"
-            }`}
-          >
-            {conversation.lastMessage}
-          </p>
-        )}
+        {/* Product Info */}
+        <div className={`flex items-center gap-2 mt-1.5 p-1.5 rounded-lg ${
+          isActive
+            ? "bg-white/15"
+            : "bg-gray-100 dark:bg-gray-800"
+        }`}>
+          {/* Product Image */}
+          {product?.images?.[0] ? (
+            <img
+              src={product.images[0]}
+              alt={product.title}
+              className="w-9 h-9 rounded-md object-cover flex-shrink-0"
+            />
+          ) : (
+            <div className={`w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0 ${
+              isActive ? "bg-white/20" : "bg-gray-200 dark:bg-gray-700"
+            }`}>
+              <span className="text-sm">🌾</span>
+            </div>
+          )}
+          {/* Product Details */}
+          <div className="flex-1 min-w-0">
+            <p className={`text-xs truncate ${
+              isActive ? "text-white/80" : "text-gray-600 dark:text-gray-400"
+            }`}>
+              {product?.title || "Product"}
+            </p>
+            <p className={`text-sm font-bold ${
+              isActive ? "text-white" : "text-primary-600 dark:text-primary-400"
+            }`}>
+              Rs. {product?.price?.toLocaleString() || "0"}
+            </p>
+          </div>
+        </div>
 
-        <div className="flex items-center gap-2 mt-1">
-          <span
-            className={`text-xs px-2 py-0.5 rounded ${
-              conversation.product?.status === "active"
-                ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300"
-                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-            }`}
-          >
-            {conversation.product?.status || "N/A"}
-          </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            ${conversation.product?.price?.toLocaleString()}
-          </span>
+        {/* Last message preview - always show for consistent height */}
+        <div className={`flex items-center gap-1.5 mt-2 h-5 ${
+          isActive
+            ? "text-white/60"
+            : hasUnread
+              ? "text-gray-700 dark:text-gray-300"
+              : "text-gray-500 dark:text-gray-400"
+        }`}>
+          <MessageSquare className="w-3 h-3 flex-shrink-0" />
+          <p className="text-[13px] truncate">
+            {conversation.lastMessage || "No messages yet"}
+          </p>
         </div>
       </div>
 
-      {/* Delete Button */}
+      {/* Delete button - shows on hover */}
       <button
         onClick={handleDelete}
-        className="flex-shrink-0 p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+        className={`absolute right-2 bottom-2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 bg-red-500 text-white hover:bg-red-600 shadow-sm`}
         title="Delete conversation"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-          />
-        </svg>
+        <Trash2 className="w-3.5 h-3.5" />
       </button>
     </div>
   );
