@@ -304,7 +304,8 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
   };
 
   const handleNotificationClick = async (notification) => {
-    if (notification.type === "price_alert") {
+    if (notification.type === "price_alert" && notification._id) {
+      // Mark price alert as seen
       await markAsSeen(notification._id);
     } else if (notification.type === "message") {
       // Navigate to chat page
@@ -535,7 +536,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
                     {allNotifications.length > 0 ? (
                       allNotifications.map((notification, index) => (
                         <div
-                          key={notification.id || notification._id || index}
+                          key={notification?.id || notification?._id || index}
                           onClick={() => handleNotificationClick(notification)}
                           className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-700 ${(notification.type === "price_alert" && !notification.seen) ||
                             (notification.type !== "price_alert" && !notification.seen)
@@ -777,7 +778,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
                       {allNotifications.length > 0 ? (
                         allNotifications.map((notification, index) => (
                           <div
-                            key={notification.id || notification._id || index}
+                            key={notification?.id || notification?._id || index}
                             onClick={() => handleNotificationClick(notification)}
                             className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-700 ${(notification.type === "price_alert" && !notification.seen) ||
                               (notification.type !== "price_alert" && !notification.seen)

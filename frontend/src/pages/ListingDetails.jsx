@@ -71,7 +71,7 @@ const ListingDetails = () => {
       return;
     }
 
-    if (listing.createdBy._id === user._id) {
+    if (listing?.createdBy?._id === user?._id) {
       alert("You cannot message yourself");
       return;
     }
@@ -91,7 +91,7 @@ const ListingDetails = () => {
       return;
     }
 
-    if (listing.createdBy._id === user._id) {
+    if (listing?.createdBy?._id === user?._id) {
       alert("You cannot buy your own listing");
       return;
     }

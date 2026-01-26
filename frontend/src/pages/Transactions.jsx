@@ -44,7 +44,7 @@ export default function Transactions() {
   const [actionLoading, setActionLoading] = useState(null);
   const [reviewModal, setReviewModal] = useState({ open: false, transaction: null });
   const [cancelModal, setCancelModal] = useState({ open: false, transactionId: null });
-  const currentUserId = user._id || user.id;
+  const currentUserId = user?._id || user?.id;
 
   useUserSync(user, setUser, navigate);
 
@@ -215,8 +215,9 @@ export default function Transactions() {
     }
   };
 
-  const isBuyer = (transaction) => transaction.buyer._id === currentUserId;
-  const isSeller = (transaction) => transaction.seller._id === currentUserId;
+  const userId = user?._id || user?.id;
+  const isBuyer = (transaction) => transaction?.buyer?._id?.toString() === userId?.toString();
+  const isSeller = (transaction) => transaction?.seller?._id?.toString() === userId?.toString();
   const canRate = (transaction) => {
     if (transaction.orderStatus !== "completed") return false;
     return isBuyer(transaction) ? !transaction.buyerHasRated : !transaction.sellerHasRated;
@@ -303,7 +304,7 @@ export default function Transactions() {
           <div className="space-y-4">
             {transactions.map((transaction) => (
               <div
-                key={transaction._id}
+                key={transaction?._id || index}
                 className={`rounded-xl shadow overflow-hidden ${isDark ? "bg-gray-800" : "bg-white"
                   }`}
               >

@@ -323,9 +323,9 @@ export default function TransactionDetails() {
 
     if (!transaction) return null;
 
-    const userId = user._id || user.id;
-    const isBuyer = transaction.buyer?._id?.toString() === userId?.toString();
-    const isSeller = transaction.seller?._id?.toString() === userId?.toString();
+    const userId = user?._id || user?.id;
+    const isBuyer = transaction?.buyer?._id?.toString() === userId?.toString();
+    const isSeller = transaction?.seller?._id?.toString() === userId?.toString();
 
     // Format delivery location for map
     let initialMapLocation = null;
