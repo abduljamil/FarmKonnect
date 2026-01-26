@@ -53,9 +53,9 @@ const SignUp = () => {
       });
 
       if (response.success || response.token || response.user) {
-        // Registration successful, update auth state and redirect to dashboard
-        await checkAuth();
-        navigate("/dashboard");
+        // Registration successful
+        // Redirect to email sent page
+        navigate(`/email-sent?email=${encodeURIComponent(formData.email)}&type=verification`);
       }
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Registration failed");

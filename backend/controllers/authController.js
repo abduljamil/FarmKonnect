@@ -23,19 +23,14 @@ exports.signup = async (req, res) => {
       console.error('Error sending verification email:', emailError);
       // Don't fail signup if email fails
     }
-    // Set cookie
-    const isProduction = process.env.NODE_ENV === 'production';
-    res.cookie('token', result.token, {
-      httpOnly: true,
-      secure: isProduction && process.env.COOKIE_SECURE !== 'false', // Allow disabling secure for HTTP testing
-      sameSite: isProduction ? 'strict' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
-
     res.status(201).json({
       success: true,
       message: 'User registered successfully. Please check your email to verify your account.',
-      user: result.user
+      user: {
+        id: result.user.id,
+        name: result.user.name,
+        email: result.user.email
+      }
     });
 
   } catch (error) {
