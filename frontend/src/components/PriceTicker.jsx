@@ -21,6 +21,17 @@ const PriceTicker = ({ prices = [] }) => {
   useEffect(() => {
     let isMounted = true;
 
+    // Try to load from cache first for instant mobile feel
+    const cachedData = sessionStorage.getItem("ticker_prices_cache");
+    if (cachedData) {
+      try {
+        setLivePrices(JSON.parse(cachedData));
+        setIsLoading(false);
+      } catch (e) {
+        console.error("Cache parse error:", e);
+      }
+    }
+
     const fetchPrices = async () => {
       try {
         const response = await fetch(`${API_URL}/prices/latest`, {
@@ -54,6 +65,8 @@ const PriceTicker = ({ prices = [] }) => {
           if (mapped.length > 0) {
             setLivePrices(mapped);
             setLoadError(false);
+            // Update cache
+            sessionStorage.setItem("ticker_prices_cache", JSON.stringify(mapped));
           } else {
             setLoadError(true);
           }
