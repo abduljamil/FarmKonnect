@@ -33,7 +33,7 @@ class SocketService {
 
     // Create new socket connection
     this.isConnecting = true;
-    const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:3000";
+    const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.MODE === 'production' ? "/" : "http://localhost:3000");
     this.socket = io(SOCKET_URL, {
       auth: {
         token: this.token || token || "",
