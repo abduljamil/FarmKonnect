@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
-import { useAuth } from "../utils/auth";
+import { useAuth } from "../contexts/AuthContext";
+
 import API_URL from "../config";
 
 /**

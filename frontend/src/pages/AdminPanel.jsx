@@ -8,7 +8,7 @@ import Footer from "../components/Footer";
 import Loader from "../components/Loader";
 import ConfirmModal from "../components/ConfirmModal";
 import API_URL from "../config";
-import { useAuth } from "../utils/auth";
+import { useAuth } from "../contexts/AuthContext";
 import chatAPI from "../utils/chatApi";
 import socketService from "../utils/socket";
 import useUserSync from "../hooks/useUserSync";
