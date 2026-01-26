@@ -1019,9 +1019,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
                     <p className="font-medium text-gray-900 dark:text-white">
                       {user?.name || "User"}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
-                      {user?.role || "user"}
-                    </p>
+
                   </div>
                 </div>
                 <div className="flex gap-2 mb-2">
