@@ -100,8 +100,8 @@ const CreateProduct = () => {
         price: parseFloat(formData.price),
         category: formData.category,
         location: formData.location,
-        quantity: parseFloat(formData.quantity),
-        unit: formData.unit,
+        quantity: formData.quantity ? parseFloat(formData.quantity) : 1,
+        unit: formData.unit || undefined,
         images: uploadedImageUrls,
       };
 
