@@ -28,24 +28,6 @@ const ListingDetails = () => {
 
   useUserSync(user, setUser, navigate);
 
-  useEffect(() => {
-    const userData = sessionStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
-      loadUnreadCount();
-    }
-    fetchListing();
-  }, [id, fetchListing]);
-
-  const loadUnreadCount = async () => {
-    try {
-      const response = await chatAPI.getUnreadCount();
-      setUnreadCount(response.data.count);
-    } catch (error) {
-      console.error("Error loading unread count:", error);
-    }
-  };
-
   const fetchListing = React.useCallback(async () => {
     try {
       setLoading(true);
@@ -64,6 +46,24 @@ const ListingDetails = () => {
       setLoading(false);
     }
   }, [id]);
+
+  useEffect(() => {
+    const userData = sessionStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+      loadUnreadCount();
+    }
+    fetchListing();
+  }, [id, fetchListing]);
+
+  const loadUnreadCount = async () => {
+    try {
+      const response = await chatAPI.getUnreadCount();
+      setUnreadCount(response.data.count);
+    } catch (error) {
+      console.error("Error loading unread count:", error);
+    }
+  };
 
   const handleContactSeller = async () => {
     if (!user) {
