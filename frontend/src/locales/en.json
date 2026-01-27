@@ -406,6 +406,7 @@
     "subtitle": "Live data from AMIS Punjab",
     "variety": "Variety",
     "city": "City",
+    "date": "Date",
     "period": "Period",
     "high": "High",
     "avg": "Avg",

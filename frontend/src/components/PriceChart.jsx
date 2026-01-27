@@ -637,7 +637,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
           <div className="flex flex-col sm:flex-row gap-2">
             {/* Date Picker */}
             <div className="w-full sm:w-auto">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1.5 ml-1">{t("priceChart.date") || "Specific Date"}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1.5 ml-1">{t("priceChart.date")}</p>
               <div className="relative">
                 <input
                   type="date"
@@ -648,11 +648,15 @@ const PriceChart = ({ user, onLoginRequired }) => {
                     setDays(30); // Reset or keep default, visually it will depend on selectedDate being truthy
                   })}
                   className={`
-                    w-full sm:w-40 px-3 py-2.5 pl-10 rounded-xl
-                    bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200
-                    border border-transparent focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500
+                    w-full px-3 py-2.5 pl-10 rounded-xl
+                    bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200
+                    border border-gray-200 dark:border-gray-700
+                    focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/30
                     outline-none transition-all duration-200
-                    dark:[color-scheme:dark]
+                    [&::-webkit-calendar-picker-indicator]:dark:invert
+                    [&::-webkit-calendar-picker-indicator]:opacity-60
+                    [&::-webkit-calendar-picker-indicator]:hover:opacity-100
+                    [&::-webkit-calendar-picker-indicator]:cursor-pointer
                     ${selectedDate ? "border-primary-500 ring-2 ring-primary-100 dark:ring-primary-900/30 font-semibold" : ""}
                   `}
                 />
