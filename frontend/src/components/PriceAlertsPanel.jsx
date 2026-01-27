@@ -640,7 +640,7 @@ const PriceAlertsPanel = ({ user }) => {
 
   const handleDelete = async (alertId) => {
     try {
-      await reviewsAPI.deletePriceAlert(alertId);
+      await alertsApi.deleteAlert(alertId);
       setAlerts(alerts.filter(a => a && a._id !== alertId));
     } catch (error) {
       console.error("Error deleting alert:", error);
