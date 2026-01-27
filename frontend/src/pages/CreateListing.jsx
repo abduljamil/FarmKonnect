@@ -79,6 +79,18 @@ const CreateProduct = () => {
     setError("");
     setLoading(true);
 
+    // Frontend validation
+    if (!formData.category) {
+      setError("Please select a category");
+      setLoading(false);
+      return;
+    }
+    if (!formData.title || !formData.description || !formData.price || !formData.location) {
+      setError("Please fill in all required fields");
+      setLoading(false);
+      return;
+    }
+
     try {
       // Upload images first (if any)
       let uploadedImageUrls = [];
