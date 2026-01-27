@@ -24,7 +24,7 @@ const cron = require("node-cron");
 const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
-const rateLimit = require("express-rate-limit");
+// const rateLimit = require("express-rate-limit"); // DISABLED - using route-specific limiter only
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const path = require("path");
@@ -58,16 +58,17 @@ configurePassport();
 
 app.set('trust proxy', 1);
 
-// Rate limiting
-const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500, // Increased limit for dashboard burst
-  message: { success: false, message: "Too many requests, please try again later." },
-  standardHeaders: true,
-  legacyHeaders: false,
-  // Skip rate limiting for health check endpoint
-  skip: (req, res) => req.path === '/api/health'
-});
+// Rate limiting - DISABLED globally, only applied to auth routes
+// Auth routes have their own stricter limiter in middleware/limiter.js
+// const generalLimiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 500, // Increased limit for dashboard burst
+//   message: { success: false, message: "Too many requests, please try again later." },
+//   standardHeaders: true,
+//   legacyHeaders: false,
+//   // Skip rate limiting for health check endpoint
+//   skip: (req, res) => req.path === '/api/health'
+// });
 
 
 
@@ -94,7 +95,7 @@ app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
-app.use(generalLimiter);
+// app.use(generalLimiter); // DISABLED - rate limiting only on auth routes
 
 // Session configuration (Merged from current version)
 app.use(session({
