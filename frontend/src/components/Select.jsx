@@ -37,6 +37,9 @@ const Select = ({
           backgroundRepeat: 'no-repeat'
         }}
       >
+        <option value="" disabled className="bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+          Select an option...
+        </option>
         {options.map((option) => (
           <option key={option.value} value={option.value} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
             {option.label}
