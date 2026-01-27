@@ -15,14 +15,6 @@ export default function ReviewsModal({ isOpen, onClose, userId, userName }) {
   const [distribution, setDistribution] = useState({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 });
   const [pagination, setPagination] = useState({ page: 1, hasMore: false });
 
-  useEffect(() => {
-    if (isOpen && userId) {
-      setReviews([]);
-      setPagination({ page: 1, hasMore: false });
-      fetchReviews(1);
-    }
-  }, [isOpen, userId, fetchReviews]);
-
   const fetchReviews = useCallback(async (page = 1) => {
     try {
       if (page === 1) {
@@ -52,6 +44,14 @@ export default function ReviewsModal({ isOpen, onClose, userId, userName }) {
       setLoadingMore(false);
     }
   }, [userId]);
+
+  useEffect(() => {
+    if (isOpen && userId) {
+      setReviews([]);
+      setPagination({ page: 1, hasMore: false });
+      fetchReviews(1);
+    }
+  }, [isOpen, userId, fetchReviews]);
 
   const loadMore = () => {
     fetchReviews(pagination.page + 1);

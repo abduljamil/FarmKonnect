@@ -56,21 +56,6 @@ const EditProduct = () => {
     { value: "inactive", label: "Inactive" },
   ];
 
-  useEffect(() => {
-    const userData = sessionStorage.getItem("user");
-
-    if (!userData) {
-      navigate("/signin");
-      return;
-    }
-
-    const parsedUser = JSON.parse(userData);
-    setUser(parsedUser);
-
-    loadUnreadCount();
-    fetchProduct();
-  }, [id, navigate, loadUnreadCount, fetchProduct]);
-
   const loadUnreadCount = useCallback(async () => {
     try {
       const response = await chatAPI.getUnreadCount();
@@ -128,6 +113,21 @@ const EditProduct = () => {
       setFetchLoading(false);
     }
   }, [id, navigate]);
+
+  useEffect(() => {
+    const userData = sessionStorage.getItem("user");
+
+    if (!userData) {
+      navigate("/signin");
+      return;
+    }
+
+    const parsedUser = JSON.parse(userData);
+    setUser(parsedUser);
+
+    loadUnreadCount();
+    fetchProduct();
+  }, [id, navigate, loadUnreadCount, fetchProduct]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
