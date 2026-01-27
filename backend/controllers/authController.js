@@ -89,29 +89,7 @@ exports.signin = async (req, res) => {
   }
 };
 
-// @desc    Logout user
-// @route   GET /api/auth/logout
-// @access  Private
-exports.logout = async (req, res) => {
-  try {
-    const isProduction = process.env.NODE_ENV === 'production';
-    res.cookie('token', 'none', {
-      expires: new Date(Date.now() + 10 * 1000),
-      httpOnly: true,
-      secure: isProduction && process.env.COOKIE_SECURE !== 'false',
-    });
-
-    res.status(200).json({
-      success: true,
-      message: 'User logged out successfully'
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error logging out'
-    });
-  }
-};
+// Note: logout function moved below googleCallback to group related auth functions
 
 // @desc    Get current user
 // @route   GET /api/auth/me

@@ -53,13 +53,12 @@ const ConversationItem = ({
   return (
     <div
       onClick={onClick}
-      className={`group relative flex gap-3 p-3 cursor-pointer transition-all duration-300 ${
-        isActive
+      className={`group relative flex gap-3 p-3 cursor-pointer transition-all duration-300 ${isActive
           ? "bg-gradient-to-r from-primary-500 to-primary-600 shadow-lg"
           : hasUnread
-          ? "bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30"
-          : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
-      }`}
+            ? "bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30"
+            : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        }`}
     >
       {/* Avatar */}
       <div className="relative flex-shrink-0">
@@ -70,11 +69,10 @@ const ConversationItem = ({
             className={`w-12 h-12 rounded-full object-cover ${isActive ? "ring-2 ring-white/40" : ""}`}
           />
         ) : (
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold text-lg ${
-            isActive
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold text-lg ${isActive
               ? "bg-white/20 text-white"
               : "bg-gradient-to-br from-primary-500 to-primary-600 text-white"
-          }`}>
+            }`}>
             {getInitial(otherUser.name)}
           </div>
         )}
@@ -85,13 +83,12 @@ const ConversationItem = ({
         {/* Header row - Name and time */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <h3 className={`truncate text-[15px] font-semibold ${
-              isActive
+            <h3 className={`truncate text-[15px] font-semibold ${isActive
                 ? "text-white"
                 : hasUnread
                   ? "text-gray-900 dark:text-white"
                   : "text-gray-800 dark:text-gray-200"
-            }`}>
+              }`}>
               {otherUser.name}
             </h3>
             {/* Unread indicator - next to name */}
@@ -99,23 +96,21 @@ const ConversationItem = ({
               <span className="flex-shrink-0 w-2 h-2 bg-primary-500 rounded-full animate-pulse" />
             )}
           </div>
-          <span className={`text-[11px] flex-shrink-0 font-medium ${
-            isActive
+          <span className={`text-[11px] flex-shrink-0 font-medium ${isActive
               ? "text-white/70"
               : hasUnread
                 ? "text-primary-600 dark:text-primary-400"
                 : "text-gray-400 dark:text-gray-500"
-          }`}>
+            }`}>
             {formatTime(conversation.lastMessageAt)}
           </span>
         </div>
 
         {/* Product Info */}
-        <div className={`flex items-center gap-2 mt-1.5 p-1.5 rounded-lg ${
-          isActive
+        <div className={`flex items-center gap-2 mt-1.5 p-1.5 rounded-lg ${isActive
             ? "bg-white/15"
             : "bg-gray-100 dark:bg-gray-800"
-        }`}>
+          }`}>
           {/* Product Image */}
           {product?.images?.[0] ? (
             <img
@@ -124,35 +119,31 @@ const ConversationItem = ({
               className="w-9 h-9 rounded-md object-cover flex-shrink-0"
             />
           ) : (
-            <div className={`w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0 ${
-              isActive ? "bg-white/20" : "bg-gray-200 dark:bg-gray-700"
-            }`}>
+            <div className={`w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0 ${isActive ? "bg-white/20" : "bg-gray-200 dark:bg-gray-700"
+              }`}>
               <span className="text-sm">🌾</span>
             </div>
           )}
           {/* Product Details */}
           <div className="flex-1 min-w-0">
-            <p className={`text-xs truncate ${
-              isActive ? "text-white/80" : "text-gray-600 dark:text-gray-400"
-            }`}>
+            <p className={`text-xs truncate ${isActive ? "text-white/80" : "text-gray-600 dark:text-gray-400"
+              }`}>
               {product?.title || "Product"}
             </p>
-            <p className={`text-sm font-bold ${
-              isActive ? "text-white" : "text-primary-600 dark:text-primary-400"
-            }`}>
+            <p className={`text-sm font-bold ${isActive ? "text-white" : "text-primary-600 dark:text-primary-400"
+              }`}>
               Rs. {product?.price?.toLocaleString() || "0"}
             </p>
           </div>
         </div>
 
         {/* Last message preview - always show for consistent height */}
-        <div className={`flex items-center gap-1.5 mt-2 h-5 ${
-          isActive
+        <div className={`flex items-center gap-1.5 mt-2 h-5 ${isActive
             ? "text-white/60"
             : hasUnread
               ? "text-gray-700 dark:text-gray-300"
               : "text-gray-500 dark:text-gray-400"
-        }`}>
+          }`}>
           <MessageSquare className="w-3 h-3 flex-shrink-0" />
           <p className="text-[13px] truncate">
             {conversation.lastMessage || "No messages yet"}
@@ -172,4 +163,4 @@ const ConversationItem = ({
   );
 };
 
-export default ConversationItem;
+export default React.memo(ConversationItem);

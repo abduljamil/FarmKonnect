@@ -124,6 +124,8 @@ const LandingPage = () => {
                         src="/images/hero-farmer.jpg"
                         alt="Agricultural landscape"
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        fetchpriority="low"
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-gray-900/95 via-gray-900/80 to-gray-900/60 dark:from-gray-950/95 dark:via-gray-950/85 dark:to-gray-950/70" />
                 </div>
@@ -358,8 +360,17 @@ const LandingPage = () => {
                                     <img
                                         src={testimonial.image}
                                         alt={testimonial.name}
-                                        className="w-12 h-12 rounded-full object-cover"
+                                        className="w-12 h-12 rounded-full object-cover bg-gray-200 dark:bg-gray-700"
+                                        loading="lazy"
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.style.display = 'none';
+                                            e.target.nextElementSibling?.classList.remove('hidden');
+                                        }}
                                     />
+                                    <div className="hidden w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold text-lg">
+                                        {testimonial.name?.charAt(0)?.toUpperCase() || "?"}
+                                    </div>
                                     <div className={isUrdu ? 'text-right' : 'text-left'}>
                                         <div className="font-semibold text-gray-900 dark:text-white">
                                             {testimonial.name}

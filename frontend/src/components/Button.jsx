@@ -1,17 +1,17 @@
 import PropTypes from 'prop-types';
 
-const Button = ({ 
-  children, 
-  onClick, 
-  type = 'button', 
-  variant = 'primary', 
+const Button = ({
+  children,
+  onClick,
+  type = 'button',
+  variant = 'primary',
   disabled = false,
   fullWidth = false,
   loading = false,
   className = '',
 }) => {
-  const baseStyles = 'px-6 py-3 rounded-lg font-semibold transition-all duration-200 inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed';
-  
+  const baseStyles = 'px-6 py-3 rounded-lg font-semibold transition-all duration-200 inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900';
+
   const variants = {
     primary: 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:-translate-y-0.5 hover:shadow-lg',
     secondary: 'bg-gray-600 dark:bg-gray-700 text-white hover:bg-gray-700 dark:hover:bg-gray-600 hover:-translate-y-0.5',

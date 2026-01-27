@@ -127,95 +127,95 @@ const Chat = () => {
     const messageHandler = async (message) => {
       try {
 
-      // Handle null conversation gracefully
-      if (!message.conversation && !message.conversationId) {
-        return;
-      }
-
-      const currentConvId = selectedConversationRef.current?._id;
-      // Handle both string and object conversation IDs - ALWAYS convert to string
-      const messageConvId = String(
-        typeof message.conversation === "object" && message.conversation !== null
-          ? message.conversation._id
-          : (message.conversation || message.conversationId)
-      );
-      const isCurrentConversation = currentConvId ? String(currentConvId) === messageConvId : false;
-
-      // Use ref for current user to avoid stale closure
-      const currentUserId = String(currentUserRef.current?.id || user.id);
-      const senderId = String(message.sender?._id || message.sender);
-      const isOwnMessage = senderId === currentUserId;
-
-
-      // Add message to messages list if it matches current conversation
-      setMessages((prevMessages) => {
-        if (isCurrentConversation) {
-          // Check if message already exists to prevent duplicates
-          const messageExists = prevMessages.some((m) => String(m._id) === String(message._id));
-          if (!messageExists) {
-            return [...prevMessages, message];
-          }
+        // Handle null conversation gracefully
+        if (!message.conversation && !message.conversationId) {
+          return;
         }
-        return prevMessages;
-      });
 
-      // Update or check if conversation exists
-      setConversations((prev) => {
-        const existingConv = prev.find((conv) => String(conv._id) === messageConvId);
+        const currentConvId = selectedConversationRef.current?._id;
+        // Handle both string and object conversation IDs - ALWAYS convert to string
+        const messageConvId = String(
+          typeof message.conversation === "object" && message.conversation !== null
+            ? message.conversation._id
+            : (message.conversation || message.conversationId)
+        );
+        const isCurrentConversation = currentConvId ? String(currentConvId) === messageConvId : false;
 
-        if (existingConv) {
-          // Update existing conversation
-          return prev.map((conv) =>
-            String(conv._id) === messageConvId
-              ? {
-                ...conv,
-                lastMessage: message.content,
-                lastMessageAt: message.createdAt,
-              }
-              : conv
-          );
-        } else {
-          // Reload conversations immediately when conversation not found
-          (async () => {
-            try {
-              const response = await chatAPI.getUserConversations();
-              setConversations(response.data);
+        // Use ref for current user to avoid stale closure
+        const currentUserId = String(currentUserRef.current?.id || user.id);
+        const senderId = String(message.sender?._id || message.sender);
+        const isOwnMessage = senderId === currentUserId;
 
-              // Join all conversation rooms including the new one
-              response.data.forEach((conversation) => {
-                socketService.joinConversation(conversation._id);
-              });
 
-              // Also mark this new conversation as unread if message is from someone else
-              if (!isOwnMessage) {
-                unreadConversationsRef.current.add(messageConvId);
-                setUnreadConversations((prevUnread) => {
-                  const newSet = new Set(prevUnread);
-                  newSet.add(messageConvId);
-                  return newSet;
-                });
-              }
-            } catch (error) {
-              console.error("Error loading new conversation:", error);
+        // Add message to messages list if it matches current conversation
+        setMessages((prevMessages) => {
+          if (isCurrentConversation) {
+            // Check if message already exists to prevent duplicates
+            const messageExists = prevMessages.some((m) => String(m._id) === String(message._id));
+            if (!messageExists) {
+              return [...prevMessages, message];
             }
-          })();
-
-          return prev;
-        }
-      });
-
-      // Handle unread notifications for messages from others
-      if (!isOwnMessage && !isCurrentConversation) {
-        // Update both ref and state to ensure consistency
-        unreadConversationsRef.current.add(messageConvId);
-        setUnreadConversations((prev) => {
-          const newSet = new Set(prev);
-          newSet.add(messageConvId);
-          return newSet;
+          }
+          return prevMessages;
         });
-        // Increment unread count
-        setUnreadCount((prev) => prev + 1);
-      }
+
+        // Update or check if conversation exists
+        setConversations((prev) => {
+          const existingConv = prev.find((conv) => String(conv._id) === messageConvId);
+
+          if (existingConv) {
+            // Update existing conversation
+            return prev.map((conv) =>
+              String(conv._id) === messageConvId
+                ? {
+                  ...conv,
+                  lastMessage: message.content,
+                  lastMessageAt: message.createdAt,
+                }
+                : conv
+            );
+          } else {
+            // Reload conversations immediately when conversation not found
+            (async () => {
+              try {
+                const response = await chatAPI.getUserConversations();
+                setConversations(response.data);
+
+                // Join all conversation rooms including the new one
+                response.data.forEach((conversation) => {
+                  socketService.joinConversation(conversation._id);
+                });
+
+                // Also mark this new conversation as unread if message is from someone else
+                if (!isOwnMessage) {
+                  unreadConversationsRef.current.add(messageConvId);
+                  setUnreadConversations((prevUnread) => {
+                    const newSet = new Set(prevUnread);
+                    newSet.add(messageConvId);
+                    return newSet;
+                  });
+                }
+              } catch (error) {
+                console.error("Error loading new conversation:", error);
+              }
+            })();
+
+            return prev;
+          }
+        });
+
+        // Handle unread notifications for messages from others
+        if (!isOwnMessage && !isCurrentConversation) {
+          // Update both ref and state to ensure consistency
+          unreadConversationsRef.current.add(messageConvId);
+          setUnreadConversations((prev) => {
+            const newSet = new Set(prev);
+            newSet.add(messageConvId);
+            return newSet;
+          });
+          // Increment unread count
+          setUnreadCount((prev) => prev + 1);
+        }
       } catch (error) {
         console.error("Chat.jsx: ERROR in messageHandler:", error);
         console.error("Chat.jsx: Error stack:", error.stack);
@@ -236,15 +236,26 @@ const Chat = () => {
       return true;
     };
 
+    // Store interval ID for cleanup
+    let checkIntervalId = null;
+    let timeoutId = null;
+
     // Try to attach immediately
     if (!attachListener()) {
       // If socket not ready, wait for it
-      const checkInterval = setInterval(() => {
+      checkIntervalId = setInterval(() => {
         if (attachListener()) {
-          clearInterval(checkInterval);
+          clearInterval(checkIntervalId);
+          checkIntervalId = null;
         }
       }, 100);
-      setTimeout(() => clearInterval(checkInterval), 10000);
+      // Cleanup timeout after 10 seconds
+      timeoutId = setTimeout(() => {
+        if (checkIntervalId) {
+          clearInterval(checkIntervalId);
+          checkIntervalId = null;
+        }
+      }, 10000);
     }
 
     // Store handler reference for cleanup
@@ -273,30 +284,41 @@ const Chat = () => {
       await loadUnreadCount();
     });
 
+    // Message sent handler for cleanup
+    const messageSentHandler = (data) => {
+      // Also add the message to UI immediately after sending
+      if (
+        data.message &&
+        data.message.conversation === selectedConversationRef.current?._id
+      ) {
+        setMessages((prev) => {
+          // Check if message already exists
+          const exists = prev.some((m) => m._id === data.message._id);
+          if (!exists) {
+            return [...prev, data.message];
+          }
+          return prev;
+        });
+      }
+    };
+
     // Listen for message sent confirmation
     if (socketService.socket) {
-      socketService.socket.on("message_sent", (data) => {
-        // Also add the message to UI immediately after sending
-        if (
-          data.message &&
-          data.message.conversation === selectedConversationRef.current?._id
-        ) {
-          setMessages((prev) => {
-            // Check if message already exists
-            const exists = prev.some((m) => m._id === data.message._id);
-            if (!exists) {
-              return [...prev, data.message];
-            }
-            return prev;
-          });
-        }
-      });
+      socketService.socket.on("message_sent", messageSentHandler);
     }
 
     return () => {
+      // Clean up intervals and timeouts
+      if (checkIntervalId) {
+        clearInterval(checkIntervalId);
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       // Remove the listener directly from socket
       if (socketService.socket) {
         socketService.socket.off("new_message", handlerRef);
+        socketService.socket.off("message_sent", messageSentHandler);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -675,9 +697,10 @@ const Chat = () => {
       <div className="flex flex-1 overflow-hidden relative">
         {/* Conversations List - Hidden on mobile when conversation is selected */}
         <div className={`
-          ${selectedConversation ? 'hidden md:flex' : 'flex'}
+          ${selectedConversation ? 'translate-x-full md:translate-x-0 opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto' : 'translate-x-0 opacity-100 pointer-events-auto'}
           w-full md:w-80 lg:w-96 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex-col
-          absolute md:relative inset-0 z-10 md:z-auto
+          absolute md:relative inset-0 z-10 md:z-auto flex
+          transition-all duration-300 ease-in-out
         `}>
           <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
             <div className="flex items-center justify-between">
@@ -721,9 +744,10 @@ const Chat = () => {
 
         {/* Chat Area - Full width on mobile when conversation is selected */}
         <div className={`
-          ${selectedConversation ? 'flex' : 'hidden md:flex'} 
-          flex-1 flex-col
+          ${selectedConversation ? 'translate-x-0 opacity-100' : 'translate-x-full md:translate-x-0 opacity-0 md:opacity-100'} 
+          flex-1 flex-col flex
           absolute md:relative inset-0 z-20 md:z-auto
+          transition-all duration-300 ease-in-out bg-white dark:bg-gray-900
         `}>
           {selectedConversation ? (
             <>

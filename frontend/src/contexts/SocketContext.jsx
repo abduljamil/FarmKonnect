@@ -243,7 +243,7 @@ export const SocketProvider = ({ children }) => {
     };
   }, [initializeSocket, disconnectSocket]);
 
-  // Re-initialize when user data changes
+  // Re-initialize when user returns to tab (event-driven, no polling)
   useEffect(() => {
     const checkConnection = () => {
       const userData = sessionStorage.getItem("user");
@@ -252,9 +252,25 @@ export const SocketProvider = ({ children }) => {
       }
     };
 
-    // Check connection periodically
-    const interval = setInterval(checkConnection, 5000);
-    return () => clearInterval(interval);
+    // Check connection when tab becomes visible (event-driven instead of polling)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkConnection();
+      }
+    };
+
+    // Also check on focus (for when user switches windows)
+    const handleFocus = () => {
+      checkConnection();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [initializeSocket]);
 
   const value = {

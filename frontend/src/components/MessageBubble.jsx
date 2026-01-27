@@ -101,20 +101,18 @@ const MessageBubble = ({
         )}
 
         <div
-          className={`relative px-4 py-2.5 ${
-            isOwnMessage
+          className={`relative px-4 py-2.5 ${isOwnMessage
               ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl rounded-br-md shadow-md"
               : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-bl-md shadow-sm border border-gray-200 dark:border-gray-700"
-          }`}
+            }`}
         >
           <div className="break-words text-[15px] leading-relaxed">{message.content}</div>
           {renderOfferMessage()}
           <div
-            className={`flex items-center justify-end gap-1 mt-1 ${
-              isOwnMessage
+            className={`flex items-center justify-end gap-1 mt-1 ${isOwnMessage
                 ? "text-white/70"
                 : "text-gray-400 dark:text-gray-500"
-            }`}
+              }`}
           >
             <span className="text-[11px]">{formatTime(message.createdAt)}</span>
             {isOwnMessage && (
@@ -131,4 +129,4 @@ const MessageBubble = ({
   );
 };
 
-export default MessageBubble;
+export default React.memo(MessageBubble);
