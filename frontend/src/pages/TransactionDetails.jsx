@@ -40,6 +40,10 @@ export default function TransactionDetails() {
     // Store previous transaction state for comparison
     const prevTransactionRef = useRef(null);
 
+    // Track when user triggered an action to prevent socket-triggered double updates
+    const lastUserActionRef = useRef(0);
+    const DEBOUNCE_MS = 3000; // Ignore socket updates for 3 seconds after user action
+
     // Function to silently refresh transaction data
     const silentRefresh = useCallback(async () => {
         try {
@@ -110,6 +114,11 @@ export default function TransactionDetails() {
             const currentId = id?.toString?.() || id;
 
             if (updateId === currentId) {
+                // Skip refresh if user just triggered an action (debounce)
+                const timeSinceLastAction = Date.now() - lastUserActionRef.current;
+                if (timeSinceLastAction < DEBOUNCE_MS) {
+                    return; // User just clicked a button, skip socket-triggered refresh
+                }
                 silentRefresh();
             }
         }, `transaction_${id}`);
@@ -182,6 +191,7 @@ export default function TransactionDetails() {
 
     // COD Flow Handlers
     const handleConfirmDelivery = async () => {
+        lastUserActionRef.current = Date.now();
         setActionLoading("confirmDelivery");
         try {
             const response = await fetch(`${API_URL}/payments/transactions/${id}/confirm-delivery`, {
@@ -203,6 +213,7 @@ export default function TransactionDetails() {
     };
 
     const handleConfirmPayment = async () => {
+        lastUserActionRef.current = Date.now();
         setActionLoading("confirmPayment");
         try {
             const response = await fetch(`${API_URL}/payments/transactions/${id}/confirm-payment`, {
@@ -224,6 +235,7 @@ export default function TransactionDetails() {
     };
 
     const handleSellerConfirmPayment = async () => {
+        lastUserActionRef.current = Date.now();
         setActionLoading("sellerConfirm");
         try {
             const response = await fetch(`${API_URL}/payments/transactions/${id}/seller-confirm-payment`, {
@@ -253,6 +265,7 @@ export default function TransactionDetails() {
             addNotification("Please select a dispute reason", "warning");
             return;
         }
+        lastUserActionRef.current = Date.now();
         setActionLoading("dispute");
         try {
             const response = await fetch(`${API_URL}/payments/transactions/${id}/dispute`, {
@@ -277,6 +290,7 @@ export default function TransactionDetails() {
     };
 
     const handleMarkDelivered = async () => {
+        lastUserActionRef.current = Date.now();
         setActionLoading("markDelivered");
         try {
             const response = await fetch(`${API_URL}/payments/transactions/${id}/deliver`, {
