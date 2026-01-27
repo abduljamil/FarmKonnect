@@ -634,7 +634,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
           </div>
 
           {/* Date and Period Selection */}
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-2">
             {/* Date Picker */}
             <div className="w-full sm:w-auto">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1.5 ml-1">{t("priceChart.date")}</p>
@@ -648,21 +648,22 @@ const PriceChart = ({ user, onLoginRequired }) => {
                     setDays(30); // Reset or keep default, visually it will depend on selectedDate being truthy
                   })}
                   className={`
-                    w-full px-3 py-2.5 pl-10 rounded-xl
-                    bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200
-                    border border-gray-200 dark:border-gray-700
-                    focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/30
+                    w-full h-[42px] px-3 py-2 pl-10 rounded-lg
+                    bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
+                    border-0
+                    focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400
                     outline-none transition-all duration-200
+                    [color-scheme:light] dark:[color-scheme:dark]
                     [&::-webkit-calendar-picker-indicator]:dark:invert
                     [&::-webkit-calendar-picker-indicator]:opacity-60
                     [&::-webkit-calendar-picker-indicator]:hover:opacity-100
                     [&::-webkit-calendar-picker-indicator]:cursor-pointer
-                    ${selectedDate ? "border-primary-500 ring-2 ring-primary-100 dark:ring-primary-900/30 font-semibold" : ""}
+                    ${selectedDate ? "ring-2 ring-primary-500 dark:ring-primary-400 font-semibold bg-primary-50 dark:bg-primary-900/30" : ""}
                   `}
                 />
                 <Calendar className={`
                   absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none
-                  ${selectedDate ? "text-primary-600 dark:text-primary-400" : "text-gray-400"}
+                  ${selectedDate ? "text-primary-600 dark:text-primary-400" : "text-gray-400 dark:text-gray-500"}
                 `} />
               </div>
             </div>
@@ -679,7 +680,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
                       setSelectedDate(""); // Clear date when period is selected
                     })}
                     className={`
-                      flex-1 py-2.5 px-2 rounded-lg text-sm font-bold transition-all duration-200
+                      flex-1 h-[42px] px-2 rounded-lg text-sm font-bold transition-all duration-200
                       ${(days === period.value && !selectedDate)
                         ? "bg-primary-600 text-white shadow-md"
                         : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
