@@ -86,7 +86,8 @@ const CreateProduct = () => {
         try {
           const uploadResult = await uploadAPI.uploadListingImages(imageFiles);
           uploadedImageUrls = uploadResult.data.images;
-        } catch (uploadErr) {
+        } catch (error) { // eslint-disable-line no-unused-vars
+          console.error("Upload error:", error);
           setError("Failed to upload images. Please try again.");
           setLoading(false);
           return;

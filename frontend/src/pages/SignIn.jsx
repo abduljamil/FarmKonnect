@@ -40,30 +40,32 @@ const SignIn = () => {
       setRequiresVerification(true);
     }
 
+    const fetchUserData = async () => {
+      try {
+        const response = await authAPI.getMe();
+        const userData = response.data?.user || response.user;
+        const token = response.data?.token || response.token;
+        if (userData) {
+          const userWithToken = {
+            ...userData,
+            token: token,  // Include token for socket authentication
+          };
+          sessionStorage.setItem("user", JSON.stringify(userWithToken));
+          navigate("/dashboard");
+        }
+      } catch (err) {
+        console.error("Failed to fetch user data after OAuth:", err);
+      }
+    };
+
     if (authSuccess === "success") {
       // OAuth was successful, fetch user data
       setGoogleLoading(true);
       fetchUserData();
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
-  const fetchUserData = async () => {
-    try {
-      const response = await authAPI.getMe();
-      const userData = response.data?.user || response.user;
-      const token = response.data?.token || response.token;
-      if (userData) {
-        const userWithToken = {
-          ...userData,
-          token: token,  // Include token for socket authentication
-        };
-        sessionStorage.setItem("user", JSON.stringify(userWithToken));
-        navigate("/dashboard");
-      }
-    } catch (err) {
-      console.error("Failed to fetch user data after OAuth:", err);
-    }
-  };
+
 
   const handleChange = (e) => {
     setFormData({

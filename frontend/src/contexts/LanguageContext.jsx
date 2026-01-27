@@ -6,6 +6,7 @@ const LanguageContext = createContext();
 
 const translations = { en, ur };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useLanguage = () => {
     const context = useContext(LanguageContext);
     if (!context) {
@@ -14,6 +15,7 @@ export const useLanguage = () => {
     return context;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const LanguageProvider = ({ children }) => {
     const [language, setLanguage] = useState(() => {
         const saved = localStorage.getItem("language");

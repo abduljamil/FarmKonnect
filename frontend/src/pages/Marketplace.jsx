@@ -56,14 +56,14 @@ const Products = () => {
     // Fetch products without requiring login
     fetchProducts(1);
     setLoading(false);
-  }, []);
+  }, [fetchProducts]);
 
   useEffect(() => {
     if (activeTab !== "create") {
       setPagination(prev => ({ ...prev, page: 1 }));
       fetchProducts(1);
     }
-  }, [activeTab]);
+  }, [activeTab, fetchProducts]);
 
   const loadUnreadCount = async () => {
     try {
@@ -74,7 +74,7 @@ const Products = () => {
     }
   };
 
-  const fetchProducts = async (page = pagination.page) => {
+  const fetchProducts = React.useCallback(async (page = pagination.page) => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams();
@@ -107,7 +107,7 @@ const Products = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, activeTab, pagination.limit, pagination.page]);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.pages) {

@@ -31,13 +31,13 @@ const Products = () => {
       loadUnreadCount();
     }
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   useEffect(() => {
     if (activeTab !== "create") {
       fetchProducts();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchProducts]);
 
   const loadUnreadCount = async () => {
     try {
@@ -48,7 +48,7 @@ const Products = () => {
     }
   };
 
-  const fetchProducts = async () => {
+  const fetchProducts = React.useCallback(async () => {
     try {
       const queryParams = new URLSearchParams();
       if (filter.category) queryParams.append("category", filter.category);
@@ -75,7 +75,7 @@ const Products = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, activeTab]);
 
   const handleStartChat = async (product) => {
     if (!user) {
@@ -188,22 +188,20 @@ const Products = () => {
         <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab("all")}
-            className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${
-              activeTab === "all"
+            className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${activeTab === "all"
                 ? "border-primary-600 text-primary-600 dark:text-primary-400"
                 : "border-transparent text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
-            }`}
+              }`}
           >
             All Listings
           </button>
           {(user?.role === "seller" || user?.role === "admin") && (
             <button
               onClick={() => setActiveTab("my-products")}
-              className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${
-                activeTab === "my-products"
+              className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${activeTab === "my-products"
                   ? "border-primary-600 text-primary-600 dark:text-primary-400"
                   : "border-transparent text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
-              }`}
+                }`}
             >
               My Listings
             </button>
@@ -296,88 +294,88 @@ const Products = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <Card
-                key={product._id}
-                className="hover:shadow-lg transition-shadow"
-              >
-                {product.images?.[0] && (
-                  <img
-                    src={product.images[0]}
-                    alt={product.title}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
-                )}
-                <div className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {product.title}
-                    </h3>
-                    <span className="text-sm px-2 py-1 bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 rounded font-medium">
-                      {product.category}
-                    </span>
-                  </div>
-
-                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">
-                    {product.description}
-                  </p>
-
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                      ${product.price.toLocaleString()}
-                    </span>
-                    {product.unit && (
-                      <span className="text-sm text-gray-500">
-                        per {product.unit}
-                      </span>
+                {products.map((product) => (
+                  <Card
+                    key={product._id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
+                    {product.images?.[0] && (
+                      <img
+                        src={product.images[0]}
+                        alt={product.title}
+                        className="w-full h-48 object-cover rounded-t-lg"
+                      />
                     )}
-                  </div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                          {product.title}
+                        </h3>
+                        <span className="text-sm px-2 py-1 bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 rounded font-medium">
+                          {product.category}
+                        </span>
+                      </div>
 
-                  <div className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                    <div>📍 {product.location}</div>
-                    <div>👤 {product.seller.name}</div>
-                    {product.quantity && (
-                      <div>📦 Quantity: {product.quantity}</div>
-                    )}
-                  </div>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">
+                        {product.description}
+                      </p>
 
-                  {activeTab === "my-products" ? (
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => navigate(`/products/edit/${product._id}`)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={() => openDeleteModal(product)}
-                        disabled={deleting === product._id}
-                        className="flex-1 bg-red-600 hover:bg-red-700"
-                      >
-                        {deleting === product._id ? "..." : "Delete"}
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      {user && (user._id || user.id) !== product.seller._id && (
-                        <Button
-                          onClick={() => handleStartChat(product)}
-                          className="w-full"
-                        >
-                          Contact Seller
-                        </Button>
-                      )}
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                          ${product.price.toLocaleString()}
+                        </span>
+                        {product.unit && (
+                          <span className="text-sm text-gray-500">
+                            per {product.unit}
+                          </span>
+                        )}
+                      </div>
 
-                      {user && ((user._id || user.id) === product.seller._id) && (
-                        <div className="text-sm font-medium text-primary-600 dark:text-primary-400 text-center py-2 bg-primary-50 dark:bg-primary-900/20 rounded">
-                          Your Listing
+                      <div className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                        <div>📍 {product.location}</div>
+                        <div>👤 {product.seller.name}</div>
+                        {product.quantity && (
+                          <div>📦 Quantity: {product.quantity}</div>
+                        )}
+                      </div>
+
+                      {activeTab === "my-products" ? (
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => navigate(`/products/edit/${product._id}`)}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            onClick={() => openDeleteModal(product)}
+                            disabled={deleting === product._id}
+                            className="flex-1 bg-red-600 hover:bg-red-700"
+                          >
+                            {deleting === product._id ? "..." : "Delete"}
+                          </Button>
                         </div>
+                      ) : (
+                        <>
+                          {user && (user._id || user.id) !== product.seller._id && (
+                            <Button
+                              onClick={() => handleStartChat(product)}
+                              className="w-full"
+                            >
+                              Contact Seller
+                            </Button>
+                          )}
+
+                          {user && ((user._id || user.id) === product.seller._id) && (
+                            <div className="text-sm font-medium text-primary-600 dark:text-primary-400 text-center py-2 bg-primary-50 dark:bg-primary-900/20 rounded">
+                              Your Listing
+                            </div>
+                          )}
+                        </>
                       )}
-                    </>
-                  )}
-                </div>
-              </Card>
-            ))}
+                    </div>
+                  </Card>
+                ))}
               </div>
             )}
           </>

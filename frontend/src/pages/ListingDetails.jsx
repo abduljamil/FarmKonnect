@@ -35,7 +35,7 @@ const ListingDetails = () => {
       loadUnreadCount();
     }
     fetchListing();
-  }, [id]);
+  }, [id, fetchListing]);
 
   const loadUnreadCount = async () => {
     try {
@@ -46,7 +46,7 @@ const ListingDetails = () => {
     }
   };
 
-  const fetchListing = async () => {
+  const fetchListing = React.useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`${API_URL}/listings/${id}`);
@@ -63,7 +63,7 @@ const ListingDetails = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   const handleContactSeller = async () => {
     if (!user) {
@@ -348,8 +348,8 @@ const ListingDetails = () => {
                   <Button
                     onClick={handleToggleStatus}
                     className={`flex items-center justify-center gap-2 ${listing.status === "active"
-                        ? "bg-amber-500 hover:bg-amber-600"
-                        : "bg-emerald-500 hover:bg-emerald-600"
+                      ? "bg-amber-500 hover:bg-amber-600"
+                      : "bg-emerald-500 hover:bg-emerald-600"
                       }`}
                   >
                     {listing.status === "active" ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
