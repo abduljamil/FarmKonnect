@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Copy, Check, MessageSquare, AlertTriangle, Package, CreditCard, CheckCircle, XCircle, Camera, X, Image } from "lucide-react";
 import { paymentsAPI } from "../utils/api";
@@ -41,7 +41,7 @@ export default function TransactionDetails() {
     const prevTransactionRef = useRef(null);
 
     // Function to silently refresh transaction data
-    const silentRefresh = async () => {
+    const silentRefresh = useCallback(async () => {
         try {
             const response = await paymentsAPI.getTransaction(id);
             const newData = response.data;
@@ -73,7 +73,20 @@ export default function TransactionDetails() {
         } catch (err) {
             console.error("Error in silent refresh:", err);
         }
-    };
+    }, [id, navigate, addNotification]);
+
+    const fetchTransaction = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await paymentsAPI.getTransaction(id);
+            setTransaction(response.data);
+            prevTransactionRef.current = response.data;
+        } catch (err) {
+            setError(err.message || "Failed to load transaction details");
+        } finally {
+            setLoading(false);
+        }
+    }, [id]);
 
     useEffect(() => {
         fetchTransaction();
@@ -110,20 +123,7 @@ export default function TransactionDetails() {
             socketService.offOrderStatusUpdate(`transaction_${id}`);
             clearInterval(pollInterval);
         };
-    }, [id]);
-
-    const fetchTransaction = async () => {
-        try {
-            setLoading(true);
-            const response = await paymentsAPI.getTransaction(id);
-            setTransaction(response.data);
-            prevTransactionRef.current = response.data;
-        } catch (err) {
-            setError(err.message || "Failed to load transaction details");
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [id, fetchTransaction, silentRefresh]);
 
     const handleBack = () => {
         navigate(-1);

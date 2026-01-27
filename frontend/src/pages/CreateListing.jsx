@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import API_URL from "../config";
 import Card from "../components/Card";
@@ -46,6 +46,15 @@ const CreateProduct = () => {
     { value: "liter", label: "Liter" },
   ];
 
+  const loadUnreadCount = useCallback(async () => {
+    try {
+      const response = await chatAPI.getUnreadCount();
+      setUnreadCount(response.data.count);
+    } catch (error) {
+      console.error("Error loading unread count:", error);
+    }
+  }, []);
+
   useEffect(() => {
     const userData = sessionStorage.getItem("user");
     if (userData) {
@@ -55,16 +64,7 @@ const CreateProduct = () => {
       // Redirect to signin if not logged in
       navigate("/signin");
     }
-  }, [navigate]);
-
-  const loadUnreadCount = async () => {
-    try {
-      const response = await chatAPI.getUnreadCount();
-      setUnreadCount(response.data.count);
-    } catch (error) {
-      console.error("Error loading unread count:", error);
-    }
-  };
+  }, [navigate, loadUnreadCount]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

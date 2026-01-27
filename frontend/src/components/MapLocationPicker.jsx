@@ -53,6 +53,7 @@ export default function MapLocationPicker({ onLocationSelect, initialLocation, r
         existingScript.removeEventListener("error", onError);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -60,7 +61,7 @@ export default function MapLocationPicker({ onLocationSelect, initialLocation, r
       setLocation(initialLocation);
       setAddress(initialLocation.address || "");
     }
-  }, [initialLocation]);
+  }, [initialLocation, location]);
 
   useEffect(() => {
     if (location && onLocationSelect && !readonly) {
@@ -70,7 +71,7 @@ export default function MapLocationPicker({ onLocationSelect, initialLocation, r
         address: address,
       });
     }
-  }, [location, address]);
+  }, [location, address, onLocationSelect, readonly]);
 
   const initMap = () => {
     try {

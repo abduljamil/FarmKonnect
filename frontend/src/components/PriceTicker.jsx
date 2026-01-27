@@ -4,8 +4,6 @@ import API_URL from "../config";
 
 const PriceTicker = ({ prices = [] }) => {
   const [livePrices, setLivePrices] = useState([]);
-  const [loadError, setLoadError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
 
   // Default sample data if no prices provided
@@ -26,7 +24,6 @@ const PriceTicker = ({ prices = [] }) => {
     if (cachedData) {
       try {
         setLivePrices(JSON.parse(cachedData));
-        setIsLoading(false);
       } catch (e) {
         console.error("Cache parse error:", e);
       }
@@ -64,22 +61,12 @@ const PriceTicker = ({ prices = [] }) => {
             });
           if (mapped.length > 0) {
             setLivePrices(mapped);
-            setLoadError(false);
             // Update cache
             sessionStorage.setItem("ticker_prices_cache", JSON.stringify(mapped));
-          } else {
-            setLoadError(true);
           }
         }
       } catch (error) {
         console.error("Price ticker fetch error:", error);
-        if (isMounted) {
-          setLoadError(true);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
       }
     };
 
@@ -132,9 +119,8 @@ const PriceTicker = ({ prices = [] }) => {
               </span>
               {typeof item.change === "number" && (
                 <span
-                  className={`flex items-center gap-0.5 text-xs font-medium ${
-                    item.change >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                  }`}
+                  className={`flex items-center gap-0.5 text-xs font-medium ${item.change >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                    }`}
                 >
                   {item.change >= 0 ? (
                     <TrendingUp className="w-3 h-3" />

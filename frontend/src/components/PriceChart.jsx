@@ -155,7 +155,7 @@ const CommodityButton = memo(({ commodity, config, isSelected, onClick }) => {
 CommodityButton.displayName = "CommodityButton";
 
 // Dropdown Select Component
-const DropdownSelect = memo(({ label, icon: Icon, value, options, onChange, disabled }) => {
+const DropdownSelect = memo(({ label, value, options, onChange, disabled, icon: IconComponent }) => { // eslint-disable-line no-unused-vars
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -172,7 +172,7 @@ const DropdownSelect = memo(({ label, icon: Icon, value, options, onChange, disa
         `}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <Icon className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+          <IconComponent className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
             <p className="text-base font-semibold text-gray-900 dark:text-white truncate">{value || "Select..."}</p>
@@ -213,10 +213,10 @@ const DropdownSelect = memo(({ label, icon: Icon, value, options, onChange, disa
 DropdownSelect.displayName = "DropdownSelect";
 
 // Price Stats Card
-const PriceStatsCard = memo(({ label, value, unit, icon: Icon, color }) => (
+const PriceStatsCard = memo(({ label, value, unit, icon: IconComponent, color }) => ( // eslint-disable-line no-unused-vars
   <div className={`p-3 rounded-xl ${color}`}>
     <div className="flex items-center gap-1.5 mb-1">
-      <Icon className="w-4 h-4" />
+      <IconComponent className="w-4 h-4" />
       <span className="text-xs font-medium opacity-80">{label}</span>
     </div>
     <p className="text-lg font-bold">₨{value?.toLocaleString() || "—"}</p>
@@ -227,7 +227,7 @@ const PriceStatsCard = memo(({ label, value, unit, icon: Icon, color }) => (
 PriceStatsCard.displayName = "PriceStatsCard";
 
 // Chart Type Button
-const ChartTypeButton = memo(({ active, onClick, icon: Icon, label }) => (
+const ChartTypeButton = memo(({ active, onClick, icon: IconComponent, label }) => ( // eslint-disable-line no-unused-vars
   <button
     onClick={onClick}
     title={label}
@@ -239,7 +239,7 @@ const ChartTypeButton = memo(({ active, onClick, icon: Icon, label }) => (
       }
     `}
   >
-    <Icon className="w-4 h-4" />
+    <IconComponent className="w-4 h-4" />
   </button>
 ));
 
@@ -367,7 +367,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
     fetchCities();
     return () => { isMounted = false; };
-  }, [selectedCommodity, selectedVariety]);
+  }, [selectedCommodity, selectedVariety, selectedCity]);
 
   // Fetch price history
   useEffect(() => {

@@ -38,7 +38,6 @@ const Chat = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [deleteModal, setDeleteModal] = useState({ open: false, conversationId: null, userName: "" });
   const messagesEndRef = useRef(null);
-  const typingTimeoutRef = useRef(null);
   const selectedConversationRef = useRef(null);
   const hasAttemptedReloadRef = useRef(false);
   const currentUserRef = useRef(null);
@@ -265,7 +264,7 @@ const Chat = () => {
       setTypingUsers((prev) => new Set(prev).add(userName));
     });
 
-    socketService.onUserStopTyping(({ userId }) => {
+    socketService.onUserStopTyping(() => {
       setTypingUsers((prev) => {
         const newSet = new Set(prev);
         // Remove by userName (we'd need to map userId to userName)

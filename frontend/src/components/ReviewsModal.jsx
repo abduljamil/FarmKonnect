@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Star, ExternalLink } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
@@ -21,9 +21,9 @@ export default function ReviewsModal({ isOpen, onClose, userId, userName }) {
       setPagination({ page: 1, hasMore: false });
       fetchReviews(1);
     }
-  }, [isOpen, userId]);
+  }, [isOpen, userId, fetchReviews]);
 
-  const fetchReviews = async (page = 1) => {
+  const fetchReviews = useCallback(async (page = 1) => {
     try {
       if (page === 1) {
         setLoading(true);
@@ -51,7 +51,7 @@ export default function ReviewsModal({ isOpen, onClose, userId, userName }) {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+  }, [userId]);
 
   const loadMore = () => {
     fetchReviews(pagination.page + 1);

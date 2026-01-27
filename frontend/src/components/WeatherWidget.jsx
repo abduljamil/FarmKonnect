@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Sun,
   Cloud,
@@ -61,26 +61,26 @@ const WeatherWidget = ({ defaultCity = "Lahore" }) => {
   }, []);
 
   // Fetch weather data
-  const fetchWeather = async (city = selectedCity) => {
+  const fetchWeather = useCallback(async (city = selectedCity) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const [currentRes, forecastRes] = await Promise.all([
         fetch(`${API_BASE}/weather/current?city=${encodeURIComponent(city)}`),
         fetch(`${API_BASE}/weather/forecast?city=${encodeURIComponent(city)}`)
       ]);
-      
+
       const currentData = await currentRes.json();
       const forecastData = await forecastRes.json();
-      
+
       if (currentData.success) {
         setWeather(currentData.data);
         setLastUpdated(new Date());
       } else {
         throw new Error(currentData.message || "Failed to fetch weather");
       }
-      
+
       if (forecastData.success) {
         setForecast(forecastData.data.forecast || []);
       }
@@ -90,18 +90,18 @@ const WeatherWidget = ({ defaultCity = "Lahore" }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCity]);
 
   // Initial fetch and on city change
   useEffect(() => {
     fetchWeather(selectedCity);
-  }, [selectedCity]);
+  }, [selectedCity, fetchWeather]);
 
   // Auto-refresh every 30 minutes
   useEffect(() => {
     const interval = setInterval(() => fetchWeather(), 30 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [selectedCity]);
+  }, [selectedCity, fetchWeather]);
 
   const handleCityChange = (e) => {
     setSelectedCity(e.target.value);

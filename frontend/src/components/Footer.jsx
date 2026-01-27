@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
   const { t, isUrdu } = useLanguage();
   const location = useLocation();
 

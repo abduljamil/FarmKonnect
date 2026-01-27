@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useRef } from "react";import API_URL from "../config";
+import React, { useState, useEffect, useCallback } from "react"; import API_URL from "../config";
 import {
   Bell,
   BellRing,
@@ -14,6 +14,7 @@ import {
   Volume2
 } from "lucide-react";
 import alertsApi from "../utils/alertsApi";
+import reviewsAPI from "../utils/reviewsApi";
 import socketService from "../utils/socket";
 
 const COMMODITIES = [
@@ -31,11 +32,11 @@ const COMMODITIES_WITH_VARIETIES = ["Rice", "Cotton"];
 const AlertItem = ({ alert, onDelete, onReactivate }) => {
   const [deleting, setDeleting] = useState(false);
   const isTriggered = alert.status === "triggered";
-  
-  const progress = alert.currentPrice 
-    ? (alert.condition === "above" 
-        ? Math.min((alert.currentPrice / alert.targetPrice) * 100, 100)
-        : Math.min((alert.targetPrice / alert.currentPrice) * 100, 100))
+
+  const progress = alert.currentPrice
+    ? (alert.condition === "above"
+      ? Math.min((alert.currentPrice / alert.targetPrice) * 100, 100)
+      : Math.min((alert.targetPrice / alert.currentPrice) * 100, 100))
     : 50;
 
   const handleDelete = async () => {
@@ -47,11 +48,10 @@ const AlertItem = ({ alert, onDelete, onReactivate }) => {
   const commodityIcon = COMMODITIES.find(c => c.value === alert.commodity)?.icon || "🌿";
 
   return (
-    <div className={`p-4 rounded-xl border transition-all ${
-      isTriggered 
-        ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" 
-        : "bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600"
-    }`}>
+    <div className={`p-4 rounded-xl border transition-all ${isTriggered
+      ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+      : "bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600"
+      }`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg">{commodityIcon}</span>
@@ -81,7 +81,7 @@ const AlertItem = ({ alert, onDelete, onReactivate }) => {
               Active
             </span>
           )}
-          <button 
+          <button
             onClick={handleDelete}
             disabled={deleting}
             className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md transition-colors ml-1 text-gray-400 hover:text-red-500"
@@ -107,10 +107,9 @@ const AlertItem = ({ alert, onDelete, onReactivate }) => {
             </span>
           </div>
           <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-            <div 
-              className={`h-full rounded-full transition-all ${
-                isTriggered ? "bg-green-500" : "bg-emerald-500"
-              }`}
+            <div
+              className={`h-full rounded-full transition-all ${isTriggered ? "bg-green-500" : "bg-emerald-500"
+                }`}
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -449,22 +448,20 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, condition: "above" })}
-                className={`flex-1 py-2.5 px-4 rounded-lg border font-medium transition-colors ${
-                  formData.condition === "above"
-                    ? "bg-emerald-600 text-white border-emerald-600"
-                    : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
-                }`}
+                className={`flex-1 py-2.5 px-4 rounded-lg border font-medium transition-colors ${formData.condition === "above"
+                  ? "bg-emerald-600 text-white border-emerald-600"
+                  : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+                  }`}
               >
                 Rises Above ↑
               </button>
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, condition: "below" })}
-                className={`flex-1 py-2.5 px-4 rounded-lg border font-medium transition-colors ${
-                  formData.condition === "below"
-                    ? "bg-red-600 text-white border-red-600"
-                    : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
-                }`}
+                className={`flex-1 py-2.5 px-4 rounded-lg border font-medium transition-colors ${formData.condition === "below"
+                  ? "bg-red-600 text-white border-red-600"
+                  : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+                  }`}
               >
                 Drops Below ↓
               </button>
@@ -472,11 +469,10 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
           </div>
 
           {/* Current Price Display */}
-          <div className={`p-4 rounded-xl border ${
-            currentPrice?.isSelectedCity
-              ? "bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30 border-emerald-200 dark:border-emerald-700"
-              : "bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 border-gray-200 dark:border-gray-700"
-          }`}>
+          <div className={`p-4 rounded-xl border ${currentPrice?.isSelectedCity
+            ? "bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30 border-emerald-200 dark:border-emerald-700"
+            : "bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 border-gray-200 dark:border-gray-700"
+            }`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400 mb-1">
@@ -505,16 +501,14 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
               </div>
               {currentPrice && (
                 <div className="text-right">
-                  <div className={`px-2 py-1 rounded-md ${
-                    currentPrice.isSelectedCity
-                      ? "bg-emerald-100 dark:bg-emerald-900/50"
-                      : "bg-gray-100 dark:bg-gray-700"
-                  }`}>
-                    <p className={`text-xs font-medium ${
-                      currentPrice.isSelectedCity
-                        ? "text-emerald-700 dark:text-emerald-400"
-                        : "text-gray-600 dark:text-gray-400"
+                  <div className={`px-2 py-1 rounded-md ${currentPrice.isSelectedCity
+                    ? "bg-emerald-100 dark:bg-emerald-900/50"
+                    : "bg-gray-100 dark:bg-gray-700"
                     }`}>
+                    <p className={`text-xs font-medium ${currentPrice.isSelectedCity
+                      ? "text-emerald-700 dark:text-emerald-400"
+                      : "text-gray-600 dark:text-gray-400"
+                      }`}>
                       📍 {currentPrice.city}
                     </p>
                   </div>
@@ -593,10 +587,10 @@ const PriceAlertsPanel = ({ user }) => {
 
   const fetchAlerts = useCallback(async () => {
     if (!user) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await alertsApi.getAlerts();
       if (response.data.success) {
@@ -616,15 +610,15 @@ const PriceAlertsPanel = ({ user }) => {
 
     const handleAlertTriggered = (data) => {
       // Update the alert in the local state
-      setAlerts(prevAlerts => 
-        prevAlerts.map(alert => 
+      setAlerts(prevAlerts =>
+        prevAlerts.map(alert =>
           (alert && alert._id === data.alert?._id)
-            ? { 
-                ...alert, 
-                status: "triggered", 
-                triggeredAt: new Date().toISOString(),
-                currentPrice: data.alert.currentPrice 
-              }
+            ? {
+              ...alert,
+              status: "triggered",
+              triggeredAt: new Date().toISOString(),
+              currentPrice: data.alert.currentPrice
+            }
             : alert
         )
       );
@@ -645,14 +639,14 @@ const PriceAlertsPanel = ({ user }) => {
     fetchAlerts();
   }, [fetchAlerts]);
 
-    const handleDelete = async (alertId) => {
-        try {
-            await reviewsAPI.deletePriceAlert(alertId);
-            setAlerts(alerts.filter(a => a && a._id !== alertId));
-        } catch (error) {
-            console.error("Error deleting alert:", error);
-        }
-    };
+  const handleDelete = async (alertId) => {
+    try {
+      await reviewsAPI.deletePriceAlert(alertId);
+      setAlerts(alerts.filter(a => a && a._id !== alertId));
+    } catch (error) {
+      console.error("Error deleting alert:", error);
+    }
+  };
 
   const handleReactivate = async (alertId) => {
     try {
@@ -695,7 +689,7 @@ const PriceAlertsPanel = ({ user }) => {
         <div className="px-5 py-8 text-center">
           <AlertTriangle className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
           <p className="text-gray-600 dark:text-gray-400 mb-4">Sign in to create price alerts</p>
-          <a 
+          <a
             href="/signin"
             className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
           >
@@ -722,7 +716,7 @@ const PriceAlertsPanel = ({ user }) => {
               </p>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => setShowCreateModal(true)}
             className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium"
           >
@@ -751,9 +745,9 @@ const PriceAlertsPanel = ({ user }) => {
             </div>
           ) : alerts.length > 0 ? (
             alerts.map((alert) => (
-              <AlertItem 
-                key={alert._id} 
-                alert={alert} 
+              <AlertItem
+                key={alert._id}
+                alert={alert}
                 onDelete={handleDelete}
                 onReactivate={handleReactivate}
               />
@@ -762,7 +756,7 @@ const PriceAlertsPanel = ({ user }) => {
             <div className="py-8 text-center">
               <Bell className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
               <p className="text-gray-500 dark:text-gray-400 mb-4">No price alerts set</p>
-              <button 
+              <button
                 onClick={() => setShowCreateModal(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
               >

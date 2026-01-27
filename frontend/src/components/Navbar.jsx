@@ -31,7 +31,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
   const { triggeredAlerts, unseenCount, markAllAsSeen, markAsSeen } = useNotifications();
-  const { t, language, toggleLanguage, isUrdu } = useLanguage();
+  const { t, toggleLanguage, isUrdu } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [isPriceChartInView, setIsPriceChartInView] = useState(false);
@@ -424,13 +424,6 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
       paid: "text-emerald-600",
     };
     return colors[status] || "text-gray-500";
-  };
-
-  const getStatusIcon = (type, status) => {
-    if (type === "price_alert") {
-      return null; // Will use TrendingUp/Down based on condition
-    }
-    return <Package className="w-4 h-4" />;
   };
 
   return (

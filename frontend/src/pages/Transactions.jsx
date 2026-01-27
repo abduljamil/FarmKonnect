@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { paymentsAPI, reviewsAPI, authAPI } from "../utils/api";
 import Navbar from "../components/Navbar";
@@ -34,7 +34,7 @@ export default function Transactions() {
   const { addNotification } = useNotifications();
   const navigate = useNavigate();
   const [user, setUser] = useState(JSON.parse(sessionStorage.getItem("user") || "{}"));
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -44,68 +44,20 @@ export default function Transactions() {
   const [actionLoading, setActionLoading] = useState(null);
   const [reviewModal, setReviewModal] = useState({ open: false, transaction: null });
   const [cancelModal, setCancelModal] = useState({ open: false, transactionId: null });
-  const currentUserId = user?._id || user?.id;
+
 
   useUserSync(user, setUser, navigate);
 
-  const handleLogout = async () => {
-    try {
-      await authAPI.logout();
-      sessionStorage.removeItem("user");
-      navigate("/signin");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
+  // Keep track of transactions for silent refresh logic to avoid dependency cycles
+  const transactionsRef = useRef(transactions);
   useEffect(() => {
-    fetchTransactions();
+    transactionsRef.current = transactions;
+  }, [transactions]);
 
-  }, [filter, roleFilter, pagination.current]);
-
-  // Real-time updates
-  useEffect(() => {
-    // Ensure socket is connected before setting up listeners
-    const userData = sessionStorage.getItem("user");
-    if (userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        if (parsedUser.token) {
-          socketService.connect(parsedUser.token);
-        }
-      } catch (e) {
-        console.error("Error parsing user data for socket:", e);
-      }
-    }
-
-    const handleStatusUpdate = (update) => {
-      // Fetch fresh data from server to get all updated fields
-      fetchTransactions(false);
-    };
-
-    const handleNewOrder = (order) => {
-      fetchTransactions(false);
-    };
-
-    socketService.onOrderStatusUpdate(handleStatusUpdate, "transactions_list");
-    socketService.onNewOrder(handleNewOrder);
-
-    // Polling fallback - refresh every 10 seconds to catch missed socket updates
-    const pollInterval = setInterval(() => {
-      fetchTransactions(false);
-    }, 10000);
-
-    return () => {
-      socketService.offOrderStatusUpdate("transactions_list");
-      socketService.offNewOrder();
-      clearInterval(pollInterval);
-    };
-  }, []);
-
-  const fetchTransactions = async (showLoading = true) => {
+  const fetchTransactions = useCallback(async (showLoading = true) => {
     try {
       // Only show loading if explicitly requested and no data exists yet
-      if (showLoading && transactions.length === 0) {
+      if (showLoading && transactionsRef.current.length === 0) {
         setLoading(true);
       }
       const params = {
@@ -123,19 +75,64 @@ export default function Transactions() {
     } finally {
       setLoading(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, roleFilter, pagination.current]);
 
-  const handleMarkDelivered = async (transactionId) => {
+  const handleLogout = async () => {
     try {
-      setActionLoading(transactionId);
-      await paymentsAPI.markDelivered(transactionId);
-      await fetchTransactions(false); // Don't show loading to prevent UI flicker
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setActionLoading(null);
+      await authAPI.logout();
+      sessionStorage.removeItem("user");
+      navigate("/signin");
+    } catch (error) {
+      console.error("Logout error:", error);
     }
   };
+
+  useEffect(() => {
+    fetchTransactions();
+
+  }, [fetchTransactions]);
+
+  // Real-time updates
+  useEffect(() => {
+    // Ensure socket is connected before setting up listeners
+    const userData = sessionStorage.getItem("user");
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        if (parsedUser.token) {
+          socketService.connect(parsedUser.token);
+        }
+      } catch (e) {
+        console.error("Error parsing user data for socket:", e);
+      }
+    }
+
+    const handleStatusUpdate = () => {
+      // Fetch fresh data from server to get all updated fields
+      fetchTransactions(false);
+    };
+
+    const handleNewOrder = () => {
+      fetchTransactions(false);
+    };
+
+    socketService.onOrderStatusUpdate(handleStatusUpdate, "transactions_list");
+    socketService.onNewOrder(handleNewOrder);
+
+    // Polling fallback - refresh every 10 seconds to catch missed socket updates
+    const pollInterval = setInterval(() => {
+      fetchTransactions(false);
+    }, 10000);
+
+    return () => {
+      socketService.offOrderStatusUpdate("transactions_list");
+      socketService.offNewOrder();
+      clearInterval(pollInterval);
+    };
+  }, [fetchTransactions]);
+
+
 
   const handleConfirmOrder = async (transactionId) => {
     try {

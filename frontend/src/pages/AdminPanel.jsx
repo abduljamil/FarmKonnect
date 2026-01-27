@@ -8,7 +8,6 @@ import Footer from "../components/Footer";
 import Loader from "../components/Loader";
 import ConfirmModal from "../components/ConfirmModal";
 import API_URL from "../config";
-import { useAuth } from "../contexts/AuthContext";
 import chatAPI from "../utils/chatApi";
 import socketService from "../utils/socket";
 import useUserSync from "../hooks/useUserSync";
@@ -1729,11 +1728,10 @@ const AdminPanel = () => {
                   setSupportTicketTab("user");
                   setSelectedSupportTicket(null);
                 }}
-                className={`px-4 py-2 font-medium text-sm transition-all border-b-2 flex items-center gap-2 ${
-                  supportTicketTab === "user"
+                className={`px-4 py-2 font-medium text-sm transition-all border-b-2 flex items-center gap-2 ${supportTicketTab === "user"
                     ? "border-green-600 text-green-600 dark:text-green-400"
                     : "border-transparent text-gray-600 dark:text-gray-400 hover:text-green-600"
-                }`}
+                  }`}
               >
                 User Tickets ({userTickets.length})
                 {unreadUserTickets > 0 && (
@@ -1747,11 +1745,10 @@ const AdminPanel = () => {
                   setSupportTicketTab("guest");
                   setSelectedSupportTicket(null);
                 }}
-                className={`px-4 py-2 font-medium text-sm transition-all border-b-2 flex items-center gap-2 ${
-                  supportTicketTab === "guest"
+                className={`px-4 py-2 font-medium text-sm transition-all border-b-2 flex items-center gap-2 ${supportTicketTab === "guest"
                     ? "border-green-600 text-green-600 dark:text-green-400"
                     : "border-transparent text-gray-600 dark:text-gray-400 hover:text-green-600"
-                }`}
+                  }`}
               >
                 Guest Tickets ({guestTickets.length})
                 {unreadGuestTickets > 0 && (
@@ -1783,9 +1780,9 @@ const AdminPanel = () => {
                         <div className="flex justify-between items-start mb-1">
                           <span className="font-medium text-gray-900 dark:text-white text-sm truncate pr-2">{ticket.subject}</span>
                           <span className={`px-2 py-0.5 text-xs rounded-full ${ticket.status === "open" ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" :
-                              ticket.status === "in_progress" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" :
-                                ticket.status === "resolved" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
-                                  "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400"
+                            ticket.status === "in_progress" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" :
+                              ticket.status === "resolved" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
+                                "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400"
                             }`}>{ticket.status?.replace("_", " ")}</span>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{ticket.user?.name || ticket.guestName || "Guest"}</p>

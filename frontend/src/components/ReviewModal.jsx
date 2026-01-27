@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function ReviewModal({ isOpen, onClose, onSubmit, transaction, darkMode }) {
+export default function ReviewModal({ isOpen, onClose, onSubmit, transaction }) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -91,8 +91,8 @@ export default function ReviewModal({ isOpen, onClose, onSubmit, transaction, da
                   >
                     <svg
                       className={`w-10 h-10 ${star <= (hoveredRating || rating)
-                          ? "text-yellow-400"
-                          : "text-gray-300 dark:text-gray-600"
+                        ? "text-yellow-400"
+                        : "text-gray-300 dark:text-gray-600"
                         }`}
                       fill="currentColor"
                       viewBox="0 0 20 20"

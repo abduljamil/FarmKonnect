@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { 
-  Package, 
-  MessageCircle, 
-  TrendingUp, 
+import {
+  Package,
+  MessageCircle,
+  TrendingUp,
   Bell,
   ArrowUpRight,
   ArrowDownRight,
@@ -14,12 +14,12 @@ import { useNotifications } from "../contexts/NotificationContext";
 import { alertsAPI } from "../utils/api";
 import axios from "axios";
 
-const StatCard = ({ 
-  title, 
-  value, 
-  subtitle, 
-  icon: Icon, 
-  trend, 
+const StatCard = ({
+  title,
+  value,
+  subtitle,
+  icon: IconComponent, // eslint-disable-line no-unused-vars
+  trend,
   trendLabel,
   color,
   onClick,
@@ -52,7 +52,7 @@ const StatCard = ({
   };
 
   return (
-    <div 
+    <div
       onClick={onClick}
       className={`
         relative bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700
@@ -64,7 +64,7 @@ const StatCard = ({
     >
       {/* Icon */}
       <div className={`inline-flex p-3 rounded-xl ${colorStyles[color]} mb-4`}>
-        <Icon className="w-6 h-6" />
+        <IconComponent className="w-6 h-6" />
       </div>
 
       {/* Value */}
@@ -92,12 +92,11 @@ const StatCard = ({
 
       {/* Decorative gradient */}
       <div className="absolute top-0 right-0 w-24 h-24 opacity-5 pointer-events-none">
-        <div className={`w-full h-full rounded-full bg-gradient-to-br ${
-          color === 'emerald' ? 'from-emerald-500' :
+        <div className={`w-full h-full rounded-full bg-gradient-to-br ${color === 'emerald' ? 'from-emerald-500' :
           color === 'blue' ? 'from-blue-500' :
-          color === 'purple' ? 'from-purple-500' :
-          'from-amber-500'
-        } to-transparent blur-2xl`} />
+            color === 'purple' ? 'from-purple-500' :
+              'from-amber-500'
+          } to-transparent blur-2xl`} />
       </div>
     </div>
   );

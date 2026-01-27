@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import API_URL from "../config";
 import Card from "../components/Card";
@@ -69,18 +69,18 @@ const EditProduct = () => {
 
     loadUnreadCount();
     fetchProduct();
-  }, [id, navigate]);
+  }, [id, navigate, loadUnreadCount, fetchProduct]);
 
-  const loadUnreadCount = async () => {
+  const loadUnreadCount = useCallback(async () => {
     try {
       const response = await chatAPI.getUnreadCount();
       setUnreadCount(response.data.count);
     } catch (error) {
       console.error("Error loading unread count:", error);
     }
-  };
+  }, []);
 
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/listings/${id}`, {
         credentials: 'include',
@@ -127,7 +127,7 @@ const EditProduct = () => {
     } finally {
       setFetchLoading(false);
     }
-  };
+  }, [id, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
