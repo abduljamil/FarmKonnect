@@ -14,7 +14,6 @@ import {
   Volume2
 } from "lucide-react";
 import alertsApi from "../utils/alertsApi";
-import reviewsAPI from "../utils/reviewsApi";
 import socketService from "../utils/socket";
 
 const COMMODITIES = [
