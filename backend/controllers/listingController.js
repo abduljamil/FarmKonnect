@@ -74,7 +74,7 @@ exports.getAllListings = async (req, res) => {
 
     const [listings, total] = await Promise.all([
       Listing.find(query)
-        .populate("createdBy", "name email rating isEmailVerified")
+        .populate("createdBy", "name email rating isEmailVerified avatar")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum),
@@ -104,7 +104,7 @@ exports.getListingById = async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id).populate(
       "createdBy",
-      "name email role rating isEmailVerified"
+      "name email role rating isEmailVerified avatar"
     );
 
     if (!listing) {
@@ -138,7 +138,7 @@ exports.getMyListings = async (req, res) => {
 
     const [listings, total] = await Promise.all([
       Listing.find(query)
-        .populate("createdBy", "name email rating isEmailVerified")
+        .populate("createdBy", "name email rating isEmailVerified avatar")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum),

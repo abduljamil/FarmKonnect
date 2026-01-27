@@ -555,9 +555,17 @@ const Products = () => {
 
                         {/* Seller Info */}
                         <div className="flex items-center gap-3 mb-4">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold text-sm shadow-sm">
-                            {product.createdBy?.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </div>
+                          {product.createdBy?.avatar ? (
+                            <img
+                              src={product.createdBy.avatar}
+                              alt={product.createdBy.name}
+                              className="w-9 h-9 rounded-full object-cover shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold text-sm shadow-sm">
+                              {product.createdBy?.name?.charAt(0)?.toUpperCase() || 'U'}
+                            </div>
+                          )}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
                               <span className="font-medium text-gray-900 dark:text-white text-sm truncate">
