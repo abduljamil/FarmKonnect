@@ -77,7 +77,7 @@ const ListingDetails = () => {
     }
 
     try {
-      const response = await chatAPI.getOrCreateConversation(listing._id, listing.createdBy._id);
+      await chatAPI.getOrCreateConversation(listing._id, listing.createdBy._id);
       navigate("/chat");
     } catch (error) {
       console.error("Error creating conversation:", error);

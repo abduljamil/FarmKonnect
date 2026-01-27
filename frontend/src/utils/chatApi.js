@@ -7,7 +7,7 @@ const getToken = () => {
     try {
       const user = JSON.parse(userData);
       return user.token;
-    } catch (e) {
+    } catch (e) { // eslint-disable-line no-unused-vars
       return null;
     }
   }

@@ -70,7 +70,7 @@ export default function TransactionDetails() {
                 listing: newData.listing?.images ? newData.listing : (prevState?.listing || newData.listing)
             }));
             prevTransactionRef.current = newData;
-        } catch (err) {
+        } catch (err) { // eslint-disable-line no-unused-vars
             console.error("Error in silent refresh:", err);
         }
     }, [id, navigate, addNotification]);
@@ -165,7 +165,7 @@ export default function TransactionDetails() {
             } else {
                 addNotification(data.message || "Failed to upload images", "error");
             }
-        } catch (err) {
+        } catch (err) { // eslint-disable-line no-unused-vars
             addNotification("Error uploading images", "error");
         } finally {
             setUploadingProof(false);
@@ -195,7 +195,7 @@ export default function TransactionDetails() {
             } else {
                 addNotification(data.message || "Failed to confirm delivery", "error");
             }
-        } catch (err) {
+        } catch (err) { // eslint-disable-line no-unused-vars
             addNotification("Error confirming delivery", "error");
         } finally {
             setActionLoading("");
@@ -216,7 +216,7 @@ export default function TransactionDetails() {
             } else {
                 addNotification(data.message || "Failed to confirm payment", "error");
             }
-        } catch (err) {
+        } catch (err) { // eslint-disable-line no-unused-vars
             addNotification("Error confirming payment", "error");
         } finally {
             setActionLoading("");
@@ -241,7 +241,7 @@ export default function TransactionDetails() {
             } else {
                 addNotification(data.message || "Failed to confirm payment", "error");
             }
-        } catch (err) {
+        } catch (err) { // eslint-disable-line no-unused-vars
             addNotification("Error confirming payment", "error");
         } finally {
             setActionLoading("");
@@ -269,7 +269,7 @@ export default function TransactionDetails() {
             } else {
                 addNotification(data.message || "Failed to raise dispute", "error");
             }
-        } catch (err) {
+        } catch (err) { // eslint-disable-line no-unused-vars
             addNotification("Error raising dispute", "error");
         } finally {
             setActionLoading("");
@@ -293,7 +293,7 @@ export default function TransactionDetails() {
             } else {
                 addNotification(data.message || "Failed to mark as delivered", "error");
             }
-        } catch (err) {
+        } catch (err) { // eslint-disable-line no-unused-vars
             addNotification("Error marking as delivered", "error");
         } finally {
             setActionLoading("");
