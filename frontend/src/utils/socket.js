@@ -51,7 +51,7 @@ class SocketService {
       // console.log("Socket: Connected successfully, socket id:", this.socket.id);
     });
 
-    this.socket.on("connected", (data) => {
+    this.socket.on("connected", (data) => { // eslint-disable-line no-unused-vars
       // console.log("Socket: Server confirmed connection for user:", data.userId);
     });
 
@@ -367,7 +367,7 @@ class SocketService {
       const wrapper = (data) => {
         // console.log("Socket: orderStatusUpdate received, calling callbacks...");
         // Find all order status callbacks and call them
-        let callbackCount = 0;
+        let callbackCount = 0; // eslint-disable-line no-unused-vars
         for (const [key, cb] of this.listeners.entries()) {
           if (key.startsWith("order_status_callback_") && typeof cb === "function") {
             try {

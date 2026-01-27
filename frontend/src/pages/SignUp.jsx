@@ -7,7 +7,7 @@ import Button from "../components/Button";
 import ErrorMessage from "../components/ErrorMessage";
 import GuestNavbar from "../components/GuestNavbar";
 import { authAPI } from "../utils/api";
-import { useAuth } from "../contexts/AuthContext";
+// import { useAuth } from "../contexts/AuthContext"; // Unused
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
