@@ -24,30 +24,6 @@ const Products = () => {
   const [deleteModal, setDeleteModal] = useState({ open: false, product: null });
   const [deleting, setDeleting] = useState(null);
 
-  useEffect(() => {
-    const userData = sessionStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
-      loadUnreadCount();
-    }
-    fetchProducts();
-  }, [fetchProducts]);
-
-  useEffect(() => {
-    if (activeTab !== "create") {
-      fetchProducts();
-    }
-  }, [activeTab, fetchProducts]);
-
-  const loadUnreadCount = async () => {
-    try {
-      const response = await chatAPI.getUnreadCount();
-      setUnreadCount(response.data.count);
-    } catch (error) {
-      console.error("Error loading unread count:", error);
-    }
-  };
-
   const fetchProducts = React.useCallback(async () => {
     try {
       const queryParams = new URLSearchParams();
@@ -76,6 +52,30 @@ const Products = () => {
       setLoading(false);
     }
   }, [filter, activeTab]);
+
+  useEffect(() => {
+    const userData = sessionStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+      loadUnreadCount();
+    }
+    fetchProducts();
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    if (activeTab !== "create") {
+      fetchProducts();
+    }
+  }, [activeTab, fetchProducts]);
+
+  const loadUnreadCount = async () => {
+    try {
+      const response = await chatAPI.getUnreadCount();
+      setUnreadCount(response.data.count);
+    } catch (error) {
+      console.error("Error loading unread count:", error);
+    }
+  };
 
   const handleStartChat = async (product) => {
     if (!user) {
@@ -189,8 +189,8 @@ const Products = () => {
           <button
             onClick={() => setActiveTab("all")}
             className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${activeTab === "all"
-                ? "border-primary-600 text-primary-600 dark:text-primary-400"
-                : "border-transparent text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
+              ? "border-primary-600 text-primary-600 dark:text-primary-400"
+              : "border-transparent text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
               }`}
           >
             All Listings
@@ -199,8 +199,8 @@ const Products = () => {
             <button
               onClick={() => setActiveTab("my-products")}
               className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${activeTab === "my-products"
-                  ? "border-primary-600 text-primary-600 dark:text-primary-400"
-                  : "border-transparent text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
+                ? "border-primary-600 text-primary-600 dark:text-primary-400"
+                : "border-transparent text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
                 }`}
             >
               My Listings

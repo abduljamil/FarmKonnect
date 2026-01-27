@@ -47,33 +47,6 @@ const Products = () => {
   // Auto-sync user data (role updates)
   useUserSync(user, setUser, navigate);
 
-  useEffect(() => {
-    const userData = sessionStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
-      loadUnreadCount();
-    }
-    // Fetch products without requiring login
-    fetchProducts(1);
-    setLoading(false);
-  }, [fetchProducts]);
-
-  useEffect(() => {
-    if (activeTab !== "create") {
-      setPagination(prev => ({ ...prev, page: 1 }));
-      fetchProducts(1);
-    }
-  }, [activeTab, fetchProducts]);
-
-  const loadUnreadCount = async () => {
-    try {
-      const response = await chatAPI.getUnreadCount();
-      setUnreadCount(response.data.count);
-    } catch (error) {
-      console.error("Error loading unread count:", error);
-    }
-  };
-
   const fetchProducts = React.useCallback(async (page = pagination.page) => {
     setLoading(true);
     try {
@@ -108,6 +81,33 @@ const Products = () => {
       setLoading(false);
     }
   }, [filter, activeTab, pagination.limit, pagination.page]);
+
+  useEffect(() => {
+    const userData = sessionStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+      loadUnreadCount();
+    }
+    // Fetch products without requiring login
+    fetchProducts(1);
+    setLoading(false);
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    if (activeTab !== "create") {
+      setPagination(prev => ({ ...prev, page: 1 }));
+      fetchProducts(1);
+    }
+  }, [activeTab, fetchProducts]);
+
+  const loadUnreadCount = async () => {
+    try {
+      const response = await chatAPI.getUnreadCount();
+      setUnreadCount(response.data.count);
+    } catch (error) {
+      console.error("Error loading unread count:", error);
+    }
+  };
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.pages) {
