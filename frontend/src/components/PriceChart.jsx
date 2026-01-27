@@ -25,6 +25,7 @@ import {
   BarChart3,
   Activity,
   Layers,
+  Calendar,
 } from "lucide-react";
 
 // Import commodity images
@@ -258,6 +259,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
   const [selectedVariety, setSelectedVariety] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [days, setDays] = useState(30);
+  const [selectedDate, setSelectedDate] = useState("");
 
   // Fetch initial data
   useEffect(() => {
@@ -378,8 +380,14 @@ const PriceChart = ({ user, onLoginRequired }) => {
         const params = new URLSearchParams({
           commodity: selectedCommodity,
           city: selectedCity,
-          days: days.toString(),
         });
+
+        if (selectedDate) {
+          params.set("date", selectedDate);
+        } else {
+          params.set("days", days.toString());
+        }
+
         if (selectedVariety) params.set("variety", selectedVariety);
 
         const response = await fetch(
@@ -409,7 +417,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
     fetchHistory();
     return () => { isMounted = false; };
-  }, [selectedCommodity, selectedCity, selectedVariety, days]);
+  }, [selectedCommodity, selectedCity, selectedVariety, days, selectedDate]);
 
   const handleProtectedAction = useCallback((action) => {
     if (!user && onLoginRequired) {
@@ -623,17 +631,52 @@ const PriceChart = ({ user, onLoginRequired }) => {
               onChange={(c) => handleProtectedAction(() => setSelectedCity(c))}
             />
 
+          </div>
+
+          {/* Date and Period Selection */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            {/* Date Picker */}
+            <div className="w-full sm:w-auto">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1.5 ml-1">{t("priceChart.date") || "Specific Date"}</p>
+              <div className="relative">
+                <input
+                  type="date"
+                  value={selectedDate}
+                  max={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => handleProtectedAction(() => {
+                    setSelectedDate(e.target.value);
+                    setDays(30); // Reset or keep default, visually it will depend on selectedDate being truthy
+                  })}
+                  className={`
+                    w-full sm:w-40 px-3 py-2.5 pl-10 rounded-xl
+                    bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200
+                    border border-transparent focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500
+                    outline-none transition-all duration-200
+                    dark:[color-scheme:dark]
+                    ${selectedDate ? "border-primary-500 ring-2 ring-primary-100 dark:ring-primary-900/30 font-semibold" : ""}
+                  `}
+                />
+                <Calendar className={`
+                  absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none
+                  ${selectedDate ? "text-primary-600 dark:text-primary-400" : "text-gray-400"}
+                `} />
+              </div>
+            </div>
+
             {/* Time Period */}
-            <div className={`${varieties.length > 0 ? "col-span-2 sm:col-span-2" : "col-span-1 sm:col-span-2"}`}>
+            <div className="flex-1">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1.5 ml-1">{t("priceChart.period")}</p>
               <div className="flex gap-1">
                 {TIME_PERIODS.map((period) => (
                   <button
                     key={period.value}
-                    onClick={() => handleProtectedAction(() => setDays(period.value))}
+                    onClick={() => handleProtectedAction(() => {
+                      setDays(period.value);
+                      setSelectedDate(""); // Clear date when period is selected
+                    })}
                     className={`
                       flex-1 py-2.5 px-2 rounded-lg text-sm font-bold transition-all duration-200
-                      ${days === period.value
+                      ${(days === period.value && !selectedDate)
                         ? "bg-primary-600 text-white shadow-md"
                         : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
                       }
@@ -683,9 +726,8 @@ const PriceChart = ({ user, onLoginRequired }) => {
                     <Minus className="w-5 h-5 text-gray-500" />
                   )}
                   <div>
-                    <p className={`text-lg font-bold ${
-                      isPositive ? "text-green-700 dark:text-green-400" : isNegative ? "text-red-700 dark:text-red-400" : "text-gray-600"
-                    }`}>
+                    <p className={`text-lg font-bold ${isPositive ? "text-green-700 dark:text-green-400" : isNegative ? "text-red-700 dark:text-red-400" : "text-gray-600"
+                      }`}>
                       {isPositive ? "+" : ""}{priceChange.toFixed(1)}%
                     </p>
                   </div>
