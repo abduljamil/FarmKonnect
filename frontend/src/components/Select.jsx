@@ -12,16 +12,19 @@ const Select = ({
   error,
   className = '',
 }) => {
+  // Use id if provided, otherwise fallback to name
+  const elementId = id || name;
+
   return (
     <div className={`mb-6 ${className}`}>
       {label && (
-        <label htmlFor={id} className="block mb-2 font-medium text-gray-700 dark:text-gray-300 text-sm">
+        <label htmlFor={elementId} className="block mb-2 font-medium text-gray-700 dark:text-gray-300 text-sm">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
       <select
-        id={id}
+        id={elementId}
         name={name}
         value={value}
         onChange={onChange}
@@ -52,7 +55,7 @@ const Select = ({
 };
 
 Select.propTypes = {
-  id: PropTypes.string.isRequired,
+  id: PropTypes.string,
   name: PropTypes.string.isRequired,
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
@@ -70,3 +73,4 @@ Select.propTypes = {
 };
 
 export default Select;
+
