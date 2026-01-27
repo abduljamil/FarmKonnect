@@ -114,10 +114,10 @@ export default function TransactionDetails() {
             }
         }, `transaction_${id}`);
 
-        // Polling fallback - refresh every 5 seconds to catch missed updates
+        // Polling fallback - refresh every 60 seconds to catch missed socket updates
         const pollInterval = setInterval(() => {
             silentRefresh();
-        }, 5000);
+        }, 60000);
 
         return () => {
             socketService.offOrderStatusUpdate(`transaction_${id}`);
