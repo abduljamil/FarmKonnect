@@ -367,19 +367,16 @@ class SocketService {
       const wrapper = (data) => {
         // console.log("Socket: orderStatusUpdate received, calling callbacks...");
         // Find all order status callbacks and call them
-        let callbackCount = 0; // eslint-disable-line no-unused-vars
         for (const [key, cb] of this.listeners.entries()) {
           if (key.startsWith("order_status_callback_") && typeof cb === "function") {
             try {
               // console.log(`Socket: Calling callback ${key}`);
-              callbackCount++;
               cb(data);
             } catch (error) {
               console.error(`Socket: Error in order status callback (${key}):`, error);
             }
           }
         }
-        // console.log(`Socket: Called ${callbackCount} order status callbacks`);
       };
 
       this.listeners.set("order_status_wrapper", wrapper);
