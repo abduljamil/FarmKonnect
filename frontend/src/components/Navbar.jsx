@@ -496,193 +496,218 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
                 </Link>
               ))}
 
+            {/* Theme Toggle - Desktop */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {isDark ? (
+                <Sun className="w-5 h-5 text-yellow-500" />
+              ) : (
+                <Moon className="w-5 h-5 text-gray-600" />
+              )}
+            </button>
+
+            {/* Language Toggle - Desktop */}
+            <button
+              onClick={toggleLanguage}
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-sm hover:shadow-md"
+              aria-label="Toggle language"
+              title={isUrdu ? "Switch to English" : "اردو میں تبدیل کریں"}
+            >
+              <span className="text-sm font-bold text-white">
+                {isUrdu ? "EN" : "اردو"}
+              </span>
+            </button>
+
             {/* Combined Notifications - Desktop (only for logged-in users) */}
             {user && (
-            <div className="relative" ref={notificationRef}>
-              <button
-                onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
-                className="relative p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                aria-label="Notifications"
-              >
-                <Bell className="w-5 h-5" />
-                {totalUnseenCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center shadow-lg animate-pulse">
-                    {totalUnseenCount > 99 ? "99+" : totalUnseenCount}
-                  </span>
-                )}
-              </button>
+              <div className="relative" ref={notificationRef}>
+                <button
+                  onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
+                  className="relative p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  aria-label="Notifications"
+                >
+                  <Bell className="w-5 h-5" />
+                  {totalUnseenCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center shadow-lg animate-pulse">
+                      {totalUnseenCount > 99 ? "99+" : totalUnseenCount}
+                    </span>
+                  )}
+                </button>
 
-              {/* Notification Dropdown */}
-              {notificationDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-2 z-50 max-h-[520px] overflow-hidden flex flex-col">
-                  {/* Header */}
-                  <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
-                      Notifications
-                    </h3>
-                    {totalUnseenCount > 0 && (
-                      <button
-                        onClick={handleMarkAllAsSeen}
-                        className="text-xs text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
-                      >
-                        <CheckCheck className="w-3 h-3" />
-                        Mark all read
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Notification List */}
-                  <div className="overflow-y-auto flex-1">
-                    {allNotifications.length > 0 ? (
-                      allNotifications.map((notification, index) => (
-                        <div
-                          key={notification?.id || notification?._id || index}
-                          onClick={() => handleNotificationClick(notification)}
-                          className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-700 ${(notification.type === "price_alert" && !notification.seen) ||
-                            (notification.type !== "price_alert" && !notification.seen)
-                            ? "bg-blue-50/50 dark:bg-blue-900/10"
-                            : ""
-                            }`}
+                {/* Notification Dropdown */}
+                {notificationDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-2 z-50 max-h-[520px] overflow-hidden flex flex-col">
+                    {/* Header */}
+                    <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                        Notifications
+                      </h3>
+                      {totalUnseenCount > 0 && (
+                        <button
+                          onClick={handleMarkAllAsSeen}
+                          className="text-xs text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
                         >
-                          <div className="flex items-start gap-3">
-                            {/* Icon */}
-                            <div className={`flex-shrink-0 mt-1 ${notification.type === "price_alert"
-                              ? notification.condition === "above"
-                                ? "text-green-500"
-                                : "text-yellow-500"
-                              : notification.type === "review"
-                                ? "text-yellow-500"
-                                : notification.type === "message"
-                                  ? "text-primary-500"
-                                  : notification.type === "support" || notification.type === "admin_support"
-                                    ? "text-purple-500"
-                                    : getStatusColor(notification.newStatus || "new_order")
-                              }`}>
-                              {notification.type === "price_alert" ? (
-                                notification.condition === "above" ? (
-                                  <TrendingUp className="w-4 h-4" />
+                          <CheckCheck className="w-3 h-3" />
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Notification List */}
+                    <div className="overflow-y-auto flex-1">
+                      {allNotifications.length > 0 ? (
+                        allNotifications.map((notification, index) => (
+                          <div
+                            key={notification?.id || notification?._id || index}
+                            onClick={() => handleNotificationClick(notification)}
+                            className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-700 ${(notification.type === "price_alert" && !notification.seen) ||
+                              (notification.type !== "price_alert" && !notification.seen)
+                              ? "bg-blue-50/50 dark:bg-blue-900/10"
+                              : ""
+                              }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              {/* Icon */}
+                              <div className={`flex-shrink-0 mt-1 ${notification.type === "price_alert"
+                                ? notification.condition === "above"
+                                  ? "text-green-500"
+                                  : "text-yellow-500"
+                                : notification.type === "review"
+                                  ? "text-yellow-500"
+                                  : notification.type === "message"
+                                    ? "text-primary-500"
+                                    : notification.type === "support" || notification.type === "admin_support"
+                                      ? "text-purple-500"
+                                      : getStatusColor(notification.newStatus || "new_order")
+                                }`}>
+                                {notification.type === "price_alert" ? (
+                                  notification.condition === "above" ? (
+                                    <TrendingUp className="w-4 h-4" />
+                                  ) : (
+                                    <TrendingDown className="w-4 h-4" />
+                                  )
+                                ) : notification.type === "review" ? (
+                                  <Star className="w-4 h-4 fill-current" />
+                                ) : notification.type === "message" ? (
+                                  <MessageCircle className="w-4 h-4" />
+                                ) : notification.type === "support" || notification.type === "admin_support" ? (
+                                  <LifeBuoy className="w-4 h-4" />
                                 ) : (
-                                  <TrendingDown className="w-4 h-4" />
-                                )
-                              ) : notification.type === "review" ? (
-                                <Star className="w-4 h-4 fill-current" />
-                              ) : notification.type === "message" ? (
-                                <MessageCircle className="w-4 h-4" />
-                              ) : notification.type === "support" || notification.type === "admin_support" ? (
-                                <LifeBuoy className="w-4 h-4" />
-                              ) : (
-                                <Package className="w-4 h-4" />
-                              )}
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex-1 min-w-0">
-                              {notification.type === "price_alert" ? (
-                                <>
-                                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                    {notification.commodity}
-                                    {notification.variety && ` (${notification.variety})`}
-                                  </p>
-                                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                                    ₨{notification.currentPrice?.toLocaleString()} {notification.condition === "above" ? "↑" : "↓"} ₨{notification.targetPrice?.toLocaleString()}
-                                  </p>
-                                  {notification.city && (
-                                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
-                                      📍 {notification.city}
-                                    </p>
-                                  )}
-                                </>
-                              ) : (
-                                <>
-                                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                    {notification.title}
-                                  </p>
-                                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                                    {notification.message}
-                                  </p>
-                                  {notification.listingTitle && (
-                                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
-                                      {notification.type === "review" ? "⭐ " : "📦 "}{notification.listingTitle}
-                                    </p>
-                                  )}
-                                </>
-                              )}
-                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                                {formatTimeAgo(notification.createdAt || notification.triggeredAt)}
-                              </p>
-                            </div>
-
-                            {/* Unseen indicator */}
-                            {!notification.seen && (
-                              <div className="flex-shrink-0">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                  <Package className="w-4 h-4" />
+                                )}
                               </div>
-                            )}
+
+                              {/* Content */}
+                              <div className="flex-1 min-w-0">
+                                {notification.type === "price_alert" ? (
+                                  <>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {notification.commodity}
+                                      {notification.variety && ` (${notification.variety})`}
+                                    </p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                                      ₨{notification.currentPrice?.toLocaleString()} {notification.condition === "above" ? "↑" : "↓"} ₨{notification.targetPrice?.toLocaleString()}
+                                    </p>
+                                    {notification.city && (
+                                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
+                                        📍 {notification.city}
+                                      </p>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {notification.title}
+                                    </p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                                      {notification.message}
+                                    </p>
+                                    {notification.listingTitle && (
+                                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
+                                        {notification.type === "review" ? "⭐ " : "📦 "}{notification.listingTitle}
+                                      </p>
+                                    )}
+                                  </>
+                                )}
+                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                  {formatTimeAgo(notification.createdAt || notification.triggeredAt)}
+                                </p>
+                              </div>
+
+                              {/* Unseen indicator */}
+                              {!notification.seen && (
+                                <div className="flex-shrink-0">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                </div>
+                              )}
+                            </div>
                           </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                          <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No notifications</p>
                         </div>
-                      ))
-                    ) : (
-                      <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                        <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No notifications</p>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    {allNotifications.length > 0 && (
+                      <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex gap-4 flex-wrap">
+                        <Link
+                          to="/chat"
+                          onClick={() => setNotificationDropdownOpen(false)}
+                          className="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
+                        >
+                          Messages
+                          {unreadCount > 0 && (
+                            <span className="bg-red-500 text-white text-xs rounded-full px-1.5">
+                              {unreadCount}
+                            </span>
+                          )}
+                        </Link>
+                        <Link
+                          to="/transactions"
+                          onClick={() => {
+                            setNotificationDropdownOpen(false);
+                            setOrderNotificationCount(0);
+                          }}
+                          className="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
+                        >
+                          Orders
+                          <ChevronRight className="w-4 h-4" />
+                        </Link>
+                        <Link
+                          to={user?.role === "admin" ? "/admin?tab=support" : "/support"}
+                          onClick={() => {
+                            setNotificationDropdownOpen(false);
+                            setSupportNotificationCount(0);
+                          }}
+                          className="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
+                        >
+                          Support
+                          {supportNotificationCount > 0 && (
+                            <span className="bg-purple-500 text-white text-xs rounded-full px-1.5">
+                              {supportNotificationCount}
+                            </span>
+                          )}
+                        </Link>
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setNotificationDropdownOpen(false)}
+                          className="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
+                        >
+                          Price Alerts
+                          <ChevronRight className="w-4 h-4" />
+                        </Link>
                       </div>
                     )}
                   </div>
-
-                  {/* Footer */}
-                  {allNotifications.length > 0 && (
-                    <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex gap-4 flex-wrap">
-                      <Link
-                        to="/chat"
-                        onClick={() => setNotificationDropdownOpen(false)}
-                        className="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
-                      >
-                        Messages
-                        {unreadCount > 0 && (
-                          <span className="bg-red-500 text-white text-xs rounded-full px-1.5">
-                            {unreadCount}
-                          </span>
-                        )}
-                      </Link>
-                      <Link
-                        to="/transactions"
-                        onClick={() => {
-                          setNotificationDropdownOpen(false);
-                          setOrderNotificationCount(0);
-                        }}
-                        className="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
-                      >
-                        Orders
-                        <ChevronRight className="w-4 h-4" />
-                      </Link>
-                      <Link
-                        to={user?.role === "admin" ? "/admin?tab=support" : "/support"}
-                        onClick={() => {
-                          setNotificationDropdownOpen(false);
-                          setSupportNotificationCount(0);
-                        }}
-                        className="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
-                      >
-                        Support
-                        {supportNotificationCount > 0 && (
-                          <span className="bg-purple-500 text-white text-xs rounded-full px-1.5">
-                            {supportNotificationCount}
-                          </span>
-                        )}
-                      </Link>
-                      <Link
-                        to="/dashboard"
-                        onClick={() => setNotificationDropdownOpen(false)}
-                        className="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
-                      >
-                        Price Alerts
-                        <ChevronRight className="w-4 h-4" />
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                )}
+              </div>
             )}
 
             {/* User Info - Desktop */}
