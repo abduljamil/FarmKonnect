@@ -14,6 +14,12 @@ const Footer = () => {
   const { t, isUrdu } = useLanguage();
   const location = useLocation();
 
+  // Check if user is logged in
+  const isLoggedIn = !!sessionStorage.getItem("user");
+
+  // Logo destination: /dashboard for logged-in users, / for guests
+  const logoDestination = isLoggedIn ? "/dashboard" : "/";
+
   // Handle link click - scroll to top if already on the page
   const handleLinkClick = (href) => {
     if (location.pathname === href) {
@@ -52,7 +58,7 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
           {/* Brand Column */}
           <div className="col-span-2">
-            <Link to="/" onClick={() => handleLinkClick("/")} className="flex items-center gap-3 mb-4">
+            <Link to={logoDestination} onClick={() => handleLinkClick(logoDestination)} className="flex items-center gap-3 mb-4">
               <span className="text-4xl">🌾</span>
               <span className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
                 FarmKonnect
