@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import GuestNavbar from "../components/GuestNavbar";
+import Navbar from "../components/Navbar";
 import {
     TrendingUp,
     MessageCircle,
@@ -23,6 +24,21 @@ import { useLanguage } from "../contexts/LanguageContext";
 const LandingPage = () => {
     const navigate = useNavigate();
     const { t, isUrdu } = useLanguage();
+    const [user, setUser] = useState(null);
+
+    // Check if user is logged in
+    useEffect(() => {
+        const userData = sessionStorage.getItem("user");
+        if (userData) {
+            setUser(JSON.parse(userData));
+        }
+    }, []);
+
+    const handleLogout = () => {
+        sessionStorage.removeItem("user");
+        setUser(null);
+        navigate("/signin");
+    };
 
     const features = [
         {
@@ -114,7 +130,7 @@ const LandingPage = () => {
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-950" dir={isUrdu ? "rtl" : "ltr"}>
-            <GuestNavbar />
+            {user ? <Navbar user={user} onLogout={handleLogout} /> : <GuestNavbar />}
 
             {/* Hero Section */}
             <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 overflow-hidden">
