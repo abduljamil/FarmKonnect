@@ -34,3 +34,10 @@ build/
 Thumbs.db
 .DS_Store
 
+# SSL Certificates
+certbot/
+*.pem
+
+# Backend environment
+backend/.env
+
