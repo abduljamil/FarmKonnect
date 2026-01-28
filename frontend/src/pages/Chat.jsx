@@ -513,7 +513,8 @@ const Chat = () => {
   // Sort conversations: unread first, then by last message time
   const sortedConversations = useMemo(() => {
     return [...conversations]
-      .filter((conv) => conv && conv.seller && conv.buyer && conv.product)
+      // Filter: must have seller, buyer, product, AND at least one message (lastMessage exists)
+      .filter((conv) => conv && conv.seller && conv.buyer && conv.product && conv.lastMessage)
       .sort((a, b) => {
         // Use String() for consistent ID comparison
         const aUnread = unreadConversations.has(String(a._id));
@@ -693,13 +694,16 @@ const Chat = () => {
         onLogout={handleLogout}
         unreadCount={unreadCount}
       />
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden relative h-full">
         {/* Conversations List - Hidden on mobile when conversation is selected */}
-        <div className={`
-          ${selectedConversation ? 'hidden md:flex' : 'flex'}
-          w-full md:w-80 lg:w-96 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex-col
-          absolute md:relative inset-0 z-10 md:z-auto
-        `}>
+        <div
+          className={`
+            ${selectedConversation ? 'hidden md:flex' : 'flex'}
+            w-full md:w-80 lg:w-96 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex-col
+            md:relative md:h-auto
+          `}
+          style={!selectedConversation ? { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, height: '100%' } : undefined}
+        >
           <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -741,12 +745,14 @@ const Chat = () => {
         </div>
 
         {/* Chat Area - Full width on mobile when conversation is selected */}
-        <div className={`
-          ${selectedConversation ? 'flex' : 'hidden md:flex'}
-          w-full md:flex-1 flex-col
-          absolute md:relative inset-0 z-20 md:z-auto
-          bg-white dark:bg-gray-900
-        `}>
+        <div
+          className={`
+            ${selectedConversation ? 'flex' : 'hidden md:flex'}
+            md:flex-1 flex-col bg-white dark:bg-gray-900
+            md:relative md:h-auto
+          `}
+          style={selectedConversation ? { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', zIndex: 20 } : undefined}
+        >
           {selectedConversation ? (
             <>
               {/* Chat Header */}
