@@ -88,6 +88,10 @@ const Products = () => {
     }
   }, [activeTab, pagination.limit]);
 
+  // Track if component has mounted to prevent duplicate fetches
+  const hasMountedRef = React.useRef(false);
+  const prevTabRef = React.useRef(activeTab);
+
   // Initial load effect - only runs once on mount
   useEffect(() => {
     const userData = sessionStorage.getItem("user");
@@ -97,15 +101,24 @@ const Products = () => {
     }
     // Fetch products without requiring login
     fetchProducts(1);
+    hasMountedRef.current = true;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Tab change effect - runs when activeTab changes
+  // Tab change effect - only runs when activeTab actually changes AFTER mount
   useEffect(() => {
+    // Skip if this is the initial mount or if tab hasn't actually changed
+    if (!hasMountedRef.current || prevTabRef.current === activeTab) {
+      prevTabRef.current = activeTab;
+      return;
+    }
+
+    prevTabRef.current = activeTab;
+
     if (activeTab !== "create") {
       setPagination(prev => ({ ...prev, page: 1 }));
       fetchProducts(1);
     }
-  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeTab, fetchProducts]);
 
 
   const loadUnreadCount = async () => {
