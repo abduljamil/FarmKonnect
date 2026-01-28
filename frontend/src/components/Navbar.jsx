@@ -774,7 +774,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
 
                 {/* Mobile Notification Dropdown */}
                 {notificationDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-2 z-50 max-h-[70vh] overflow-hidden flex flex-col">
+                  <div className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-16 sm:top-auto sm:mt-2 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-2 z-50 max-h-[70vh] overflow-hidden flex flex-col">
                     {/* Header */}
                     <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                       <h3 className="font-semibold text-gray-900 dark:text-white">
