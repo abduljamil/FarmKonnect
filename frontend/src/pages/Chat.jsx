@@ -744,7 +744,7 @@ const Chat = () => {
         {/* Chat Area - Full width on mobile when conversation is selected */}
         <div className={`
           ${selectedConversation ? 'translate-x-0 opacity-100' : 'translate-x-full md:translate-x-0 opacity-0 md:opacity-100'} 
-          flex-1 flex-col flex
+          w-full flex-1 flex-col flex
           absolute md:relative inset-0 z-20 md:z-auto
           transition-all duration-300 ease-in-out bg-white dark:bg-gray-900
         `}>
