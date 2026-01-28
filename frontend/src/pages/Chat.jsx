@@ -696,10 +696,9 @@ const Chat = () => {
       <div className="flex flex-1 overflow-hidden relative">
         {/* Conversations List - Hidden on mobile when conversation is selected */}
         <div className={`
-          ${selectedConversation ? 'translate-x-full md:translate-x-0 opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto' : 'translate-x-0 opacity-100 pointer-events-auto'}
+          ${selectedConversation ? 'hidden md:flex' : 'flex'}
           w-full md:w-80 lg:w-96 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex-col
-          absolute md:relative inset-0 z-10 md:z-auto flex
-          transition-all duration-300 ease-in-out
+          absolute md:relative inset-0 z-10 md:z-auto
         `}>
           <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
             <div className="flex items-center justify-between">
@@ -743,10 +742,10 @@ const Chat = () => {
 
         {/* Chat Area - Full width on mobile when conversation is selected */}
         <div className={`
-          ${selectedConversation ? 'translate-x-0 opacity-100' : 'translate-x-full md:translate-x-0 opacity-0 md:opacity-100'} 
-          w-full flex-1 flex-col flex
+          ${selectedConversation ? 'flex' : 'hidden md:flex'}
+          w-full md:flex-1 flex-col
           absolute md:relative inset-0 z-20 md:z-auto
-          transition-all duration-300 ease-in-out bg-white dark:bg-gray-900
+          bg-white dark:bg-gray-900
         `}>
           {selectedConversation ? (
             <>
