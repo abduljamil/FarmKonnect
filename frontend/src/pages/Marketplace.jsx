@@ -47,14 +47,20 @@ const Products = () => {
   // Auto-sync user data (role updates)
   useUserSync(user, setUser, navigate);
 
-  const fetchProducts = React.useCallback(async (page = pagination.page) => {
+  // Use ref to store current filter state to avoid stale closures
+  const filterRef = React.useRef(filter);
+  React.useEffect(() => {
+    filterRef.current = filter;
+  }, [filter]);
+
+  const fetchProducts = React.useCallback(async (page = 1, currentFilter = filterRef.current) => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      if (filter.category) queryParams.append("category", filter.category);
-      if (filter.search) queryParams.append("search", filter.search);
-      if (filter.minPrice) queryParams.append("minPrice", filter.minPrice);
-      if (filter.maxPrice) queryParams.append("maxPrice", filter.maxPrice);
+      if (currentFilter.category) queryParams.append("category", currentFilter.category);
+      if (currentFilter.search) queryParams.append("search", currentFilter.search);
+      if (currentFilter.minPrice) queryParams.append("minPrice", currentFilter.minPrice);
+      if (currentFilter.maxPrice) queryParams.append("maxPrice", currentFilter.maxPrice);
       queryParams.append("page", page);
       queryParams.append("limit", pagination.limit);
 
@@ -80,8 +86,9 @@ const Products = () => {
     } finally {
       setLoading(false);
     }
-  }, [filter, activeTab, pagination.limit, pagination.page]);
+  }, [activeTab, pagination.limit]);
 
+  // Initial load effect - only runs once on mount
   useEffect(() => {
     const userData = sessionStorage.getItem("user");
     if (userData) {
@@ -90,15 +97,16 @@ const Products = () => {
     }
     // Fetch products without requiring login
     fetchProducts(1);
-    setLoading(false);
-  }, [fetchProducts]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Tab change effect - runs when activeTab changes
   useEffect(() => {
     if (activeTab !== "create") {
       setPagination(prev => ({ ...prev, page: 1 }));
       fetchProducts(1);
     }
-  }, [activeTab, fetchProducts]);
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   const loadUnreadCount = async () => {
     try {
@@ -360,11 +368,11 @@ const Products = () => {
                 name="category"
                 value={filter.category}
                 onChange={(e) => {
-                  handleFilterChange(e);
-                  setTimeout(() => {
-                    setPagination(prev => ({ ...prev, page: 1 }));
-                    fetchProducts(1);
-                  }, 0);
+                  const newValue = e.target.value;
+                  const newFilter = { ...filter, category: newValue };
+                  setFilter(newFilter);
+                  setPagination(prev => ({ ...prev, page: 1 }));
+                  fetchProducts(1, newFilter);
                 }}
                 className="min-w-[160px] px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer shadow-sm appearance-none bg-no-repeat bg-right pr-8"
                 style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundSize: '1.25rem', backgroundPosition: 'right 0.5rem center' }}
@@ -689,6 +697,7 @@ const Products = () => {
 
                     <div className="flex items-center gap-2">
                       <button
+                        type="button"
                         onClick={() => handlePageChange(pagination.page - 1)}
                         disabled={pagination.page === 1}
                         className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -701,6 +710,7 @@ const Products = () => {
                         {pagination.page > 2 && (
                           <>
                             <button
+                              type="button"
                               onClick={() => handlePageChange(1)}
                               className="px-3.5 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                             >
@@ -715,6 +725,7 @@ const Products = () => {
                         {/* Previous page */}
                         {pagination.page > 1 && (
                           <button
+                            type="button"
                             onClick={() => handlePageChange(pagination.page - 1)}
                             className="px-3.5 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                           >
@@ -724,6 +735,7 @@ const Products = () => {
 
                         {/* Current page */}
                         <button
+                          type="button"
                           className="px-3.5 py-2 rounded-xl text-sm font-medium bg-primary-500 text-white shadow-md"
                         >
                           {pagination.page}
@@ -732,6 +744,7 @@ const Products = () => {
                         {/* Next page */}
                         {pagination.page < pagination.pages && (
                           <button
+                            type="button"
                             onClick={() => handlePageChange(pagination.page + 1)}
                             className="px-3.5 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                           >
@@ -746,6 +759,7 @@ const Products = () => {
                               <span className="px-2 text-gray-400">...</span>
                             )}
                             <button
+                              type="button"
                               onClick={() => handlePageChange(pagination.pages)}
                               className="px-3.5 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                             >
@@ -756,6 +770,7 @@ const Products = () => {
                       </div>
 
                       <button
+                        type="button"
                         onClick={() => handlePageChange(pagination.page + 1)}
                         disabled={pagination.page === pagination.pages}
                         className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
