@@ -187,7 +187,7 @@ const Products = () => {
 
   const applyFilters = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
-    fetchProducts(1);
+    fetchProducts(1, filter);
   };
 
   const handleToggleStatus = async (productId, currentStatus) => {
@@ -443,9 +443,10 @@ const Products = () => {
                 />
                 <button
                   onClick={() => {
-                    setFilter({ category: "", search: "", minPrice: "", maxPrice: "" });
+                    const emptyFilter = { category: "", search: "", minPrice: "", maxPrice: "" };
+                    setFilter(emptyFilter);
                     setPagination(prev => ({ ...prev, page: 1 }));
-                    setTimeout(() => fetchProducts(1), 0);
+                    fetchProducts(1, emptyFilter);
                   }}
                   className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
                 >
