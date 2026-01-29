@@ -689,6 +689,11 @@ const Chat = () => {
     return <Loader fullScreen size="lg" />;
   }
 
+  console.log("Chat Debug: Conversations:", conversations.length);
+  console.log("Chat Debug: Sorted Conversations:", sortedConversations.length);
+  console.log("Chat Debug: Current User:", currentUser);
+  console.log("Chat Debug: Top Conversation:", sortedConversations[0]);
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-950 pt-16 sm:pt-20">
       <Navbar
@@ -736,7 +741,11 @@ const Chat = () => {
                     conversation={conversation}
                     isActive={selectedConversation?._id === conversation._id}
                     onClick={() => setSelectedConversation(conversation)}
-                    currentUserId={currentUser?._id || currentUser?.id || ""}
+                    currentUserId={(() => {
+                      const uid = currentUser?._id || currentUser?.id || "";
+                      console.log("Chat Item UserID:", uid, "SellerID:", conversation.seller?._id);
+                      return uid;
+                    })()}
                     hasUnread={unreadConversations.has(String(conversation._id))}
                     onDelete={confirmDeleteConversation}
                   />
