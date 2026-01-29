@@ -513,8 +513,8 @@ const Chat = () => {
   // Sort conversations: unread first, then by last message time
   const sortedConversations = useMemo(() => {
     return [...conversations]
-      // Filter: must have seller, buyer, and product. Allow conversations without messages (newly created)
-      .filter((conv) => conv && conv.seller && conv.buyer && conv.product)
+      // Filter: must have seller, buyer, product, AND at least one message
+      .filter((conv) => conv && conv.seller && conv.buyer && conv.product && conv.lastMessage)
       .sort((a, b) => {
         // Use String() for consistent ID comparison
         const aUnread = unreadConversations.has(String(a._id));
