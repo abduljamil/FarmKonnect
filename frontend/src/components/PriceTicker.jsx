@@ -3,7 +3,15 @@ import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import API_URL from "../config";
 
 const PriceTicker = ({ prices = [] }) => {
-  const [livePrices, setLivePrices] = useState([]);
+  const [livePrices, setLivePrices] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem("ticker_prices_cache");
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      console.error("Cache parse error:", e);
+      return [];
+    }
+  });
   const [isPaused, setIsPaused] = useState(false);
 
   // Default sample data if no prices provided
@@ -18,16 +26,6 @@ const PriceTicker = ({ prices = [] }) => {
 
   useEffect(() => {
     let isMounted = true;
-
-    // Try to load from cache first for instant mobile feel
-    const cachedData = sessionStorage.getItem("ticker_prices_cache");
-    if (cachedData) {
-      try {
-        setLivePrices(JSON.parse(cachedData));
-      } catch (e) {
-        console.error("Cache parse error:", e);
-      }
-    }
 
     const fetchPrices = async () => {
       try {
