@@ -207,7 +207,7 @@ const AdminPanel = () => {
 
       // Fetch all users
       const allUsersResponse = await fetch(
-        `${API_URL}/auth/users`,
+        `${API_URL}/auth/users?limit=1000`,
         {
           credentials: "include",
         }
