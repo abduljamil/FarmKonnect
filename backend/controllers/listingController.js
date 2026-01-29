@@ -186,6 +186,11 @@ exports.updateListing = async (req, res) => {
       });
     }
 
+    // Auto-update status from 'sold' to 'active' if quantity is increased
+    if (req.body.quantity > 0 && listing.status === 'sold' && (!req.body.status || req.body.status === 'sold')) {
+      req.body.status = 'active';
+    }
+
     listing = await Listing.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
