@@ -736,7 +736,7 @@ const Chat = () => {
                     conversation={conversation}
                     isActive={selectedConversation?._id === conversation._id}
                     onClick={() => setSelectedConversation(conversation)}
-                    currentUserId={currentUser?.id || ""}
+                    currentUserId={currentUser?._id || currentUser?.id || ""}
                     hasUnread={unreadConversations.has(String(conversation._id))}
                     onDelete={confirmDeleteConversation}
                   />
