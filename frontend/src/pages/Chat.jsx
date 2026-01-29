@@ -689,11 +689,6 @@ const Chat = () => {
     return <Loader fullScreen size="lg" />;
   }
 
-  console.log("Chat Debug: Conversations:", conversations.length);
-  console.log("Chat Debug: Sorted Conversations:", sortedConversations.length);
-  console.log("Chat Debug: Current User:", currentUser);
-  console.log("Chat Debug: Top Conversation:", sortedConversations[0]);
-
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-950 pt-16 sm:pt-20">
       <Navbar
@@ -705,11 +700,10 @@ const Chat = () => {
         {/* Conversations List - Hidden on mobile when conversation is selected */}
         <div
           className={`
-            ${selectedConversation ? 'hidden md:flex' : 'flex'}
+            ${selectedConversation ? 'hidden md:flex' : 'flex absolute inset-0 md:static md:inset-auto'}
             w-full md:w-80 lg:w-96 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex-col
-            md:relative md:h-auto
+            md:relative md:h-full z-10 md:z-auto
           `}
-          style={!selectedConversation ? { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, height: '100%' } : undefined}
         >
           <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
             <div className="flex items-center justify-between">
@@ -741,11 +735,7 @@ const Chat = () => {
                     conversation={conversation}
                     isActive={selectedConversation?._id === conversation._id}
                     onClick={() => setSelectedConversation(conversation)}
-                    currentUserId={(() => {
-                      const uid = currentUser?._id || currentUser?.id || "";
-                      console.log("Chat Item UserID:", uid, "SellerID:", conversation.seller?._id);
-                      return uid;
-                    })()}
+                    currentUserId={currentUser?._id || currentUser?.id || ""}
                     hasUnread={unreadConversations.has(String(conversation._id))}
                     onDelete={confirmDeleteConversation}
                   />
@@ -758,11 +748,10 @@ const Chat = () => {
         {/* Chat Area - Full width on mobile when conversation is selected */}
         <div
           className={`
-            ${selectedConversation ? 'flex' : 'hidden md:flex'}
+            ${selectedConversation ? 'flex absolute inset-0 z-20 md:static md:inset-auto md:z-auto' : 'hidden md:flex'}
             md:flex-1 flex-col bg-white dark:bg-gray-900
-            md:relative md:h-auto
+            md:relative md:h-full
           `}
-          style={selectedConversation ? { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', zIndex: 20 } : undefined}
         >
           {selectedConversation ? (
             <>
