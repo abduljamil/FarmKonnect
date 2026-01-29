@@ -281,6 +281,16 @@ exports.processPayment = async (req, res) => {
     if (transaction.paymentMethod === "cod") {
       await transaction.save();
 
+      // Update listing quantity and status for COD
+      const listing = await Listing.findById(transaction.listing);
+      if (listing) {
+        listing.quantity = Math.max(0, listing.quantity - transaction.quantity);
+        if (listing.quantity === 0) {
+          listing.status = "sold";
+        }
+        await listing.save();
+      }
+
       const populatedTx = await Transaction.findById(transaction._id)
         .populate("listing", "title images price")
         .populate("buyer", "name email phone avatar")
