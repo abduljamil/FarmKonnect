@@ -74,7 +74,7 @@ export default function TransactionDetails() {
                 listing: newData.listing?.images ? newData.listing : (prevState?.listing || newData.listing)
             }));
             prevTransactionRef.current = newData;
-        } catch (err) { // eslint-disable-line no-unused-vars
+        } catch (err) {
             console.error("Error in silent refresh:", err);
         }
     }, [id, navigate, addNotification]);
