@@ -77,6 +77,16 @@ const ProfileSettings = () => {
     setSuccess("");
     setSaving(true);
 
+    // Validate phone number if provided
+    if (profileForm.phone) {
+      const phoneRegex = /^03[0-9]{9}$/;
+      if (!phoneRegex.test(profileForm.phone)) {
+        setError("Please enter a valid Pakistani phone number (03XXXXXXXXX)");
+        setSaving(false);
+        return;
+      }
+    }
+
     try {
       const updateData = {
         ...profileForm,
@@ -231,8 +241,8 @@ const ProfileSettings = () => {
                 <button
                   onClick={() => setActiveTab("profile")}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === "profile"
-                      ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                     }`}
                 >
                   <svg
@@ -254,8 +264,8 @@ const ProfileSettings = () => {
                   <button
                     onClick={() => setActiveTab("security")}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === "security"
-                        ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                       }`}
                   >
                     <svg
@@ -277,8 +287,8 @@ const ProfileSettings = () => {
                 <button
                   onClick={() => setActiveTab("logout")}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === "logout"
-                      ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                     }`}
                 >
                   <svg
@@ -299,8 +309,8 @@ const ProfileSettings = () => {
                 <button
                   onClick={() => setActiveTab("danger")}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === "danger"
-                      ? "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    ? "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                     }`}
                 >
                   <svg

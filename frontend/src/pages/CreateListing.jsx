@@ -85,8 +85,31 @@ const CreateProduct = () => {
       setLoading(false);
       return;
     }
+    if (!formData.unit) {
+      setError("Please select a unit");
+      setLoading(false);
+      return;
+    }
     if (!formData.title || !formData.description || !formData.price || !formData.location) {
       setError("Please fill in all required fields");
+      setLoading(false);
+      return;
+    }
+
+    if (parseFloat(formData.price) <= 0) {
+      setError("Price must be greater than 0");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.quantity && parseFloat(formData.quantity) < 0) {
+      setError("Quantity cannot be negative");
+      setLoading(false);
+      return;
+    }
+
+    if (imageFiles.every(f => f === null) && imagePreviews.length === 0) {
+      setError("Please upload at least one image");
       setLoading(false);
       return;
     }

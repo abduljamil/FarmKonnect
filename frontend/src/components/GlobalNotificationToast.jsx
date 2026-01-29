@@ -5,7 +5,7 @@ const GlobalNotificationToast = () => {
     const { notifications, removeNotification } = useNotifications();
 
     return (
-        <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+        <div className="fixed top-24 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
             {notifications.map((notification) => (
                 <div
                     key={notification.id}

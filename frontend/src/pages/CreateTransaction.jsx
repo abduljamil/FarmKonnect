@@ -129,6 +129,17 @@ export default function CreateTransaction() {
       return;
     }
 
+    // Validate Quantity
+    const qty = parseInt(formData.quantity);
+    if (!qty || qty < 1) {
+      setError("Please enter a valid quantity (minimum 1)");
+      return;
+    }
+    if (qty > listing.quantity) {
+      setError(`Quantity cannot exceed available stock (${listing.quantity})`);
+      return;
+    }
+
     setLoading(true);
 
     try {

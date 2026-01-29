@@ -31,6 +31,14 @@ const SignUp = () => {
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
       setError("Please fill in all fields");
       return;
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address");
+      return;
     }
 
     if (formData.password.length < 6) {

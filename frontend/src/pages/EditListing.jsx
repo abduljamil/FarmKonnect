@@ -142,6 +142,42 @@ const EditProduct = () => {
     setError("");
     setLoading(true);
 
+    // Frontend Validation
+    if (!formData.category) {
+      setError("Please select a category");
+      setLoading(false);
+      return;
+    }
+    if (!formData.unit) {
+      setError("Please select a unit");
+      setLoading(false);
+      return;
+    }
+    if (!formData.status) {
+      setError("Please select a status");
+      setLoading(false);
+      return;
+    }
+
+    if (parseFloat(formData.price) <= 0) {
+      setError("Price must be greater than 0");
+      setLoading(false);
+      return;
+    }
+
+    if (parseFloat(formData.quantity) < 0) {
+      setError("Quantity cannot be negative");
+      setLoading(false);
+      return;
+    }
+
+    // Check if at least one image will remain
+    // Count existing non-deleted images + new files
+    // Note: We need to see which existing images are being kept.
+    // Logic: existingUrls will be calculated below.
+    // Let's postpone this check slightly or pre-calculate.
+    // Actually, let's do the check after separating existing URLS.
+
     try {
       // Separate existing URLs from new files
       const existingUrls = [];
@@ -157,6 +193,12 @@ const EditProduct = () => {
           existingUrls.push(preview);
         }
       });
+
+      if (existingUrls.length === 0 && newFiles.length === 0) {
+        setError("Product must have at least one image");
+        setLoading(false);
+        return;
+      }
 
       // Upload new images if any
       let uploadedUrls = [];
