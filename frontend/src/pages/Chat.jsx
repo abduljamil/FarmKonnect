@@ -141,7 +141,7 @@ const Chat = () => {
         const isCurrentConversation = currentConvId ? String(currentConvId) === messageConvId : false;
 
         // Use ref for current user to avoid stale closure
-        const currentUserId = String(currentUserRef.current?.id || user.id);
+        const currentUserId = String(currentUserRef.current?.id || currentUserRef.current?._id || user?.id || user?._id);
         const senderId = String(message.sender?._id || message.sender);
         const isOwnMessage = senderId === currentUserId;
 
@@ -532,7 +532,7 @@ const Chat = () => {
   const loadMessages = useCallback(async (conversationId) => {
     try {
       const response = await chatAPI.getMessages(conversationId);
-      setMessages(response.data);
+      setMessages(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Error loading messages:", error);
       setMessages([]); // Clear messages on error
@@ -804,7 +804,7 @@ const Chat = () => {
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-900">
-                {messages.map((message, index) => {
+                {Array.isArray(messages) && messages.map((message, index) => {
                   // Check if we need a date separator
                   const messageDate = new Date(message.createdAt);
                   const prevMessage = messages[index - 1];
