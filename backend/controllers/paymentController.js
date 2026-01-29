@@ -66,6 +66,14 @@ exports.createTransaction = async (req, res) => {
       });
     }
 
+    // Validate quantity availability
+    if (quantity > listing.quantity) {
+      return res.status(400).json({
+        success: false,
+        message: `Only ${listing.quantity} units available`,
+      });
+    }
+
     // Can't buy your own listing
     if (listing.createdBy._id.toString() === req.user._id.toString()) {
       return res.status(400).json({
@@ -333,9 +341,20 @@ exports.processPayment = async (req, res) => {
               escrowHeldAt: new Date(),
               escrowExpiryDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
             },
+            $inc: { "listing.quantity": -transaction.quantity }
           },
           { new: true }
         );
+
+        // Update listing quantity and status
+        const listing = await Listing.findById(transaction.listing);
+        if (listing) {
+          listing.quantity = Math.max(0, listing.quantity - transaction.quantity);
+          if (listing.quantity === 0) {
+            listing.status = "sold";
+          }
+          await listing.save();
+        }
 
         if (!updatedTransaction) {
           // Transaction was already updated by another request

@@ -38,7 +38,7 @@ export default function CreateTransaction() {
   const listing = location.state?.listing;
 
   const [formData, setFormData] = useState({
-    amount: listing?.price || "",
+    amount: location.state?.offerAmount || listing?.price || "",
     quantity: 1,
     paymentMethod: "cod",
     deliveryAddress: "",
@@ -420,6 +420,7 @@ export default function CreateTransaction() {
                         value={formData.quantity}
                         onChange={handleChange}
                         min="1"
+                        max={listing.quantity}
                         className={`w-full px-4 py-3.5 rounded-xl border-2 transition-all duration-300 ${isDark
                           ? "bg-gray-800/50 border-gray-700 text-white focus:border-emerald-500 focus:bg-gray-800"
                           : "bg-white border-gray-200 text-gray-900 focus:border-emerald-500"

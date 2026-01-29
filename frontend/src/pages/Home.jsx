@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Card from '../components/Card';
+import SEO from '../components/SEO';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -29,13 +30,17 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-16 sm:pt-20">
+      <SEO
+        title="Home"
+        description="Welcome to FarmKonnect - Your AI-Powered Agricultural Marketplace for fresh products and direct farmer connections."
+      />
       <Navbar user={user} onLogout={handleLogout} />
 
       <main className="max-w-7xl mx-auto px-8 py-10">
         <div className="text-center">
-          <h2 className="text-5xl font-bold text-gray-800 mb-2">Welcome to FarmKonnect! 🌱</h2>
+          <h1 className="text-5xl font-bold text-gray-800 mb-2">Welcome to FarmKonnect! 🌱</h1>
           <p className="text-lg text-gray-600 mb-10">Your AI-Powered Agricultural Marketplace</p>
-          
+
           <Card title="Account Information" variant="info" className="max-w-2xl mx-auto mb-10 text-left">
             <div className="flex justify-between py-3 border-b border-gray-200">
               <span className="font-semibold text-gray-600">Name:</span>

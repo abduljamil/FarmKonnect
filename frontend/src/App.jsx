@@ -11,6 +11,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { SocketProvider } from "./contexts/SocketContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ConnectionProvider } from "./contexts/ConnectionContext";
+import { HelmetProvider } from "react-helmet-async";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GlobalNotificationToast from "./components/GlobalNotificationToast";
 import ConnectionStatus from "./components/ConnectionStatus";
@@ -30,10 +31,10 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error("Error caught by boundary:", error, errorInfo);
-    
+
     // Check if it's a chunk load error - these happen after new deployments
-    const isChunkError = 
-      error.name === 'ChunkLoadError' || 
+    const isChunkError =
+      error.name === 'ChunkLoadError' ||
       error.message?.includes('Failed to fetch dynamically imported module') ||
       error.message?.includes('Loading chunk');
 
@@ -48,8 +49,8 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      const isChunkError = 
-        this.state.error?.name === 'ChunkLoadError' || 
+      const isChunkError =
+        this.state.error?.name === 'ChunkLoadError' ||
         this.state.error?.message?.includes('Failed to fetch dynamically imported module') ||
         this.state.error?.message?.includes('Loading chunk');
 
@@ -61,8 +62,8 @@ class ErrorBoundary extends React.Component {
               {isChunkError ? "App Update Required" : "Something went wrong"}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {isChunkError 
-                ? "A new version of the app is available. Please reload to continue." 
+              {isChunkError
+                ? "A new version of the app is available. Please reload to continue."
                 : (this.state.error?.message || "An unexpected error occurred")}
             </p>
             <button
@@ -132,49 +133,51 @@ function App() {
           <ConnectionProvider>
             <AuthProvider>
               <NotificationProvider>
-                <Router>
-                  <SocketProvider>
-                    <ScrollToTop />
-                    <GlobalNotificationToast />
-                    <ConnectionStatus />
-                    <Suspense fallback={<PageLoader />}>
-                      <Routes>
-                        <Route path="/" element={<LandingPage />} />
-                        {/* Public routes */}
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/listings" element={<Marketplace />} />
-                        <Route path="/listings/:id" element={<ListingDetails />} />
-                        <Route path="/signin" element={<SignIn />} />
-                        <Route path="/signup" element={<SignUp />} />
-                        <Route path="/about" element={<AboutUs />} />
-                        <Route path="/contact" element={<ContactUs />} />
-                        <Route path="/privacy" element={<PrivacyPolicy />} />
-                        <Route path="/terms" element={<TermsOfService />} />
+                <HelmetProvider>
+                  <Router>
+                    <SocketProvider>
+                      <ScrollToTop />
+                      <GlobalNotificationToast />
+                      <ConnectionStatus />
+                      <Suspense fallback={<PageLoader />}>
+                        <Routes>
+                          <Route path="/" element={<LandingPage />} />
+                          {/* Public routes */}
+                          <Route path="/dashboard" element={<Dashboard />} />
+                          <Route path="/listings" element={<Marketplace />} />
+                          <Route path="/listings/:id" element={<ListingDetails />} />
+                          <Route path="/signin" element={<SignIn />} />
+                          <Route path="/signup" element={<SignUp />} />
+                          <Route path="/about" element={<AboutUs />} />
+                          <Route path="/contact" element={<ContactUs />} />
+                          <Route path="/privacy" element={<PrivacyPolicy />} />
+                          <Route path="/terms" element={<TermsOfService />} />
 
-                        {/* Email verification and password reset routes */}
-                        <Route path="/verify-email/:token" element={<VerifyEmail />} />
-                        <Route path="/email-sent" element={<EmailSent />} />
-                        <Route path="/forgot-password" element={<ForgotPassword />} />
-                        <Route path="/reset-password/:token" element={<ResetPassword />} />
+                          {/* Email verification and password reset routes */}
+                          <Route path="/verify-email/:token" element={<VerifyEmail />} />
+                          <Route path="/email-sent" element={<EmailSent />} />
+                          <Route path="/forgot-password" element={<ForgotPassword />} />
+                          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-                        {/* Protected routes - require authentication */}
-                        <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-                        <Route path="/listings/create" element={<ProtectedRoute><CreateListing /></ProtectedRoute>} />
-                        <Route path="/listings/edit/:id" element={<ProtectedRoute><EditListing /></ProtectedRoute>} />
-                        <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
-                        <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
-                        <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
-                        <Route path="/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
-                        <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
-                        <Route path="/transactions/:id" element={<ProtectedRoute><TransactionDetails /></ProtectedRoute>} />
-                        <Route path="/buy/:listingId" element={<ProtectedRoute><CreateTransaction /></ProtectedRoute>} />
-                        <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+                          {/* Protected routes - require authentication */}
+                          <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+                          <Route path="/listings/create" element={<ProtectedRoute><CreateListing /></ProtectedRoute>} />
+                          <Route path="/listings/edit/:id" element={<ProtectedRoute><EditListing /></ProtectedRoute>} />
+                          <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
+                          <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+                          <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+                          <Route path="/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+                          <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+                          <Route path="/transactions/:id" element={<ProtectedRoute><TransactionDetails /></ProtectedRoute>} />
+                          <Route path="/buy/:listingId" element={<ProtectedRoute><CreateTransaction /></ProtectedRoute>} />
+                          <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
 
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                      </Routes>
-                    </Suspense>
-                  </SocketProvider>
-                </Router>
+                          <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                      </Suspense>
+                    </SocketProvider>
+                  </Router>
+                </HelmetProvider>
               </NotificationProvider>
             </AuthProvider>
           </ConnectionProvider>

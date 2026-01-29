@@ -853,6 +853,8 @@ const Chat = () => {
                         onAcceptOffer={handleAcceptOffer}
                         onRejectOffer={handleRejectOffer}
                         isGrouped={isGrouped}
+                        isBuyer={selectedConversation?.buyer?._id === currentUser?.id}
+                        listing={selectedConversation?.product}
                       />
                     </React.Fragment>
                   );

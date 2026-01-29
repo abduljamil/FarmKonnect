@@ -11,6 +11,7 @@ import UserRating from "../components/UserRating";
 import ReviewsModal from "../components/ReviewsModal";
 import ConfirmModal from "../components/ConfirmModal";
 import Button from "../components/Button";
+import SEO from "../components/SEO";
 import chatAPI from "../utils/chatApi";
 import useUserSync from "../hooks/useUserSync";
 
@@ -195,6 +196,13 @@ const ListingDetails = () => {
       ) : (
         <GuestNavbar />
       )}
+
+      <SEO
+        title={listing.title}
+        description={listing.description?.substring(0, 160)}
+        image={listing.images?.[0]}
+        keywords={`${listing.category}, ${listing.title}, agriculture, farming, buy ${listing.title}`}
+      />
 
       <div className="container mx-auto px-4 py-6">
         {/* Back Button */}

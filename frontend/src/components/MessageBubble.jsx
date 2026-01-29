@@ -1,5 +1,6 @@
 import React from "react";
-import { Check, CheckCheck } from "lucide-react";
+import { Check, CheckCheck, ShoppingBag } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const MessageBubble = ({
   message,
@@ -7,7 +8,10 @@ const MessageBubble = ({
   onAcceptOffer,
   onRejectOffer,
   isGrouped = false,
+  isBuyer,
+  listing,
 }) => {
+  const navigate = useNavigate();
   const formatTime = (date) => {
     return new Date(date).toLocaleTimeString("en-US", {
       hour: "2-digit",
@@ -85,6 +89,24 @@ const MessageBubble = ({
             </button>
           </div>
         )}
+
+        {isBuyer && message.offerStatus === "accepted" && (
+          <div className="mt-4">
+            <button
+              onClick={() => navigate(`/buy/${listing?._id}`, {
+                state: {
+                  listing: listing,
+                  offerAmount: message.offerAmount,
+                  conversationId: message.conversation
+                }
+              })}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              Place Order Now
+            </button>
+          </div>
+        )}
       </div>
     );
   };
@@ -102,16 +124,16 @@ const MessageBubble = ({
 
         <div
           className={`relative px-4 py-2.5 ${isOwnMessage
-              ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl rounded-br-md shadow-md"
-              : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-bl-md shadow-sm border border-gray-200 dark:border-gray-700"
+            ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl rounded-br-md shadow-md"
+            : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-bl-md shadow-sm border border-gray-200 dark:border-gray-700"
             }`}
         >
           <div className="break-words text-[15px] leading-relaxed">{message.content}</div>
           {renderOfferMessage()}
           <div
             className={`flex items-center justify-end gap-1 mt-1 ${isOwnMessage
-                ? "text-white/70"
-                : "text-gray-400 dark:text-gray-500"
+              ? "text-white/70"
+              : "text-gray-400 dark:text-gray-500"
               }`}
           >
             <span className="text-[11px]">{formatTime(message.createdAt)}</span>
@@ -125,7 +147,7 @@ const MessageBubble = ({
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
