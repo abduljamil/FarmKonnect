@@ -11,7 +11,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { SocketProvider } from "./contexts/SocketContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ConnectionProvider } from "./contexts/ConnectionContext";
-import { HelmetProvider } from "react-helmet-async";
+import { HelmetProvider, Helmet } from "react-helmet-async";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GlobalNotificationToast from "./components/GlobalNotificationToast";
 import ConnectionStatus from "./components/ConnectionStatus";
@@ -138,6 +138,12 @@ function App() {
                     <SocketProvider>
                       <ScrollToTop />
                       <GlobalNotificationToast />
+                      <Helmet>
+                        <title>FarmKonnect - AI-Powered Agricultural Marketplace</title>
+                        <meta name="description" content="FarmKonnect is an AI-powered agricultural marketplace connecting farmers directly with buyers. Trade crops, access market insights, and grow your business." />
+                        <meta property="og:image" content="/images/hero-farmer.jpg" />
+                        <meta property="twitter:image" content="/images/hero-farmer.jpg" />
+                      </Helmet>
                       <ConnectionStatus />
                       <Suspense fallback={<PageLoader />}>
                         <Routes>
