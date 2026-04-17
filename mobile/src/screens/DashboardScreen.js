@@ -1,6 +1,7 @@
-﻿import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, StatusBar, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
-import { Sun, CloudRain, Droplets, MapPin, TrendingUp, TrendingDown, Bell } from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, StatusBar, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Sun, CloudRain, Droplets, MapPin, Bell, Home, User, MessageCircle } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { getPrices } from '../services/priceService';
 import { getWeather } from '../services/weatherService';
@@ -82,12 +83,12 @@ export default function DashboardScreen({ navigation }) {
               <View style={styles.weatherTop}>
                 <View style={styles.weatherLocation}>
                   <MapPin color="#a3a3a3" size={16} />
-                  <Text style={styles.locationText}>{weather.location?.name}, {weather.location?.country}</Text>
+                  <Text style={styles.locationText}>{weather.location?.name || weather.location}, {weather.location?.country || ''}</Text>
                 </View>
                 <Sun color="#facc15" size={40} />
               </View>
-              <Text style={styles.tempText}>{Math.round(weather.current?.temp_c)}°C</Text>
-              <Text style={styles.weatherCondition}>{weather.current?.condition?.text}</Text>
+              <Text style={styles.tempText}>{Math.round(weather.current?.temp || weather.current?.temp_c)}°C</Text>
+              <Text style={styles.weatherCondition}>{weather.current?.condition?.text || weather.current?.condition}</Text>
               
               <View style={styles.weatherDetails}>
                 <View style={styles.weatherDetailItem}>
@@ -108,8 +109,8 @@ export default function DashboardScreen({ navigation }) {
         {/* Market Insights - Quick Overview */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Market Insights</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Marketplace')}>
-            <Text style={styles.seeAllText}>See All</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('PriceTrends')}>
+            <Text style={styles.seeAllText}>View Trends</Text>
           </TouchableOpacity>
         </View>
         
@@ -118,14 +119,19 @@ export default function DashboardScreen({ navigation }) {
              <ActivityIndicator size="small" color="#16a34a" />
           ) : prices.length > 0 ? (
             prices.map((p, idx) => (
-              <View key={p._id || idx} style={styles.marketCard}>
+              <TouchableOpacity 
+                key={idx} 
+                style={styles.marketCard}
+                onPress={() => navigation.navigate('PriceTrends', { initialCommodity: p.commodity })}
+              >
                 <Text style={styles.marketItem}>{p.commodity}</Text>
                 <Text style={styles.marketPrice}>₨ {p.price?.toLocaleString()}/{p.unit}</Text>
                 <View style={styles.trendRow}>
-                  {p.trend === 'up' ? <TrendingUp color="#16a34a" size={14} /> : <TrendingDown color="#ef4444" size={14} />}
-                  <Text style={styles.trendUp}>Today</Text>
+                  <Text style={[styles.trendUp, { fontSize: 14, color: p.change >= 0 ? '#16a34a' : '#ef4444' }]}>
+                    {p.change !== undefined && p.change !== null ? (p.change >= 0 ? '▲' : '▼') + ` ${Math.abs(p.change)}%` : 'Today'}
+                  </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           ) : (
             <Text style={{ color: '#a3a3a3' }}>No market insights available right now.</Text>
@@ -145,6 +151,9 @@ export default function DashboardScreen({ navigation }) {
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Conversations')}>
             <Text style={styles.actionText}>Messages</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('PriceTrends')}>
+            <Text style={styles.actionText}>Price Trends</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Marketplace')}>
             <Text style={styles.actionText}>Marketplace</Text>

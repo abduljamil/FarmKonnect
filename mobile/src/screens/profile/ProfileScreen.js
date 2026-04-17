@@ -1,6 +1,6 @@
-﻿import React, { useContext } from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import { Search, Bell, Settings, LogOut, ChevronRight, User, Mail, Moon, Globe, ShoppingBag } from 'lucide-react-native';
+import { Search, Bell, Settings, LogOut, ChevronRight, User, Mail, Moon, Globe, Package } from 'lucide-react-native';
 import { AuthContext } from '../../contexts/AuthContext';
 
 export default function ProfileScreen({ navigation }) {
@@ -46,7 +46,7 @@ export default function ProfileScreen({ navigation }) {
           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyListings')}>
             <View style={styles.menuLeft}>
               <View style={styles.iconCircle}>
-                <ShoppingBag color="#16a34a" size={20} />
+                <Package color="#16a34a" size={20} />
               </View>
               <Text style={styles.menuText}>My Listings</Text>
             </View>

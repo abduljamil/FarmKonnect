@@ -42,11 +42,11 @@ const PriceTicker = () => {
     <View className="mb-6 pl-5">
       <Text className="text-lg font-bold text-gray-900 mb-3">Live Market</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {prices.map((item) => {
+        {prices.map((item, idx) => {
           const isUp = item.change >= 0;
           return (
             <View
-              key={item._id}
+              key={idx}
               className="bg-white p-4 rounded-2xl mr-4 border border-gray-100 shadow-sm w-36"
             >
               <Text className="text-gray-500 text-xs font-medium mb-1">

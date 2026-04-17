@@ -1,15 +1,26 @@
-﻿import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
-import { ArrowLeft, CheckCircle2, Circle, Truck, CreditCard, ShieldCheck } from 'lucide-react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, CheckCircle, Circle, Truck, CreditCard, Shield } from 'lucide-react-native';
 import { createTransaction } from '../../services/transactionService';
+import { AuthContext } from '../../contexts/AuthContext';
 
 export default function CreateTransactionScreen({ navigation, route }) {
+  const { user } = useContext(AuthContext);
   // item is the fetched listing
   const { listingId, listing } = route.params || {};
-  
-  const item = listing || { title: 'Unknown Item', price: 0, unit: 'kg', location: 'Unknown', createdBy: { name: 'Unknown Seller' } };
+  const item = listing || { 
+    title: 'Unknown Item', 
+    price: 0, 
+    unit: 'unit', 
+    location: 'Unknown', 
+    createdBy: { name: 'Unknown Seller' } 
+  };
   
   const [quantity, setQuantity] = useState('1');
+  const [deliveryAddress, setDeliveryAddress] = useState(item.location || '');
+  const [buyerPhone, setBuyerPhone] = useState(user?.phone || '');
+  const [deliveryNotes, setDeliveryNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('easypaisa'); // jazzcash, easypaisa, cod
   const [loading, setLoading] = useState(false);
   
@@ -28,17 +39,32 @@ export default function CreateTransactionScreen({ navigation, route }) {
       return;
     }
 
+    if (!deliveryAddress || deliveryAddress.trim().length < 10) {
+      Alert.alert('Error', 'Please provide a valid delivery address (min 10 characters)');
+      return;
+    }
+
+    const phoneRegex = /^03[0-9]{9}$/;
+    if (!buyerPhone || !phoneRegex.test(buyerPhone)) {
+      Alert.alert('Error', 'Please provide a valid Pakistani phone number (03XXXXXXXXX)');
+      return;
+    }
+
     setLoading(true);
     try {
       const payload = {
         listingId,
+        amount: total, // Backend expects the calculated total amount
         quantity: qty,
         paymentMethod,
-        shippingAddress: item.location // simplistic representation
+        deliveryAddress: deliveryAddress.trim(),
+        buyerPhone: buyerPhone.trim(),
+        deliveryNotes: deliveryNotes.trim()
       };
+      
       const res = await createTransaction(payload);
       if (res.data && res.data.success) {
-        Alert.alert('Success', 'Order matched tracking effectively.', [
+        Alert.alert('Success', 'Order placed effectively.', [
           { text: 'View Order', onPress: () => navigation.replace('TransactionDetail', { id: res.data.data._id }) }
         ]);
       }
@@ -81,6 +107,46 @@ export default function CreateTransactionScreen({ navigation, route }) {
                   onChangeText={setQuantity} 
                 />
               </View>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Delivery Information</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Delivery Address*</Text>
+              <TextInput 
+                style={styles.textArea} 
+                placeholder="Full delivery address..." 
+                placeholderTextColor="#6b7280"
+                value={deliveryAddress}
+                onChangeText={setDeliveryAddress}
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Phone Number*</Text>
+              <TextInput 
+                style={styles.textInput} 
+                placeholder="03XXXXXXXXX" 
+                placeholderTextColor="#6b7280"
+                keyboardType="phone-pad"
+                value={buyerPhone}
+                onChangeText={setBuyerPhone}
+                maxLength={11}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Delivery Notes (Optional)</Text>
+              <TextInput 
+                style={styles.textInput} 
+                placeholder="Special instructions for delivery..." 
+                placeholderTextColor="#6b7280"
+                value={deliveryNotes}
+                onChangeText={setDeliveryNotes}
+              />
             </View>
           </View>
 
@@ -155,6 +221,10 @@ const styles = StyleSheet.create({
   section: { marginBottom: 24 },
   sectionTitle: { color: '#a3a3a3', fontSize: 14, fontWeight: '600', marginBottom: 16, textTransform: 'uppercase' },
   card: { backgroundColor: 'rgba(26, 46, 29, 0.4)', borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#224026' },
+  inputGroup: { marginBottom: 16 },
+  inputLabel: { color: '#e5e7eb', fontSize: 14, fontWeight: '500', marginBottom: 8 },
+  textInput: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, borderWidth: 1, borderColor: '#374151', color: '#fff', padding: 12, fontSize: 16 },
+  textArea: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, borderWidth: 1, borderColor: '#374151', color: '#fff', padding: 12, fontSize: 16, textAlignVertical: 'top', minHeight: 80 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   itemName: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   itemPrice: { color: '#4ade80', fontSize: 16, fontWeight: 'bold' },

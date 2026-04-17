@@ -108,6 +108,18 @@ exports.sendMessage = async (req, res) => {
       offerAmount
     );
 
+    // Emit socket event for real-time sync
+    if (req.io) {
+      req.io.to(`conversation:${conversationId}`).emit("new_message", message);
+      
+      // Also emit to participants' personal rooms for those not in the conversation view
+      const buyerId = message.conversation?.buyer?._id || message.conversation?.buyer;
+      const sellerId = message.conversation?.seller?._id || message.conversation?.seller;
+      
+      if (buyerId) req.io.to(`user:${buyerId}`).emit("new_message", message);
+      if (sellerId) req.io.to(`user:${sellerId}`).emit("new_message", message);
+    }
+
     res.status(201).json({
       success: true,
       data: message,

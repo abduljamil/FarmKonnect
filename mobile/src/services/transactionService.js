@@ -10,3 +10,4 @@ export const cancelTransaction   = (id)   => api.put(`/payments/transactions/${i
 export const raiseDispute        = (id, data) => api.put(`/payments/transactions/${id}/dispute`, data);
 export const confirmDelivery     = (id)   => api.put(`/payments/transactions/${id}/confirm-delivery`);
 export const confirmPayment      = (id)   => api.put(`/payments/transactions/${id}/confirm-payment`);
+export const sellerConfirmPayment = (id)   => api.put(`/payments/transactions/${id}/seller-confirm-payment`);

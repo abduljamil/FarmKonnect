@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, ScrollView, Switch, TextInput, ActivityIndicator, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, Switch, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Bell, TrendingDown, Save } from 'lucide-react-native';
 import { getPriceAlerts, createPriceAlert, deletePriceAlert, getPrices } from '../../services/priceService';
 
@@ -28,7 +29,9 @@ export default function PriceAlertsScreen({ navigation }) {
 
         // Map UI state over fetched arrays
         const uiAlerts = fetchedPrices.map(p => {
-          const existingAlert = fetchedAlerts.find(a => a.commodityId?._id === p._id || a.commodityId === p._id);
+          const existingAlert = fetchedAlerts.find(a => 
+            a.commodity === p.commodity && a.variety === p.variety && a.city === p.city
+          );
           return {
             ...p,
             alertId: existingAlert ? existingAlert._id : null,
@@ -78,7 +81,9 @@ export default function PriceAlertsScreen({ navigation }) {
       setSavingState(true);
       try {
         const res = await createPriceAlert({
-          commodityId: item._id,
+          commodity: item.commodity,
+          variety: item.variety,
+          city: item.city,
           targetPrice: Number(newTarget),
           condition: 'below'
         });
@@ -112,7 +117,9 @@ export default function PriceAlertsScreen({ navigation }) {
         await deletePriceAlert(item.alertId);
       }
       const res = await createPriceAlert({
-        commodityId: item._id,
+        commodity: item.commodity,
+        variety: item.variety,
+        city: item.city,
         targetPrice: Number(item.target),
         condition: 'below'
       });
@@ -154,7 +161,7 @@ export default function PriceAlertsScreen({ navigation }) {
           <Text style={styles.sectionTitle}>Set Target Prices</Text>
           
           {alerts.map((item, index) => (
-            <View key={item._id || index} style={[styles.card, item.enabled && styles.cardActive]}>
+            <View key={index} style={[styles.card, item.enabled && styles.cardActive]}>
               <View style={styles.cardHeader}>
                 <View>
                   <Text style={styles.itemName}>{item.commodity}</Text>

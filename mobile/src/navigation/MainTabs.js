@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, Store, MessageCircle, User, Settings } from 'lucide-react-native';
 import DashboardScreen from '../screens/DashboardScreen';
@@ -7,7 +7,7 @@ import ConversationsScreen from '../screens/chat/ConversationsScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import TransactionsScreen from '../screens/transactions/TransactionsScreen';
 import { useTranslation } from 'react-i18next';
-import { ShoppingBag } from 'lucide-react-native';
+import { Package } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -58,7 +58,7 @@ export default function MainTabs() {
         component={TransactionsScreen}
         options={{
           tabBarLabel: 'Activity',
-          tabBarIcon: ({ color, size }) => <ShoppingBag color={color} size={size} />
+          tabBarIcon: ({ color, size }) => <Package color={color} size={size} />
         }}
       />
       <Tab.Screen

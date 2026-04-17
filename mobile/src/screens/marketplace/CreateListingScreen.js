@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, Alert } from 'react-native';
-import { ArrowLeft, Camera, UploadCloud, MapPin, Tag } from 'lucide-react-native';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, Camera, MapPin, Tag, Plus } from 'lucide-react-native';
 import { createListing } from '../../services/listingService';
 
 export default function CreateListingScreen({ navigation }) {
@@ -64,7 +65,7 @@ export default function CreateListingScreen({ navigation }) {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
         <TouchableOpacity style={styles.imageUploadBox}>
-          <Camera color="#a3a3a3" size={32} />
+          <Plus color="#a3a3a3" size={32} />
           <Text style={styles.imageUploadText}>Tap to add photos</Text>
         </TouchableOpacity>
 

@@ -1,4 +1,4 @@
-﻿import React, { useContext } from 'react';
+import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthContext } from '../contexts/AuthContext';
@@ -24,6 +24,7 @@ import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import PriceAlertsScreen from '../screens/profile/PriceAlertsScreen';
 import SupportScreen from '../screens/profile/SupportScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import PriceTrendsScreen from '../screens/marketplace/PriceTrendsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -57,6 +58,7 @@ const AppNavigator = () => {
             <Stack.Screen name="PriceAlerts" component={PriceAlertsScreen} />
             <Stack.Screen name="Support" component={SupportScreen} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="PriceTrends" component={PriceTrendsScreen} />
           </>
         ) : (
           <>

@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, Image, TouchableOpacity, ScrollView, Dimensions, ActivityIndicator, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, StatusBar, Image, TouchableOpacity, ScrollView, Dimensions, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MessageCircle, MapPin, CheckCircle, Shield } from 'lucide-react-native';
 import { getListingById } from '../../services/listingService';
 import { startConversation } from '../../services/chatService';

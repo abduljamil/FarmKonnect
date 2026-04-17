@@ -238,8 +238,14 @@ const initializeSocket = (server) => {
         const { conversationId } = data;
         await chatService.markMessagesAsRead(conversationId, socket.user._id);
 
-        // Notify other party
+        // Notify other party that messages have been read
         socket.to(`conversation:${conversationId}`).emit("messages_read", {
+          conversationId,
+          userId: socket.user._id,
+        });
+
+        // Also emit to the conversation specifically so sender's UI updates
+        io.to(`conversation:${conversationId}`).emit("messages_read", {
           conversationId,
           userId: socket.user._id,
         });
@@ -255,6 +261,17 @@ const initializeSocket = (server) => {
         } catch (e) {
           // Ignore emit errors
         }
+      }
+    });
+
+    // Check if a user is online
+    socket.on("check_online", (data) => {
+      try {
+        if (!data || !data.userId) return;
+        const isOnline = activeUsers.has(data.userId.toString());
+        socket.emit("online_status", { userId: data.userId, isOnline });
+      } catch (error) {
+        console.error("Error in check_online handler:", error.message);
       }
     });
 
