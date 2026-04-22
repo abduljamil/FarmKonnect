@@ -1,8 +1,32 @@
 ﻿import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, Linking, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Send, MessageSquare, PhoneCall, Mail } from 'lucide-react-native';
 
 export default function SupportScreen({ navigation }) {
+  const handleEmailPress = async () => {
+    const email = 'support@farmkonnect.com';
+    const subject = 'FarmKonnect Support Request';
+    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+    
+    try {
+      await Linking.openURL(mailtoLink);
+    } catch (error) {
+      Alert.alert('Error', 'Could not open email app. Please try again.');
+    }
+  };
+
+  const handlePhonePress = async () => {
+    const phoneNumber = '+923001234567'; // Replace with actual support number
+    const tellLink = `tel:${phoneNumber}`;
+    
+    try {
+      await Linking.openURL(tellLink);
+    } catch (error) {
+      Alert.alert('Error', 'Could not open phone app. Please try again.');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
@@ -18,12 +42,12 @@ export default function SupportScreen({ navigation }) {
         <Text style={styles.title}>How can we help you today?</Text>
         
         <View style={styles.contactMethods}>
-          <TouchableOpacity style={styles.methodCard}>
+          <TouchableOpacity style={styles.methodCard} onPress={handlePhonePress}>
             <View style={styles.methodIcon}><PhoneCall color="#16a34a" size={24} /></View>
             <Text style={styles.methodTitle}>Call Us</Text>
             <Text style={styles.methodDesc}>Mon-Fri, 9am-5pm</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.methodCard}>
+          <TouchableOpacity style={styles.methodCard} onPress={handleEmailPress}>
             <View style={styles.methodIcon}><Mail color="#16a34a" size={24} /></View>
             <Text style={styles.methodTitle}>Email</Text>
             <Text style={styles.methodDesc}>support@farmkonnect.com</Text>

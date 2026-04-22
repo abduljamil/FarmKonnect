@@ -285,3 +285,100 @@ exports.deleteAccount = async (req, res) => {
     });
   }
 };
+
+// Update privacy settings
+exports.updatePrivacySettings = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { isProfilePrivate, showOnlineStatus, twoFactorEnabled } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        ...(isProfilePrivate !== undefined && { isProfilePrivate }),
+        ...(showOnlineStatus !== undefined && { showOnlineStatus }),
+        ...(twoFactorEnabled !== undefined && { twoFactorEnabled }),
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Privacy settings updated successfully.',
+      data: {
+        isProfilePrivate: user.isProfilePrivate,
+        showOnlineStatus: user.showOnlineStatus,
+        twoFactorEnabled: user.twoFactorEnabled,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Get privacy settings
+exports.getPrivacySettings = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        isProfilePrivate: user.isProfilePrivate,
+        showOnlineStatus: user.showOnlineStatus,
+        twoFactorEnabled: user.twoFactorEnabled,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Get login history
+exports.getLoginHistory = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
+    const loginHistory = user.loginHistory || [];
+    const recentLogins = loginHistory.slice(-10); // Get last 10 logins
+
+    res.status(200).json({
+      success: true,
+      data: recentLogins,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

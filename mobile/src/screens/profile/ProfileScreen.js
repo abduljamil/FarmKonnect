@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import { Search, Bell, Settings, LogOut, ChevronRight, User, Mail, Moon, Globe, Package } from 'lucide-react-native';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Search, Bell, Settings, LogOut, ChevronRight, User, Mail, Lock, Package } from 'lucide-react-native';
 import { AuthContext } from '../../contexts/AuthContext';
 
 export default function ProfileScreen({ navigation }) {
@@ -53,12 +54,12 @@ export default function ProfileScreen({ navigation }) {
             <ChevronRight color="#6b7280" size={20} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PrivacySecurity')}>
             <View style={styles.menuLeft}>
               <View style={styles.iconCircle}>
-                <Globe color="#16a34a" size={20} />
+                <Lock color="#16a34a" size={20} />
               </View>
-              <Text style={styles.menuText}>Language (EN / UR)</Text>
+              <Text style={styles.menuText}>Privacy & Security</Text>
             </View>
             <ChevronRight color="#6b7280" size={20} />
           </TouchableOpacity>

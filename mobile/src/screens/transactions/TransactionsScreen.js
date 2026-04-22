@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Package, Tag, CheckCircle, Clock, AlertTriangle, ChevronRight } from 'lucide-react-native';
 import { getMyTransactions } from '../../services/transactionService';
 import { AuthContext } from '../../contexts/AuthContext';

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Bell, TrendingUp, MessageCircle, AlertTriangle, CheckCircle } from 'lucide-react-native';
 
 const notifications = [
@@ -30,6 +31,35 @@ const getBgColor = (type) => {
 };
 
 export default function NotificationsScreen({ navigation }) {
+  const handleNotificationPress = (notification) => {
+    // Close the notification screen
+    navigation.goBack();
+    
+    // Then navigate to the appropriate tab
+    // We need to navigate through the Main navigator stack
+    setTimeout(() => {
+      switch (notification.type) {
+        case 'price_alert':
+          // Navigate to Main/Dashboard tab
+          navigation.navigate('Main', { screen: 'Dashboard' });
+          break;
+        case 'message':
+          // Navigate to Main/Chat tab
+          navigation.navigate('Main', { screen: 'Chat' });
+          break;
+        case 'escrow':
+          // Navigate to Main/Transactions tab
+          navigation.navigate('Main', { screen: 'Transactions' });
+          break;
+        case 'system':
+          // System notifications just stay
+          break;
+        default:
+          break;
+      }
+    }, 100);
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
@@ -43,7 +73,11 @@ export default function NotificationsScreen({ navigation }) {
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {notifications.map((note) => (
-          <TouchableOpacity key={note.id} style={[styles.card, !note.read && styles.cardUnread]}>
+          <TouchableOpacity 
+            key={note.id} 
+            style={[styles.card, !note.read && styles.cardUnread]}
+            onPress={() => handleNotificationPress(note)}
+          >
             <View style={[styles.iconBox, { backgroundColor: getBgColor(note.type) }]}>
               {getIcon(note.type)}
             </View>

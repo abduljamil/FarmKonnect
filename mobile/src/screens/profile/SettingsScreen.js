@@ -1,17 +1,26 @@
-﻿import React, { useContext, useState } from 'react';
-import { View, Text, Switch, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, StatusBar } from 'react-native';
+﻿import React, { useContext, useState, useEffect } from 'react';
+import { View, Text, Switch, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
 import { Moon, Sun, Bell, Shield, ChevronLeft } from 'lucide-react-native';
 import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
 
 export default function SettingsScreen({ navigation }) {
   const { logout } = useContext(AuthContext);
-  const isUrdu = false; // Mocked until language provider handles this via asyncStorage
+  const { i18n, t } = useTranslation(); // Also get the t function to trigger re-renders
+  const [isUrdu, setIsUrdu] = useState(i18n.language === 'ur');
 
   // Local settings states
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
+
+  // Sync state with i18n language changes
+  useEffect(() => {
+    console.log('Language changed to:', i18n.language);
+    setIsUrdu(i18n.language === 'ur');
+  }, [i18n.language]);
 
   // Dynamic theme colors (Local simulated theme)
   const theme = {
@@ -23,8 +32,10 @@ export default function SettingsScreen({ navigation }) {
     iconColor: isDarkMode ? '#16a34a' : '#059669',
   };
 
-  const toggleLanguage = () => {
-    // Implement language switch
+  const toggleLanguage = (value) => {
+    const newLanguage = value ? 'ur' : 'en';
+    console.log('Changing language to:', newLanguage);
+    i18n.changeLanguage(newLanguage);
   };
 
   return (
@@ -37,20 +48,20 @@ export default function SettingsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ChevronLeft color={theme.text} size={28} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Settings</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>{t('settings')}</Text>
         <View style={{ width: 28 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>Preferences</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>{t('preferences')}</Text>
         
         <View style={[styles.section, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
           {/* Dark Mode Toggle */}
           <View style={styles.row}>
             <View style={styles.rowLeft}>
               {isDarkMode ? <Moon color={theme.iconColor} size={22} /> : <Sun color={theme.iconColor} size={22} />}
-              <Text style={[styles.label, { color: theme.text }]}>Dark Mode</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('dark_mode')}</Text>
             </View>
             <Switch
               value={isDarkMode}
@@ -65,7 +76,7 @@ export default function SettingsScreen({ navigation }) {
           <View style={styles.row}>
             <View style={styles.rowLeft}>
               <Text style={{ fontSize: 18, marginRight: 12 }}>🌏</Text>
-              <Text style={[styles.label, { color: theme.text }]}>Language</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('language')}</Text>
             </View>
             <View style={styles.languageToggle}>
               <Text style={[styles.langText, !isUrdu && styles.langActive, { color: !isUrdu ? theme.iconColor : theme.textMuted }]}>EN</Text>
@@ -80,14 +91,14 @@ export default function SettingsScreen({ navigation }) {
           </View>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>App Permissions</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>{t('app_permissions')}</Text>
         
         <View style={[styles.section, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
           {/* Notifications */}
           <View style={styles.row}>
             <View style={styles.rowLeft}>
               <Bell color={theme.iconColor} size={22} />
-              <Text style={[styles.label, { color: theme.text }]}>Push Notifications</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('push_notifications')}</Text>
             </View>
             <Switch
               value={notificationsEnabled}
@@ -102,7 +113,7 @@ export default function SettingsScreen({ navigation }) {
           <View style={styles.row}>
             <View style={styles.rowLeft}>
               <Shield color={theme.iconColor} size={22} />
-              <Text style={[styles.label, { color: theme.text }]}>Location Services</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('location_services')}</Text>
             </View>
             <Switch
               value={locationEnabled}
@@ -117,10 +128,10 @@ export default function SettingsScreen({ navigation }) {
           style={[styles.logoutButton, { backgroundColor: isDarkMode ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2', borderColor: isDarkMode ? 'rgba(239, 68, 68, 0.3)' : '#fca5a5' }]} 
           onPress={logout}
         >
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>{t('log_out')}</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.versionText, { color: theme.textMuted }]}>Version 1.0.0 (Build 42)</Text>
+        <Text style={[styles.versionText, { color: theme.textMuted }]}>{t('version')}</Text>
       </ScrollView>
     </SafeAreaView>
   );

@@ -15,7 +15,10 @@ const {
   resendVerification,
   forgotPassword,
   resetPassword,
-  googleCallback
+  googleCallback,
+  googleSignIn,
+  googleMobileAuth,
+  googleMobileCallback
 } = require('../controllers/authController');
 const { protect, isAdmin } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/limiter');
@@ -39,7 +42,10 @@ router.post('/resend-verification', resendVerification);
 router.post('/forgot-password', authLimiter, forgotPassword);
 router.post('/reset-password/:token', authLimiter, resetPassword);
 
-// Google OAuth routes
+// Mobile Google OAuth - direct sign in (no browser redirect)
+router.post('/google', authLimiter, googleSignIn);
+
+// Web Browser Google OAuth routes
 router.get('/google', passport.authenticate('google', { 
   scope: ['profile', 'email'],
   session: false 
@@ -52,6 +58,10 @@ router.get('/google/callback',
   }),
   googleCallback
 );
+
+// Mobile Google OAuth browser flow
+router.get('/google/mobile', googleMobileAuth);
+router.get('/google/mobile/callback', googleMobileCallback);
 
 // Protected routes
 router.post('/logout', protect, logout);

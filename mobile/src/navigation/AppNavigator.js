@@ -8,6 +8,7 @@ import { ActivityIndicator, View } from 'react-native';
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import SignInScreen from '../screens/auth/SignInScreen';
 import SignUpScreen from '../screens/auth/SignUpScreen';
+import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 
 // Main App Screens
 import MainTabs from './MainTabs';
@@ -23,6 +24,7 @@ import ConversationsScreen from '../screens/chat/ConversationsScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import PriceAlertsScreen from '../screens/profile/PriceAlertsScreen';
 import SupportScreen from '../screens/profile/SupportScreen';
+import PrivacySecurityScreen from '../screens/profile/PrivacySecurityScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import PriceTrendsScreen from '../screens/marketplace/PriceTrendsScreen';
 
@@ -57,6 +59,7 @@ const AppNavigator = () => {
             <Stack.Screen name="EditProfile" component={EditProfileScreen} />
             <Stack.Screen name="PriceAlerts" component={PriceAlertsScreen} />
             <Stack.Screen name="Support" component={SupportScreen} />
+            <Stack.Screen name="PrivacySecurity" component={PrivacySecurityScreen} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
             <Stack.Screen name="PriceTrends" component={PriceTrendsScreen} />
           </>
@@ -65,6 +68,7 @@ const AppNavigator = () => {
             <Stack.Screen name="Welcome" component={WelcomeScreen} />
             <Stack.Screen name="SignIn" component={SignInScreen} />
             <Stack.Screen name="SignUp" component={SignUpScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           </>
         )}
       </Stack.Navigator>

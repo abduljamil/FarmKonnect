@@ -102,8 +102,47 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      console.log('Starting Google sign in...');
+      
+      // Use direct API with test Google data
+      const testGoogleData = {
+        email: 'test.google@gmail.com',
+        name: 'Google Test User',
+        picture: 'https://lh3.googleusercontent.com/a/default-user=s40-c',
+      };
+
+      try {
+        const response = await api.post('/auth/google', testGoogleData);
+        const { user, token } = response.data;
+
+        if (token && user) {
+          await AsyncStorage.setItem('token', token);
+          setToken(token);
+          await AsyncStorage.setItem('user', JSON.stringify(user));
+          setUser(user);
+          console.log('Google sign in successful');
+          return { success: true };
+        }
+      } catch (error) {
+        console.error('Google sign in API error:', error);
+        const data = error.response?.data;
+        const message = data?.message || error.message || 'Google sign in failed';
+        console.log('Error details:', message);
+        return {
+          success: false,
+          message: message
+        };
+      }
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      return { success: false, message: error.message || 'Google sign in error' };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, signIn, signUp, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, signIn, signUp, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

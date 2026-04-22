@@ -9,6 +9,7 @@ export default function WelcomeScreen({ navigation }) {
   const translateY = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const arrowAnim = useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -61,6 +62,22 @@ export default function WelcomeScreen({ navigation }) {
         }),
       ])
     ).start();
+
+    // Arrow animation - bouncing up and down
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(arrowAnim, {
+          toValue: -12,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(arrowAnim, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
 
   return (
@@ -80,11 +97,11 @@ export default function WelcomeScreen({ navigation }) {
 
         <TouchableOpacity style={{ paddingBottom: 40 }} onPress={() => navigation.replace('SignIn')}>
           <Animated.View style={[styles.swipeIndicator, { opacity: fadeAnim }]}>  
-            <View style={styles.chevronGroup}>
+            <Animated.View style={[styles.chevronGroup, { transform: [{ translateY: arrowAnim }] }]}>
               <ChevronUp color="rgba(255,255,255,0.4)" fill="none" size={24} style={{ marginBottom: -10 }} />
               <ChevronUp color="rgba(255,255,255,0.7)" fill="none" size={28} style={{ marginBottom: -10 }} />
               <ChevronUp color="#16a34a" fill="none" size={32} />
-            </View>
+            </Animated.View>
             <Text style={styles.swipeText}>Tap or Swipe up to begin</Text>
           </Animated.View>
         </TouchableOpacity>

@@ -453,6 +453,173 @@ exports.createUser = async (req, res) => {
   }
 };
 
+// @desc    Google OAuth authentication for mobile
+// @route   POST /api/auth/google
+// @access  Public
+exports.googleSignIn = async (req, res) => {
+  try {
+    const { email, name, picture } = req.body;
+
+    if (!email || !name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and name are required',
+      });
+    }
+
+    // Find or create user
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      // Create new user with Google auth
+      user = new User({
+        name: name,
+        email: email.toLowerCase(),
+        authProvider: 'google',
+        isEmailVerified: true, // Google verified email
+        avatar: picture,
+      });
+      await user.save();
+      
+      // Send welcome email
+      try {
+        await sendWelcomeEmail(user);
+      } catch (emailError) {
+        console.error('Welcome email error:', emailError);
+        // Don't fail authentication if email fails
+      }
+    } else {
+      // Update existing user if needed
+      if (user.authProvider !== 'google') {
+        // Link Google account to existing user
+        user.authProvider = 'google';
+      }
+      if (picture) user.avatar = picture;
+      await user.save();
+    }
+
+    // Generate token
+    const result = authService.generateTokenForUser(user);
+
+    res.status(200).json({
+      success: true,
+      token: result.token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error) {
+    console.error('Google sign in error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Google authentication failed',
+    });
+  }
+};
+
+// @desc    Mobile Google OAuth - opens OAuth flow and returns token
+// @route   GET /api/auth/google/mobile
+// @access  Public
+// This endpoint is visited in WebBrowser and returns redirect with token
+exports.googleMobileAuth = async (req, res) => {
+  try {
+    // This endpoint should redirect to Google OAuth
+    // Used for mobile app OAuth flow
+    const redirectUri = req.query.redirect_uri || process.env.FRONTEND_URL;
+    
+    res.redirect(
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${process.env.GOOGLE_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(`${process.env.SERVER_URL || 'https://farmkonnect.app'}/api/auth/google/mobile/callback`)}&` +
+      `response_type=code&` +
+      `scope=openid%20profile%20email&` +
+      `state=${encodeURIComponent(redirectUri)}`
+    );
+  } catch (error) {
+    console.error('Mobile OAuth error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'OAuth initiation failed',
+    });
+  }
+};
+
+// @desc    Mobile Google OAuth Callback
+// @route   GET /api/auth/google/mobile/callback
+// @access  Public
+exports.googleMobileCallback = async (req, res) => {
+  try {
+    const { code, state } = req.query;
+    const redirectUri = decodeURIComponent(state);
+
+    if (!code) {
+      return res.redirect(`${redirectUri}?error=no_code`);
+    }
+
+    // Exchange code for token with Google
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      `${process.env.SERVER_URL || 'https://farmkonnect.app'}/api/auth/google/mobile/callback`
+    );
+
+    try {
+      const { tokens } = await client.getToken(code);
+      const ticket = await client.verifyIdToken({
+        idToken: tokens.id_token,
+      });
+
+      const payload = ticket.getPayload();
+      const { email, name, picture } = payload;
+
+      // Find or create user
+      let user = await User.findOne({ email: email.toLowerCase() });
+
+      if (!user) {
+        user = new User({
+          name: name,
+          email: email.toLowerCase(),
+          authProvider: 'google',
+          isEmailVerified: true,
+          avatar: picture,
+        });
+        await user.save();
+
+        try {
+          await sendWelcomeEmail(user);
+        } catch (emailError) {
+          console.error('Welcome email error:', emailError);
+        }
+      } else {
+        if (user.authProvider !== 'google') {
+          user.authProvider = 'google';
+        }
+        if (picture) user.avatar = picture;
+        await user.save();
+      }
+
+      // Generate token
+      const result = authService.generateTokenForUser(user);
+
+      // Redirect back to mobile app with token
+      res.redirect(`${redirectUri}?token=${result.token}`);
+    } catch (error) {
+      console.error('Token exchange error:', error);
+      res.redirect(`${redirectUri}?error=token_exchange_failed`);
+    }
+  } catch (error) {
+    console.error('Mobile callback error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Callback processing failed',
+    });
+  }
+};
+
 // @desc    Update user
 // @route   PUT /api/auth/users/:id
 // @access  Private/Admin

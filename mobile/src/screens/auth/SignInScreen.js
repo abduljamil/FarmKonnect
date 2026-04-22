@@ -4,16 +4,46 @@ import {
   StyleSheet, ActivityIndicator, ScrollView,
   Alert, KeyboardAvoidingView, Platform, StatusBar
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
 import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
 
 export default function SignInScreen({ navigation }) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn } = useContext(AuthContext);
+  const { signIn, signInWithGoogle } = useContext(AuthContext);
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setError('');
+    try {
+      console.log('Starting Google sign in...');
+      const result = await signInWithGoogle();
+      console.log('Google sign in result:', result);
+      
+      if (result.success) {
+        // Navigation will be handled by AuthContext changes
+        console.log('Google sign in successful');
+      } else {
+        const errorMsg = result.message || 'Please try again';
+        console.log('Google sign in failed:', errorMsg);
+        Alert.alert('Google Sign In Failed', errorMsg);
+        setError(errorMsg);
+      }
+    } catch (err) {
+      console.log('Google sign in exception:', err);
+      const msg = err.message || 'An unexpected error occurred';
+      Alert.alert('Google Sign In Error', msg);
+      setError(msg);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -33,7 +63,15 @@ export default function SignInScreen({ navigation }) {
             [{ text: 'OK' }]
           );
         } else {
-          let msg = result.message || 'Sign in failed'; if (msg.includes('Illegal') || msg.includes('undefined')) { msg = 'Invalid credentials or no password associated with this account (social login).'; } setError(msg); Alert.alert('Sign In Failed', msg);
+          let msg = result.message || 'Sign in failed';
+          // Better error messages
+          if (msg.includes('social login')) {
+            msg = 'This account uses Google Sign In. Please tap "Continue with Google" instead.';
+          } else if (msg.includes('Illegal') || msg.includes('undefined')) {
+            msg = 'Invalid email or password';
+          }
+          setError(msg);
+          Alert.alert('Sign In Failed', msg);
         }
       }
     } catch (err) {
@@ -67,13 +105,23 @@ export default function SignInScreen({ navigation }) {
 
           {/* Card */}
           <View style={styles.card}>
-            <Text style={styles.title}>Welcome to FarmKonnect</Text>
-            <Text style={styles.subtitle}>Sign in to your FarmKonnect account</Text>
+            <Text style={styles.title}>{t('title')}</Text>
+            <Text style={styles.subtitle}>{t('subtitle')}</Text>
 
             {/* Google Button */}
-            <TouchableOpacity style={styles.googleBtn}>
-              <Text style={styles.googleIcon}>G</Text>
-              <Text style={styles.googleText}>Continue with Google</Text>
+            <TouchableOpacity 
+              style={[styles.googleBtn, googleLoading && styles.btnDisabled]} 
+              onPress={handleGoogleSignIn}
+              disabled={googleLoading}
+            >
+              {googleLoading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Text style={styles.googleIcon}>G</Text>
+                  <Text style={styles.googleText}>Continue with Google</Text>
+                </>
+              )}
             </TouchableOpacity>
 
             {/* Divider */}

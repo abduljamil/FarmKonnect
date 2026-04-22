@@ -67,6 +67,36 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  // Privacy & Security fields
+  isProfilePrivate: {
+    type: Boolean,
+    default: false,
+  },
+  showOnlineStatus: {
+    type: Boolean,
+    default: true,
+  },
+  twoFactorEnabled: {
+    type: Boolean,
+    default: false,
+  },
+  twoFactorSecret: String,
+  loginHistory: [
+    {
+      timestamp: {
+        type: Date,
+        default: Date.now,
+      },
+      device: String,
+      ipAddress: String,
+      location: String,
+      status: {
+        type: String,
+        enum: ['success', 'failed'],
+        default: 'success',
+      },
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
@@ -89,6 +119,10 @@ userSchema.pre('save', async function(next) {
 
 // Method to compare passwords
 userSchema.methods.comparePassword = async function(candidatePassword) {
+  // Check if password exists (users from social login won't have one)
+  if (!this.password) {
+    return false;
+  }
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

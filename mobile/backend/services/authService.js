@@ -97,6 +97,11 @@ class AuthService {
       throw new Error('Invalid email or password');
     }
 
+    // Check if user has a password (social login users won't have one)
+    if (!user.password) {
+      throw new Error('This account uses social login. Please sign in with Google.');
+    }
+
     // Check password
     const isPasswordMatch = await user.comparePassword(password);
     
