@@ -11,7 +11,35 @@ const priceAlertSchema = new mongoose.Schema(
     commodity: {
       type: String,
       required: true,
-      enum: ["Wheat", "Rice", "Cotton", "Sugar", "Maize", "Flour"],
+      // Must include every distinct commodity string we write to
+      // `commodityprices` so users can create alerts for any of them.
+      // The live Python scraper and the historical AMIS ingest both write
+      // variants as their own commodity (variety=null), so the variants
+      // appear here as full strings.
+      enum: [
+        // Base / single-variety commodities
+        "Wheat",
+        "Maize",
+        "Sugar",
+        "Flour",
+        "Cotton",
+        "Rice",
+        // Rice varieties (each is a distinct commodity in the data)
+        "Rice (IRRI)",
+        "Rice Basmati Super (New)",
+        "Rice Basmati Super (Old)",
+        "Rice Basmati (385)",
+        "Rice Kainat (New)",
+        "Paddy Basmati",
+        "Paddy (IRRI)",
+        "Paddy Kainat",
+        // Seed cotton variant
+        "Seed Cotton (Phutti)",
+        // Other commodities the live scraper writes
+        "Millet",
+        "Wheat Straw",
+        "Barley(جو)",
+      ],
     },
     variety: {
       type: String,

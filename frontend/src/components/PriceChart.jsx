@@ -28,59 +28,8 @@ import {
   Calendar,
 } from "lucide-react";
 
-// Import commodity images
-import wheatImg from "../assets/commodities/wheat.png";
-import riceImg from "../assets/commodities/rice.png";
-import cottonImg from "../assets/commodities/cotton.png";
-import sugarImg from "../assets/commodities/sugar.png";
-import maizeImg from "../assets/commodities/maize.png";
-import flourImg from "../assets/commodities/flour.png";
-
-// Commodity configurations with images
-const COMMODITY_CONFIG = {
-  Wheat: {
-    image: wheatImg,
-    emoji: "🌾",
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-100 dark:bg-amber-900/40",
-    gradient: "from-amber-500 to-amber-600",
-  },
-  Rice: {
-    image: riceImg,
-    emoji: "🍚",
-    color: "text-sky-600 dark:text-sky-400",
-    bg: "bg-sky-100 dark:bg-sky-900/40",
-    gradient: "from-sky-500 to-sky-600",
-  },
-  Cotton: {
-    image: cottonImg,
-    emoji: "☁️",
-    color: "text-slate-600 dark:text-slate-400",
-    bg: "bg-slate-100 dark:bg-slate-800/60",
-    gradient: "from-slate-500 to-slate-600",
-  },
-  Sugar: {
-    image: sugarImg,
-    emoji: "🧊",
-    color: "text-pink-600 dark:text-pink-400",
-    bg: "bg-pink-100 dark:bg-pink-900/40",
-    gradient: "from-pink-500 to-pink-600",
-  },
-  Maize: {
-    image: maizeImg,
-    emoji: "🌽",
-    color: "text-yellow-600 dark:text-yellow-400",
-    bg: "bg-yellow-100 dark:bg-yellow-900/40",
-    gradient: "from-yellow-500 to-yellow-600",
-  },
-  Flour: {
-    image: flourImg,
-    emoji: "🍞",
-    color: "text-orange-600 dark:text-orange-400",
-    bg: "bg-orange-100 dark:bg-orange-900/40",
-    gradient: "from-orange-500 to-orange-600",
-  },
-};
+// Shared commodity catalog (images, colors, allow-list, base-family lookup)
+import { TARGET_COMMODITIES, getCommodityConfig } from "../utils/commodities";
 
 // Time period options
 const TIME_PERIODS = [
@@ -280,7 +229,8 @@ const PriceChart = ({ user, onLoginRequired }) => {
         }
 
         if (isMounted) {
-          const TARGET_COMMODITIES = ["Wheat", "Rice", "Cotton", "Sugar", "Maize", "Flour"];
+          // TARGET_COMMODITIES is imported from utils/commodities and now
+          // includes rice variants + Seed Cotton (Phutti) ingested in 2026-05.
           const commodityList = (commoditiesData.data || []).filter(c =>
             TARGET_COMMODITIES.includes(c)
           );
@@ -438,7 +388,8 @@ const PriceChart = ({ user, onLoginRequired }) => {
   const isPositive = priceChange > 0;
   const isNegative = priceChange < 0;
 
-  const currentConfig = COMMODITY_CONFIG[selectedCommodity] || COMMODITY_CONFIG.Wheat;
+  // Fall back to base family config when a variant has no dedicated entry.
+  const currentConfig = getCommodityConfig(selectedCommodity);
 
   const displayUnit = data.length > 0 && data[data.length - 1]?.unit
     ? data[data.length - 1].unit.replace('Rs/', '').replace('(Maund)', 'Maund')
@@ -602,7 +553,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
               <CommodityButton
                 key={commodity}
                 commodity={commodity}
-                config={COMMODITY_CONFIG[commodity] || COMMODITY_CONFIG.Wheat}
+                config={getCommodityConfig(commodity)}
                 isSelected={selectedCommodity === commodity}
                 onClick={() => setSelectedCommodity(commodity)}
               />

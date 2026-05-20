@@ -15,17 +15,16 @@ import {
 } from "lucide-react";
 import alertsApi from "../utils/alertsApi";
 import socketService from "../utils/socket";
+import { COMMODITY_OPTIONS } from "../utils/commodities";
 
-const COMMODITIES = [
-  { value: "Wheat", label: "Wheat", icon: "🌾" },
-  { value: "Rice", label: "Rice", icon: "🍚" },
-  { value: "Cotton", label: "Cotton", icon: "☁️" },
-  { value: "Sugar", label: "Sugar", icon: "🍬" },
-  { value: "Maize", label: "Maize", icon: "🌽" },
-  { value: "Flour", label: "Flour", icon: "🥖" },
-];
+// All commodities surfaced in the alert dropdown (sourced from the shared
+// catalog so new rice variants / Seed Cotton (Phutti) etc. show up
+// automatically). Each item: { value, label, icon }.
+const COMMODITIES = COMMODITY_OPTIONS;
 
-// Commodities that have varieties
+// Commodities that have a `variety` sub-field. Our ingested data writes
+// variety=null for every row, but the base "Rice"/"Cotton" rows still
+// pull varieties from the API for backward compatibility with legacy data.
 const COMMODITIES_WITH_VARIETIES = ["Rice", "Cotton"];
 
 const AlertItem = ({ alert, onDelete, onReactivate }) => {

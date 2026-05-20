@@ -1,11 +1,15 @@
 const CommodityPrice = require("../models/CommodityPrice");
 
+// Max window: ~20 years -- we now have AMIS history back to 2009 in Atlas.
+// (The 90-day cap was tied to the old TTL index which has been dropped.)
+const MAX_DAYS = 365 * 20;
+
 const parseDays = (days, fallback = 30) => {
   const parsed = parseInt(days, 10);
   if (Number.isNaN(parsed) || parsed <= 0) {
     return fallback;
   }
-  return Math.min(parsed, 90);
+  return Math.min(parsed, MAX_DAYS);
 };
 
 exports.getLatestPrices = async (req, res) => {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import API_URL from "../config";
+import { TARGET_COMMODITIES } from "../utils/commodities";
 
 const PriceTicker = ({ prices = [] }) => {
   const [livePrices, setLivePrices] = useState(() => {
@@ -39,7 +40,8 @@ const PriceTicker = ({ prices = [] }) => {
         }
 
         if (isMounted) {
-          const TARGET_COMMODITIES = ["Wheat", "Rice", "Cotton", "Sugar", "Maize", "Flour"];
+          // TARGET_COMMODITIES imported from utils/commodities now includes
+          // rice variants + Seed Cotton (Phutti) ingested 2026-05.
           const mapped = (data.data || [])
             .filter(item => TARGET_COMMODITIES.includes(item.commodity))
             .map((item) => {

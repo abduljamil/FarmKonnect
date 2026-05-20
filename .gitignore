@@ -41,3 +41,7 @@ certbot/
 # Backend environment
 backend/.env
 
+# Local planning + working notes (Claude-managed, not for deploy)
+PLAN.md
+mongodump-*/
+

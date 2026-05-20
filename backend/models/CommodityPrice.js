@@ -51,7 +51,10 @@ commodityPriceSchema.index(
   { unique: true }
 );
 
-commodityPriceSchema.index({ timestamp: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 90 });
+// NOTE: A 90-day TTL on `timestamp` previously auto-deleted documents. We
+// removed it so we can keep the full historical price record (2009-present)
+// needed for ML model training. To drop the existing index in Atlas, run
+// `node backend/scripts/dropTtlIndex.js` once.
 
 commodityPriceSchema.pre("save", function (next) {
   this.lastUpdated = Date.now();

@@ -6,10 +6,9 @@ import { ArrowLeft, ChevronDown, Search, Filter, Home, User } from 'lucide-react
 import Svg, { Path, LinearGradient, Stop, Defs, Polyline } from 'react-native-svg';
 import { getCommodities, getPriceHistory, getVarieties, getCitiesByFilters } from '../../services/priceService';
 import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
+import { TARGET_COMMODITIES } from '../../utils/commodities';
 
 const { width } = Dimensions.get('window');
-
-const TARGET_COMMODITIES = ["Wheat", "Rice", "Cotton", "Sugar", "Maize", "Flour"];
 
 // Custom SVG Chart Component
 const SimpleLineChart = ({ data, color = '#16a34a' }) => {
