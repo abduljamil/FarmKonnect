@@ -37,7 +37,10 @@ from pathlib import Path
 try:
     import openpyxl
     from pymongo import MongoClient, UpdateOne
-    from pymongo.errors import BulkWriteError
+    from pymongo.errors import (
+        BulkWriteError, AutoReconnect, NetworkTimeout,
+        ServerSelectionTimeoutError, ConnectionFailure,
+    )
 except ImportError:
     print("Install deps:  pip install openpyxl pymongo")
     sys.exit(1)
@@ -180,7 +183,7 @@ def main():
     # Connect (skip if dry-run with no URI)
     coll = None
     if not args.dry_run:
-        client = MongoClient(uri)
+        client = MongoClient(uri, serverSelectionTimeoutMS=30000, retryWrites=True)
         coll = client[args.db][args.collection]
         before = coll.count_documents({})
         print(f"  current docs in collection: {before:,}")
@@ -203,17 +206,32 @@ def main():
         if args.dry_run:
             pending = []
             return
-        try:
-            res = coll.bulk_write(pending, ordered=False)
-            total_inserted += res.upserted_count
-            total_updated += res.modified_count
-        except BulkWriteError as e:
-            total_errors += len(e.details.get("writeErrors", []))
-            # account whatever did succeed
-            total_inserted += e.details.get("nUpserted", 0)
-            total_updated  += e.details.get("nModified", 0)
-            for we in e.details.get("writeErrors", [])[:3]:
-                print(f"    write err: {we.get('errmsg','?')[:200]}")
+        attempt = 0
+        while True:
+            try:
+                res = coll.bulk_write(pending, ordered=False)
+                total_inserted += res.upserted_count
+                total_updated += res.modified_count
+                break
+            except BulkWriteError as e:
+                total_errors += len(e.details.get("writeErrors", []))
+                # account whatever did succeed
+                total_inserted += e.details.get("nUpserted", 0)
+                total_updated  += e.details.get("nModified", 0)
+                for we in e.details.get("writeErrors", [])[:3]:
+                    print(f"    write err: {we.get('errmsg','?')[:200]}")
+                break
+            except (AutoReconnect, NetworkTimeout, ServerSelectionTimeoutError,
+                    ConnectionFailure) as e:
+                # Transient Atlas/network blip: back off and retry the same batch.
+                # Upserts are idempotent, so re-running the batch is safe.
+                attempt += 1
+                if attempt > 6:
+                    print(f"    FATAL: transient error persisted after 6 retries: {e}")
+                    raise
+                wait = min(2 ** attempt, 30)
+                print(f"    transient {type(e).__name__}; retry {attempt}/6 in {wait}s")
+                time.sleep(wait)
         pending = []
         time.sleep(SLEEP_BETWEEN_BATCHES_S)
 
