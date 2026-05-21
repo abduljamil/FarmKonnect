@@ -115,3 +115,42 @@ export function getCommodityConfig(commodity) {
     WHEAT_DISPLAY
   );
 }
+
+// UI grouping for the price chart. Each base "family" is shown as one top-level
+// button; its members are the real commodity strings stored in Mongo. Because
+// variety is unused (always null) and every variant is its own commodity,
+// picking a "variety" in the UI actually selects that commodity for queries.
+export const COMMODITY_FAMILIES = {
+  Wheat: ["Wheat"],
+  Rice: [
+    "Rice",
+    "Rice (IRRI)",
+    "Rice Basmati Super (New)",
+    "Rice Basmati Super (Old)",
+    "Rice Basmati (385)",
+    "Rice Kainat (New)",
+    "Paddy Basmati",
+    "Paddy (IRRI)",
+    "Paddy Kainat",
+  ],
+  Cotton: ["Cotton", "Seed Cotton (Phutti)"],
+  Sugar: ["Sugar"],
+  Maize: ["Maize"],
+  Flour: ["Flour"],
+};
+
+// Order in which family buttons appear.
+export const COMMODITY_FAMILY_ORDER = ["Wheat", "Rice", "Cotton", "Sugar", "Maize", "Flour"];
+
+// Given the commodity strings actually present in the DB, return the ordered
+// families that have at least one member present, each with its present members
+// (used to render the family buttons + the variety dropdown).
+export function buildFamilies(availableCommodities) {
+  const present = new Set(availableCommodities || []);
+  const out = [];
+  for (const fam of COMMODITY_FAMILY_ORDER) {
+    const members = (COMMODITY_FAMILIES[fam] || []).filter((c) => present.has(c));
+    if (members.length) out.push({ family: fam, members });
+  }
+  return out;
+}

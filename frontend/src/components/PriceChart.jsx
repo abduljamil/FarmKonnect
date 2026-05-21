@@ -28,15 +28,18 @@ import {
   Calendar,
 } from "lucide-react";
 
-// Shared commodity catalog (images, colors, allow-list, base-family lookup)
-import { TARGET_COMMODITIES, getCommodityConfig } from "../utils/commodities";
+// Shared commodity catalog (images, colors, family grouping, base lookup)
+import { getCommodityConfig, buildFamilies } from "../utils/commodities";
 
 // Time period options
 const TIME_PERIODS = [
   { label: "1W", value: 7 },
-  { label: "2W", value: 14 },
   { label: "1M", value: 30 },
   { label: "3M", value: 90 },
+  { label: "6M", value: 180 },
+  { label: "1Y", value: 365 },
+  { label: "5Y", value: 1825 },
+  { label: "All", value: 7300 },
 ];
 
 // Chart type options
@@ -66,7 +69,7 @@ const CustomTooltip = memo(({ active, payload }) => {
     const value = payload[0].value;
     return (
       <div className="bg-white dark:bg-gray-800 px-3 py-2 border border-primary-500 rounded-xl shadow-lg">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white">{dataPoint.date}</p>
+        <p className="text-sm font-semibold text-gray-900 dark:text-white">{dataPoint.fullDate || dataPoint.date}</p>
         <p className="text-lg font-bold text-primary-600 dark:text-primary-400">
           ₨{value?.toLocaleString()}
         </p>
@@ -196,19 +199,22 @@ ChartTypeButton.displayName = "ChartTypeButton";
 
 const PriceChart = ({ user, onLoginRequired }) => {
   const { t } = useLanguage();
-  const [commodities, setCommodities] = useState([]);
+  const [families, setFamilies] = useState([]);
   const [cities, setCities] = useState([]);
-  const [varieties, setVarieties] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [chartType, setChartType] = useState("area");
 
+  const [selectedFamily, setSelectedFamily] = useState("");
   const [selectedCommodity, setSelectedCommodity] = useState("");
-  const [selectedVariety, setSelectedVariety] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [days, setDays] = useState(30);
   const [selectedDate, setSelectedDate] = useState("");
+
+  // Members (real commodity strings) of the currently-selected family.
+  const familyMembers =
+    families.find((f) => f.family === selectedFamily)?.members || [];
 
   // Fetch initial data
   useEffect(() => {
@@ -229,16 +235,15 @@ const PriceChart = ({ user, onLoginRequired }) => {
         }
 
         if (isMounted) {
-          // TARGET_COMMODITIES is imported from utils/commodities and now
-          // includes rice variants + Seed Cotton (Phutti) ingested in 2026-05.
-          const commodityList = (commoditiesData.data || []).filter(c =>
-            TARGET_COMMODITIES.includes(c)
-          );
+          // Group raw commodity strings into base families (Rice, Wheat, ...).
+          // Rice/cotton variants live as their own commodity strings in the DB.
+          const fams = buildFamilies(commoditiesData.data || []);
           const cityList = citiesData.data || [];
 
-          setCommodities(commodityList);
+          setFamilies(fams);
           setCities(cityList);
-          setSelectedCommodity(commodityList[0] || "");
+          setSelectedFamily(fams[0]?.family || "");
+          setSelectedCommodity(fams[0]?.members[0] || "");
           setSelectedCity(cityList[0] || "");
           setLoading(false);
         }
@@ -254,37 +259,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
     return () => { isMounted = false; };
   }, []);
 
-  // Fetch varieties when commodity changes
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchVarieties = async () => {
-      if (!selectedCommodity) return;
-
-      try {
-        const response = await fetch(
-          `${API_URL}/prices/varieties/${encodeURIComponent(selectedCommodity)}`
-        );
-        const responseData = await response.json();
-
-        if (isMounted && response.ok) {
-          const list = responseData.data || [];
-          setVarieties(list);
-          setSelectedVariety(list[0] || "");
-        }
-      } catch {
-        if (isMounted) {
-          setVarieties([]);
-          setSelectedVariety("");
-        }
-      }
-    };
-
-    fetchVarieties();
-    return () => { isMounted = false; };
-  }, [selectedCommodity]);
-
-  // Fetch cities based on commodity/variety
+  // Fetch cities based on the selected commodity
   useEffect(() => {
     let isMounted = true;
 
@@ -293,7 +268,6 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
       try {
         const params = new URLSearchParams({ commodity: selectedCommodity });
-        if (selectedVariety) params.set("variety", selectedVariety);
 
         const response = await fetch(
           `${API_URL}/prices/cities-by-filters?${params.toString()}`
@@ -317,7 +291,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
     fetchCities();
     return () => { isMounted = false; };
-  }, [selectedCommodity, selectedVariety, selectedCity]);
+  }, [selectedCommodity, selectedCity]);
 
   // Fetch price history
   useEffect(() => {
@@ -338,8 +312,6 @@ const PriceChart = ({ user, onLoginRequired }) => {
           params.set("days", days.toString());
         }
 
-        if (selectedVariety) params.set("variety", selectedVariety);
-
         const response = await fetch(
           `${API_URL}/prices/history?${params.toString()}`
         );
@@ -348,11 +320,20 @@ const PriceChart = ({ user, onLoginRequired }) => {
         if (!response.ok) throw new Error(responseData.message);
 
         if (isMounted) {
-          const mapped = (responseData.data || []).map((item) => ({
-            date: new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-            price: item.price,
-            unit: item.unit,
-          }));
+          // Multi-year ranges show month+year on the axis; the tooltip always
+          // carries the full date.
+          const longRange = !selectedDate && days > 365;
+          const mapped = (responseData.data || []).map((item) => {
+            const d = new Date(item.date);
+            return {
+              date: longRange
+                ? d.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+                : d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+              fullDate: d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
+              price: item.price,
+              unit: item.unit,
+            };
+          });
 
           setData(mapped);
           setError("");
@@ -367,7 +348,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
     fetchHistory();
     return () => { isMounted = false; };
-  }, [selectedCommodity, selectedCity, selectedVariety, days, selectedDate]);
+  }, [selectedCommodity, selectedCity, days, selectedDate]);
 
   const handleProtectedAction = useCallback((action) => {
     if (!user && onLoginRequired) {
@@ -408,14 +389,6 @@ const PriceChart = ({ user, onLoginRequired }) => {
     const xAxisProps = {
       dataKey: "date",
       tick: { fontSize: isMobile ? 10 : 13, fill: "#6b7280", fontWeight: 500 },
-      tickFormatter: (value) => {
-        // Shorter Format for Mobile (DD/MM) vs Full (MMM D)
-        if (isMobile) {
-          const parts = value.split(' '); // Assuming format like "Jan 12"
-          return parts.length > 1 ? `${parts[1]}/${new Date(Date.parse(value + " 2024")).getMonth() + 1}` : value;
-        }
-        return value;
-      },
       interval: data.length > (isMobile ? 8 : 14) ? Math.floor(data.length / (isMobile ? 4 : 5)) : 0,
       axisLine: false,
       tickLine: false,
@@ -547,29 +520,32 @@ const PriceChart = ({ user, onLoginRequired }) => {
         </div>
       ) : (
         <div className="p-4 space-y-4">
-          {/* Commodity Selection */}
+          {/* Commodity (family) Selection */}
           <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-            {commodities.map((commodity) => (
+            {families.map(({ family, members }) => (
               <CommodityButton
-                key={commodity}
-                commodity={commodity}
-                config={getCommodityConfig(commodity)}
-                isSelected={selectedCommodity === commodity}
-                onClick={() => setSelectedCommodity(commodity)}
+                key={family}
+                commodity={family}
+                config={getCommodityConfig(family)}
+                isSelected={selectedFamily === family}
+                onClick={() => {
+                  setSelectedFamily(family);
+                  setSelectedCommodity(members[0]);
+                }}
               />
             ))}
           </div>
 
           {/* Filters Row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {/* Variety Dropdown */}
-            {varieties.length > 0 && (
+            {/* Variety / type Dropdown -- members of the selected family */}
+            {familyMembers.length > 1 && (
               <DropdownSelect
                 label={t("priceChart.variety")}
                 icon={Leaf}
-                value={selectedVariety}
-                options={varieties}
-                onChange={(v) => handleProtectedAction(() => setSelectedVariety(v))}
+                value={selectedCommodity}
+                options={familyMembers}
+                onChange={(v) => handleProtectedAction(() => setSelectedCommodity(v))}
               />
             )}
 
@@ -658,7 +634,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {selectedCommodity} {selectedVariety && `• ${selectedVariety}`} • {selectedCity}
+                    {selectedCommodity} • {selectedCity}
                   </p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-bold text-gray-900 dark:text-white">
