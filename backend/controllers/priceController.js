@@ -248,7 +248,9 @@ exports.getPriceCoverage = async (req, res) => {
       });
     }
 
-    const match = { commodity, city, priceType, variety: variety || null };
+    // getPriceHistory's range queries only match Date-typed docs, so mirror that
+    // here -- a few legacy string-dated docs would otherwise skew $min/$max.
+    const match = { commodity, city, priceType, variety: variety || null, date: { $type: "date" } };
     const result = await CommodityPrice.aggregate([
       { $match: match },
       {
