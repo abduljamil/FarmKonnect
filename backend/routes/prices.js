@@ -4,6 +4,7 @@ const priceController = require("../controllers/priceController");
 
 router.get("/latest", priceController.getLatestPrices);
 router.get("/history", priceController.getPriceHistory);
+router.get("/coverage", priceController.getPriceCoverage);
 router.get("/commodities", priceController.getAvailableCommodities);
 router.get("/cities", priceController.getAvailableCities);
 router.get("/cities-by-filters", priceController.getCitiesByFilters);

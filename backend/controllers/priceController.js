@@ -234,3 +234,44 @@ exports.getCitiesByFilters = async (req, res) => {
     });
   }
 };
+
+// Date-range coverage for a commodity+city series. Lets the UI show only the
+// time-range options that actually contain data (e.g. hide 1W/1M/3M when the
+// latest data point for that series is months old).
+exports.getPriceCoverage = async (req, res) => {
+  try {
+    const { commodity, city, variety, priceType = "FQP" } = req.query;
+    if (!commodity || !city) {
+      return res.status(400).json({
+        success: false,
+        message: "commodity and city are required",
+      });
+    }
+
+    const match = { commodity, city, priceType, variety: variety || null };
+    const result = await CommodityPrice.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: null,
+          minDate: { $min: "$date" },
+          maxDate: { $max: "$date" },
+          count: { $sum: 1 },
+        },
+      },
+    ]).allowDiskUse(true);
+
+    const cov = result[0];
+    return res.status(200).json({
+      success: true,
+      data: cov
+        ? { minDate: cov.minDate, maxDate: cov.maxDate, count: cov.count }
+        : { minDate: null, maxDate: null, count: 0 },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch coverage",
+    });
+  }
+};

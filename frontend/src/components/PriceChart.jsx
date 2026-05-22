@@ -211,10 +211,24 @@ const PriceChart = ({ user, onLoginRequired }) => {
   const [selectedCity, setSelectedCity] = useState("");
   const [days, setDays] = useState(30);
   const [selectedDate, setSelectedDate] = useState("");
+  const [coverage, setCoverage] = useState(null);
 
   // Members (real commodity strings) of the currently-selected family.
   const familyMembers =
     families.find((f) => f.family === selectedFamily)?.members || [];
+
+  // Only offer time-range options that actually contain data. A period of N
+  // days can only show data if the latest point falls within the last N days,
+  // so when a series' newest data is months old we hide the shorter ranges.
+  const daysSinceLatest = coverage?.maxDate
+    ? Math.max(0, Math.floor((Date.now() - new Date(coverage.maxDate).getTime()) / 86400000))
+    : 0;
+  const availablePeriods =
+    coverage && coverage.count > 0
+      ? (TIME_PERIODS.filter((p) => p.value >= daysSinceLatest).length
+          ? TIME_PERIODS.filter((p) => p.value >= daysSinceLatest)
+          : [TIME_PERIODS[TIME_PERIODS.length - 1]])
+      : TIME_PERIODS;
 
   // Fetch initial data
   useEffect(() => {
@@ -290,6 +304,47 @@ const PriceChart = ({ user, onLoginRequired }) => {
     };
 
     fetchCities();
+    return () => { isMounted = false; };
+  }, [selectedCommodity, selectedCity]);
+
+  // Fetch date-range coverage for the selected series; drives the period options.
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCoverage = async () => {
+      if (!selectedCommodity || !selectedCity) {
+        setCoverage(null);
+        return;
+      }
+      try {
+        const params = new URLSearchParams({
+          commodity: selectedCommodity,
+          city: selectedCity,
+        });
+        const response = await fetch(
+          `${API_URL}/prices/coverage?${params.toString()}`
+        );
+        const responseData = await response.json();
+        if (isMounted && response.ok) {
+          const cov = responseData.data || null;
+          setCoverage(cov);
+          // Snap to the shortest period that still contains data.
+          if (cov && cov.count > 0 && cov.maxDate) {
+            const dsl = Math.max(
+              0,
+              Math.floor((Date.now() - new Date(cov.maxDate).getTime()) / 86400000)
+            );
+            const valid = TIME_PERIODS.filter((p) => p.value >= dsl);
+            const list = valid.length ? valid : [TIME_PERIODS[TIME_PERIODS.length - 1]];
+            setDays((d) => (list.some((p) => p.value === d) ? d : list[0].value));
+          }
+        }
+      } catch {
+        if (isMounted) setCoverage(null);
+      }
+    };
+
+    fetchCoverage();
     return () => { isMounted = false; };
   }, [selectedCommodity, selectedCity]);
 
@@ -569,7 +624,8 @@ const PriceChart = ({ user, onLoginRequired }) => {
                 <input
                   type="date"
                   value={selectedDate}
-                  max={new Date().toISOString().split('T')[0]}
+                  min={coverage?.minDate ? new Date(coverage.minDate).toISOString().split('T')[0] : undefined}
+                  max={coverage?.maxDate ? new Date(coverage.maxDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
                   onChange={(e) => handleProtectedAction(() => {
                     setSelectedDate(e.target.value);
                     setDays(30); // Reset or keep default, visually it will depend on selectedDate being truthy
@@ -599,7 +655,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
             <div className="flex-1">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1.5 ml-1">{t("priceChart.period")}</p>
               <div className="flex gap-1">
-                {TIME_PERIODS.map((period) => (
+                {availablePeriods.map((period) => (
                   <button
                     key={period.value}
                     onClick={() => handleProtectedAction(() => {

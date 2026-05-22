@@ -123,7 +123,6 @@ export function getCommodityConfig(commodity) {
 export const COMMODITY_FAMILIES = {
   Wheat: ["Wheat"],
   Rice: [
-    "Rice",
     "Rice (IRRI)",
     "Rice Basmati Super (New)",
     "Rice Basmati Super (Old)",
