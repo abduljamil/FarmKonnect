@@ -154,3 +154,15 @@ export function buildFamilies(availableCommodities) {
   }
   return out;
 }
+
+// Cities the live AMIS scraper refreshes most reliably. Used to pick a sensible
+// default so the chart doesn't open on a stale, low-activity market (the
+// alphabetically-first city often has no recent data).
+export const PREFERRED_CITIES = [
+  "Faisalabad", "Lahore", "Multan", "Rawalpindi", "Gujranwala", "Sargodha",
+];
+
+export function pickDefaultCity(cities) {
+  if (!cities || !cities.length) return "";
+  return PREFERRED_CITIES.find((c) => cities.includes(c)) || cities[0];
+}

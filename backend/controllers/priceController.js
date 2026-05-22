@@ -48,7 +48,9 @@ exports.getLatestPrices = async (req, res) => {
       { $limit: parseInt(limit, 10) || 20 },
     ];
 
-    const data = await CommodityPrice.aggregate(pipeline);
+    // Index { priceType, date, timestamp } backs the $sort so this won't do a
+    // blocking in-memory sort; allowDiskUse is a safety net for any unindexed path.
+    const data = await CommodityPrice.aggregate(pipeline).allowDiskUse(true);
 
     // Calculate price change percentage for each item
     const dataWithChange = data.map(item => {

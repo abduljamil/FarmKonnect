@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 // Shared commodity catalog (images, colors, family grouping, base lookup)
-import { getCommodityConfig, buildFamilies } from "../utils/commodities";
+import { getCommodityConfig, buildFamilies, pickDefaultCity } from "../utils/commodities";
 
 // Time period options
 const TIME_PERIODS = [
@@ -244,7 +244,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
           setCities(cityList);
           setSelectedFamily(fams[0]?.family || "");
           setSelectedCommodity(fams[0]?.members[0] || "");
-          setSelectedCity(cityList[0] || "");
+          setSelectedCity(pickDefaultCity(cityList));
           setLoading(false);
         }
       } catch (err) {
@@ -278,7 +278,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
           const list = responseData.data || [];
           setCities(list);
           if (!list.includes(selectedCity)) {
-            setSelectedCity(list[0] || "");
+            setSelectedCity(pickDefaultCity(list));
           }
         }
       } catch {
@@ -362,8 +362,8 @@ const PriceChart = ({ user, onLoginRequired }) => {
   const prices = data.map(d => d.price).filter(Boolean);
   const latestPrice = prices[prices.length - 1] || 0;
   const firstPrice = prices[0] || 0;
-  const highPrice = Math.max(...prices) || 0;
-  const lowPrice = Math.min(...prices) || 0;
+  const highPrice = prices.length ? Math.max(...prices) : 0;
+  const lowPrice = prices.length ? Math.min(...prices) : 0;
   const avgPrice = prices.length ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
   const priceChange = firstPrice ? ((latestPrice - firstPrice) / firstPrice * 100) : 0;
   const isPositive = priceChange > 0;
