@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 // Shared commodity catalog (images, colors, family grouping, base lookup)
-import { getCommodityConfig, buildFamilies, pickDefaultCity } from "../utils/commodities";
+import { getCommodityConfig, pickDefaultCity, DISPLAY_COMMODITIES } from "../utils/commodities";
 
 // Time period options
 const TIME_PERIODS = [
@@ -199,23 +199,20 @@ ChartTypeButton.displayName = "ChartTypeButton";
 
 const PriceChart = ({ user, onLoginRequired }) => {
   const { t } = useLanguage();
-  const [families, setFamilies] = useState([]);
+  const [commodities, setCommodities] = useState([]);
+  const [varieties, setVarieties] = useState([]);
   const [cities, setCities] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [chartType, setChartType] = useState("area");
 
-  const [selectedFamily, setSelectedFamily] = useState("");
   const [selectedCommodity, setSelectedCommodity] = useState("");
+  const [selectedVariety, setSelectedVariety] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [days, setDays] = useState(30);
   const [selectedDate, setSelectedDate] = useState("");
   const [coverage, setCoverage] = useState(null);
-
-  // Members (real commodity strings) of the currently-selected family.
-  const familyMembers =
-    families.find((f) => f.family === selectedFamily)?.members || [];
 
   // Only offer time-range options that actually contain data. A period of N
   // days can only show data if the latest point falls within the last N days,
@@ -249,15 +246,15 @@ const PriceChart = ({ user, onLoginRequired }) => {
         }
 
         if (isMounted) {
-          // Group raw commodity strings into base families (Rice, Wheat, ...).
-          // Rice/cotton variants live as their own commodity strings in the DB.
-          const fams = buildFamilies(commoditiesData.data || []);
+          // Show the curated display commodities that are present, in order.
+          const all = commoditiesData.data || [];
+          const list = DISPLAY_COMMODITIES.filter((c) => all.includes(c));
+          const shown = list.length ? list : all;
           const cityList = citiesData.data || [];
 
-          setFamilies(fams);
+          setCommodities(shown);
           setCities(cityList);
-          setSelectedFamily(fams[0]?.family || "");
-          setSelectedCommodity(fams[0]?.members[0] || "");
+          setSelectedCommodity(shown[0] || "");
           setSelectedCity(pickDefaultCity(cityList));
           setLoading(false);
         }
@@ -273,7 +270,32 @@ const PriceChart = ({ user, onLoginRequired }) => {
     return () => { isMounted = false; };
   }, []);
 
-  // Fetch cities based on the selected commodity
+  // Fetch varieties when the commodity changes (empty for single-variety commodities)
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchVarieties = async () => {
+      if (!selectedCommodity) return;
+      try {
+        const response = await fetch(
+          `${API_URL}/prices/varieties/${encodeURIComponent(selectedCommodity)}`
+        );
+        const responseData = await response.json();
+        if (isMounted && response.ok) {
+          const list = responseData.data || [];
+          setVarieties(list);
+          setSelectedVariety((prev) => (list.includes(prev) ? prev : (list[0] || "")));
+        }
+      } catch {
+        if (isMounted) { setVarieties([]); setSelectedVariety(""); }
+      }
+    };
+
+    fetchVarieties();
+    return () => { isMounted = false; };
+  }, [selectedCommodity]);
+
+  // Fetch cities for the selected commodity/variety
   useEffect(() => {
     let isMounted = true;
 
@@ -282,6 +304,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
       try {
         const params = new URLSearchParams({ commodity: selectedCommodity });
+        if (selectedVariety) params.set("variety", selectedVariety);
 
         const response = await fetch(
           `${API_URL}/prices/cities-by-filters?${params.toString()}`
@@ -305,7 +328,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
     fetchCities();
     return () => { isMounted = false; };
-  }, [selectedCommodity, selectedCity]);
+  }, [selectedCommodity, selectedVariety, selectedCity]);
 
   // Fetch date-range coverage for the selected series; drives the period options.
   useEffect(() => {
@@ -321,6 +344,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
           commodity: selectedCommodity,
           city: selectedCity,
         });
+        if (selectedVariety) params.set("variety", selectedVariety);
         const response = await fetch(
           `${API_URL}/prices/coverage?${params.toString()}`
         );
@@ -346,7 +370,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
     fetchCoverage();
     return () => { isMounted = false; };
-  }, [selectedCommodity, selectedCity]);
+  }, [selectedCommodity, selectedVariety, selectedCity]);
 
   // Fetch price history
   useEffect(() => {
@@ -360,6 +384,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
           commodity: selectedCommodity,
           city: selectedCity,
         });
+        if (selectedVariety) params.set("variety", selectedVariety);
 
         if (selectedDate) {
           params.set("date", selectedDate);
@@ -403,7 +428,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
     fetchHistory();
     return () => { isMounted = false; };
-  }, [selectedCommodity, selectedCity, days, selectedDate]);
+  }, [selectedCommodity, selectedVariety, selectedCity, days, selectedDate]);
 
   const handleProtectedAction = useCallback((action) => {
     if (!user && onLoginRequired) {
@@ -575,32 +600,29 @@ const PriceChart = ({ user, onLoginRequired }) => {
         </div>
       ) : (
         <div className="p-4 space-y-4">
-          {/* Commodity (family) Selection */}
+          {/* Commodity Selection */}
           <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-            {families.map(({ family, members }) => (
+            {commodities.map((commodity) => (
               <CommodityButton
-                key={family}
-                commodity={family}
-                config={getCommodityConfig(family)}
-                isSelected={selectedFamily === family}
-                onClick={() => {
-                  setSelectedFamily(family);
-                  setSelectedCommodity(members[0]);
-                }}
+                key={commodity}
+                commodity={commodity}
+                config={getCommodityConfig(commodity)}
+                isSelected={selectedCommodity === commodity}
+                onClick={() => setSelectedCommodity(commodity)}
               />
             ))}
           </div>
 
           {/* Filters Row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {/* Variety / type Dropdown -- members of the selected family */}
-            {familyMembers.length > 1 && (
+            {/* Variety Dropdown */}
+            {varieties.length > 0 && (
               <DropdownSelect
                 label={t("priceChart.variety")}
                 icon={Leaf}
-                value={selectedCommodity}
-                options={familyMembers}
-                onChange={(v) => handleProtectedAction(() => setSelectedCommodity(v))}
+                value={selectedVariety}
+                options={varieties}
+                onChange={(v) => handleProtectedAction(() => setSelectedVariety(v))}
               />
             )}
 
@@ -690,7 +712,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {selectedCommodity} • {selectedCity}
+                    {selectedCommodity}{selectedVariety && ` • ${selectedVariety}`} • {selectedCity}
                   </p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-bold text-gray-900 dark:text-white">

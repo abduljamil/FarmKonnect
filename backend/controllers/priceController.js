@@ -149,7 +149,7 @@ exports.getPriceHistory = async (req, res) => {
 
 exports.getAvailableCommodities = async (req, res) => {
   try {
-    const commodities = await CommodityPrice.distinct("commodity");
+    const commodities = await CommodityPrice.distinct("commodity", { excluded: { $ne: true } });
     return res.status(200).json({
       success: true,
       data: commodities.sort(),
@@ -190,6 +190,7 @@ exports.getVarietiesByCommodity = async (req, res) => {
     const varieties = await CommodityPrice.distinct("variety", {
       commodity,
       variety: { $ne: null },
+      excluded: { $ne: true },
     });
 
     return res.status(200).json({
@@ -215,7 +216,7 @@ exports.getCitiesByFilters = async (req, res) => {
       });
     }
 
-    const criteria = { commodity };
+    const criteria = { commodity, excluded: { $ne: true } };
     // Only filter by variety if explicitly provided
     if (variety) {
       criteria.variety = variety;

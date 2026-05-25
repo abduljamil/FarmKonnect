@@ -141,6 +141,13 @@ export const COMMODITY_FAMILIES = {
 // Order in which family buttons appear.
 export const COMMODITY_FAMILY_ORDER = ["Wheat", "Rice", "Cotton", "Sugar", "Maize", "Flour"];
 
+// Commodities shown as top-level buttons (in order). After the rice/paddy
+// restructure, Rice & Paddy are single commodities whose types are picked via
+// the variety dropdown (not separate buttons).
+export const DISPLAY_COMMODITIES = [
+  "Wheat", "Rice", "Paddy", "Seed Cotton (Phutti)", "Sugar", "Maize", "Flour",
+];
+
 // Given the commodity strings actually present in the DB, return the ordered
 // families that have at least one member present, each with its present members
 // (used to render the family buttons + the variety dropdown).
