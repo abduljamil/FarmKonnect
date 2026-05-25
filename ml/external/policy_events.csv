@@ -1,0 +1,34 @@
+commodity,event_type,start_date,end_date,expected_price_effect,confidence,description,source
+ALL,supply_shock,2008-03-01,2008-12-31,up,med,"2008 global food/rice crisis; export restrictions, panic buying, hoarding",FAO/Wikipedia
+ALL,supply_shock,2010-07-20,2010-10-31,up,high,"2010 super-floods: multi-crop supply shock (wheat stocks, cotton, sugarcane, rice)",Wikipedia/FAO
+ALL,supply_shock,2022-06-15,2022-10-31,up,high,"2022 catastrophic nationwide floods; major multi-crop supply shock",USDA/Tridge
+ALL,imf_program,2023-07-01,,n/a,high,"IMF Extended Fund Facility (EFF) begins; drove later MSP abolition + deregulation",multiple
+Wheat,export_ban,2019-07-17,2021-04-30,up,high,"ECC banned wheat+flour export (fine flour 2019-10-25; suji/maida 2019-11-01); kept in place during shortage",Nation/FPMA
+Wheat,movement_ban,2022-01-01,2022-04-30,up,med,"Punjab banned wheat movement to Sindh; Karachi prices +30%",Statesman/SundayGuardian
+Wheat,movement_ban,2025-08-31,,up,med,"Punjab restricted wheat/flour supply to KP (officially denied); inter-provincial friction",DAWN/ANI
+Wheat,export_ban,2020-06-10,,up,high,"ECC banned wheat export amid shortage",FPMA
+Wheat,import_liberalize,2020-06-10,2021-12-31,down,high,"Duties/taxes waived; private-sector wheat imports allowed (no time limit)",GlobalTradeAlert
+Wheat,msp_set,2020-10-26,,n/a,high,"MSP set Rs1600/40kg",Punjab Food Dept/FAO
+Wheat,msp_set,2021-10-01,,n/a,high,"MSP Rs2200/40kg for 2021-22 (series: 1050 2011-12 -> 1200/1250/1300 2012-17 -> 1400 2019-20 -> 1600/1800 2020-21)",FPMA/PunjabFood
+Wheat,msp_set,2023-01-01,,n/a,high,"MSP Rs3900/40kg for 2023 crop",AMIS/news
+Wheat,import_bulk,2023-09-01,2024-03-31,down,high,"Large govt/private wheat imports (~3.5M t) -> market glut, prices fell, farmers hurt",Tridge/UkrAgroConsult
+Wheat,import_ban,2024-02-02,,down,high,"Caretaker ECC bans state-level wheat import (reserves sufficient, flour prices stable)",Nation/Profit
+Wheat,export_import_ban,2024-07-12,,up,high,"Federal govt bans BOTH import and export of wheat/flour/refined flour/semolina",ANI/Tribune
+Wheat,msp_abolished,2024-10-01,2025-02-28,down,high,"MSP abolished under IMF 2023 EFF condition; market deregulation begins; prices fell ~35% YoY",Profit/Dawn
+Wheat,msp_reinstated,2025-03-01,,up,med,"Govt backtracked; MSP reinstated Rs3500/40kg with 6.2M t procurement commitment",Tribune/ArabNews
+Wheat,deregulation,2026-05-15,,n/a,high,"Wheat price deregulation legislated under IMF (tariff cuts, end of admin prices)",ProPakistani/Profit
+Sugar,export_ban,2022-05-09,2022-12-14,up,high,"Sugar export ban imposed (shortage)",GlobalTradeAlert
+Sugar,export_quota,2022-12-15,2023-08-09,up,high,"ECC allowed 100k t export (2022-12-15), raised to 250k t (2023-01-17); domestic price ~doubled Rs85->Rs165",Tribune/FPMA
+Sugar,export_ban,2023-08-10,,up,high,"Export ban reaffirmed/in place after price surge",Tribune
+Sugar,export_quota,2024-09-01,2025-03-31,up,med,"2024/25 export quota (~700k t) allowed; halted Mar 2025 (no further exports)",USDA
+Sugar,import_policy,2025-07-01,,down,med,"Govt approved sugar imports; IMF criticized the import policy",FridayTimes
+Sugar,support_price_ended,2025-01-01,,down,med,"Cane/sugar support price ended -> 2025 production fell",Tribune
+Sugar,deregulation,2026-06-01,,n/a,high,"Full sugar-sector deregulation by June 2026: end admin cane/sugar prices, zoning, licensing; phased import/export liberalization",ChiniMandi/IMF
+Rice,export_restriction,2008-03-01,2008-12-31,up,med,"2008 global rice crisis; export curbs",Wikipedia
+Rice,mep_set,2023-01-01,2024-09-30,up,high,"Minimum export price set: $1300/t basmati, $550/t non-basmati",RiceNewsToday
+Rice,mep_removed,2024-10-01,,down,high,"MEP withdrawn for all rice (after India removed its MEP); export rebate revised, price cap removed",AlJazeera/RiceNewsToday
+Cotton,intervention_price,2022-12-01,,n/a,med,"Cotton intervention/support price set for 2022-23 crop",GlobalTradeAlert
+Cotton,intervention_price,2023-03-14,,n/a,high,"ECC set cotton intervention price Rs8500/40kg for 2023-24 crop",GlobalTradeAlert
+Cotton,import_liberalize,2024-01-01,,down,med,"EFS amended: imported raw cotton/yarn/fabric GST-exempt (favors imports over local cotton)",USDA
+Maize,regulatory_duty,2015-01-01,,n/a,low,"Regulatory duty on maize imports imposed (date approx)",GlobalTradeAlert
+Maize,export_growth,2023-01-01,,down,med,"Maize exports surged (~400k t 2023/24); poultry sector lobbying for export curbs",USDA/industry
