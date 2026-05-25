@@ -1,0 +1,886 @@
+commodity,variety,city,gap_start,gap_end,gap_weeks
+Maize,,BahawalPur,2010-03-26,2010-05-21,9
+Maize,,BahawalPur,2010-06-04,2010-09-17,16
+Maize,,BahawalPur,2010-10-29,2010-12-24,9
+Maize,,BahawalPur,2011-01-07,2011-06-17,24
+Maize,,BahawalPur,2015-06-12,2015-07-24,7
+Maize,,BahawalPur,2016-05-13,2016-12-30,34
+Maize,,BahawalPur,2019-08-02,2020-03-27,35
+Maize,,BahawalPur,2020-06-05,2021-08-06,62
+Maize,,BahawalPur,2022-04-08,2022-05-06,5
+Maize,,BahawalPur,2022-12-09,2023-01-20,7
+Maize,,BahawalPur,2023-02-03,2023-04-07,10
+Maize,,BahawalPur,2023-05-12,2023-06-16,6
+Maize,,BahawalPur,2023-06-30,2023-08-25,9
+Maize,,BahawalPur,2023-09-08,2023-11-17,11
+Maize,,Chichawatni,2010-05-07,2010-06-04,5
+Maize,,Chichawatni,2014-03-28,2014-08-01,19
+Maize,,Chichawatni,2014-10-03,2014-11-07,6
+Maize,,Chichawatni,2014-12-05,2015-01-02,5
+Maize,,Chichawatni,2015-03-06,2015-08-07,23
+Maize,,Chichawatni,2015-10-16,2016-01-01,12
+Maize,,Chichawatni,2016-01-15,2016-03-25,11
+Maize,,Chichawatni,2016-04-08,2016-05-13,6
+Maize,,Chichawatni,2016-05-27,2016-07-08,7
+Maize,,Chichawatni,2016-07-29,2016-09-02,6
+Maize,,Chichawatni,2016-09-16,2016-10-14,5
+Maize,,Chichawatni,2016-10-28,2017-01-06,11
+Maize,,Chichawatni,2017-06-16,2017-08-11,9
+Maize,,Chichawatni,2017-09-01,2018-02-02,23
+Maize,,Chichawatni,2018-03-30,2018-05-04,6
+Maize,,Chichawatni,2018-05-18,2019-01-25,37
+Maize,,Chichawatni,2019-02-15,2020-10-09,87
+Maize,,Gujranwala,2012-07-27,2012-08-31,6
+Maize,,Gujranwala,2015-06-05,2015-07-24,8
+Maize,,Jhang,2012-11-23,2012-12-21,5
+Maize,,Jhang,2013-02-01,2013-03-15,7
+Maize,,Jhang,2013-03-29,2013-04-26,5
+Maize,,Jhang,2013-05-17,2017-02-10,196
+Maize,,Jhang,2017-06-16,2023-02-03,295
+Maize,,Lahore,2015-07-17,2015-12-04,21
+Maize,,Layyah,2012-04-06,2013-08-09,71
+Maize,,Layyah,2013-10-11,2013-11-29,8
+Maize,,Layyah,2013-12-13,2016-04-08,122
+Maize,,Layyah,2017-01-06,2017-02-10,6
+Maize,,Layyah,2025-03-07,2025-05-16,11
+Maize,,RahimYarKhan,2009-03-27,2009-12-18,39
+Maize,,RahimYarKhan,2010-01-29,2010-03-05,6
+Maize,,RahimYarKhan,2010-03-19,2011-03-18,53
+Maize,,RahimYarKhan,2011-05-13,2012-02-03,39
+Maize,,RahimYarKhan,2014-03-14,2014-05-23,11
+Maize,,RahimYarKhan,2014-06-06,2014-08-01,9
+Maize,,RahimYarKhan,2015-03-20,2015-06-19,14
+Maize,,RahimYarKhan,2015-07-17,2015-11-06,17
+Maize,,RahimYarKhan,2015-12-04,2016-01-08,6
+Maize,,RahimYarKhan,2016-02-26,2016-04-15,8
+Maize,,RahimYarKhan,2016-06-10,2016-08-12,10
+Maize,,RahimYarKhan,2016-09-02,2017-02-10,24
+Maize,,RahimYarKhan,2017-08-25,2019-10-11,112
+Maize,,RahimYarKhan,2019-10-25,2022-03-04,124
+Maize,,RahimYarKhan,2022-03-18,2022-06-10,13
+Maize,,RahimYarKhan,2022-06-24,2023-06-16,52
+Maize,,RahimYarKhan,2023-07-07,2023-12-22,25
+Maize,,Rawalpindi,2020-08-14,2020-12-11,18
+Maize,,Rawalpindi,2023-04-21,2023-08-25,19
+Maize,,Sargodha,2013-07-05,2013-08-09,6
+Maize,,Sargodha,2013-12-20,2014-05-09,21
+Maize,,Sargodha,2014-06-27,2014-08-01,6
+Maize,,Sargodha,2018-05-25,2018-06-22,5
+Maize,,Sargodha,2019-04-26,2019-06-14,8
+Maize,,Sargodha,2020-02-21,2020-03-20,5
+Maize,,Sargodha,2020-05-22,2020-08-21,14
+Maize,,Sargodha,2020-09-04,2020-10-02,5
+Maize,,Sargodha,2021-05-07,2021-06-18,7
+Maize,,Sargodha,2025-07-11,2025-08-08,5
+Maize,,Sialkot,2012-05-04,2012-06-01,5
+Maize,,Sialkot,2012-07-20,2012-08-31,7
+Maize,,Sialkot,2012-12-28,2013-04-19,17
+Maize,,Sialkot,2013-05-03,2013-10-04,23
+Maize,,Sialkot,2013-10-18,2014-01-17,14
+Maize,,Sialkot,2014-01-31,2014-03-28,9
+Maize,,Sialkot,2014-04-11,2014-06-13,10
+Maize,,Sialkot,2014-06-27,2015-07-24,57
+Maize,,Sialkot,2015-08-07,2015-10-09,10
+Maize,,Sialkot,2015-10-23,2017-02-10,69
+Maize,,Sialkot,2022-01-28,2023-02-03,54
+Paddy,Basmati,BahawalNagar,2009-08-14,2012-10-19,167
+Paddy,Basmati,BahawalNagar,2013-06-07,2017-02-10,193
+Paddy,Basmati,BahawalNagar,2017-02-24,2018-09-28,84
+Paddy,Basmati,BahawalNagar,2018-11-23,2019-01-11,8
+Paddy,Basmati,BahawalNagar,2019-02-01,2019-03-15,7
+Paddy,Basmati,BahawalPur,2009-05-22,2009-10-30,24
+Paddy,Basmati,Chichawatni,2009-06-26,2010-07-02,54
+Paddy,Basmati,Chichawatni,2010-07-16,2010-10-22,15
+Paddy,Basmati,Chichawatni,2011-06-24,2011-09-02,11
+Paddy,Basmati,Chichawatni,2011-09-16,2011-10-21,6
+Paddy,Basmati,Chichawatni,2012-06-08,2012-10-19,20
+Paddy,Basmati,Chichawatni,2013-01-11,2013-02-15,6
+Paddy,Basmati,Chichawatni,2013-04-19,2013-11-08,30
+Paddy,Basmati,Chichawatni,2014-01-17,2014-03-14,9
+Paddy,Basmati,Chichawatni,2014-03-28,2014-11-07,33
+Paddy,Basmati,Chichawatni,2014-12-05,2015-01-02,5
+Paddy,Basmati,Chichawatni,2015-03-06,2016-01-01,44
+Paddy,Basmati,Chichawatni,2016-02-05,2016-03-25,8
+Paddy,Basmati,Chichawatni,2016-04-08,2016-05-13,6
+Paddy,Basmati,Chichawatni,2016-05-27,2016-10-14,21
+Paddy,Basmati,Chichawatni,2016-10-28,2017-01-06,11
+Paddy,Basmati,Chichawatni,2017-01-20,2018-03-02,59
+Paddy,Basmati,Chichawatni,2018-03-23,2020-10-23,136
+Paddy,Basmati,Faisalabad,2012-05-04,2014-08-22,121
+Paddy,Basmati,Faisalabad,2014-09-05,2014-10-17,7
+Paddy,Basmati,Faisalabad,2014-10-31,2016-07-08,89
+Paddy,Basmati,Faisalabad,2016-07-22,2021-08-27,267
+Paddy,Basmati,Gujranwala,2010-01-01,2010-10-29,44
+Paddy,Basmati,Gujranwala,2010-11-19,2010-12-17,5
+Paddy,Basmati,Gujranwala,2010-12-31,2011-10-28,44
+Paddy,Basmati,Gujranwala,2011-12-09,2012-11-16,50
+Paddy,Basmati,Gujranwala,2012-12-14,2013-10-25,46
+Paddy,Basmati,Gujranwala,2013-12-13,2015-11-06,100
+Paddy,Basmati,Gujranwala,2015-11-27,2016-11-04,50
+Paddy,Basmati,Gujranwala,2016-12-09,2021-01-01,213
+Paddy,Basmati,Gujranwala,2021-01-15,2021-07-16,27
+Paddy,Basmati,Gujranwala,2021-07-30,2022-09-23,61
+Paddy,Basmati,Jhang,2012-11-23,2012-12-21,5
+Paddy,Basmati,Jhang,2013-02-01,2013-03-15,7
+Paddy,Basmati,Jhang,2013-03-29,2013-04-26,5
+Paddy,Basmati,Jhang,2013-05-17,2017-02-10,196
+Paddy,Basmati,Jhang,2017-06-16,2023-02-03,295
+Paddy,Basmati,Multan,2009-05-15,2009-10-16,23
+Paddy,Basmati,Multan,2010-03-05,2010-10-15,33
+Paddy,Basmati,Multan,2011-02-18,2011-11-25,41
+Paddy,Basmati,Multan,2012-03-30,2012-10-26,31
+Paddy,Basmati,Multan,2013-02-01,2013-10-18,38
+Paddy,Basmati,Multan,2014-04-25,2014-10-17,26
+Paddy,Basmati,Multan,2015-02-27,2015-10-30,36
+Paddy,Basmati,Multan,2016-04-01,2016-11-11,33
+Paddy,Basmati,Multan,2017-03-10,2017-11-10,36
+Paddy,Basmati,Multan,2018-01-05,2018-11-02,44
+Paddy,Basmati,Multan,2018-12-21,2019-11-01,46
+Paddy,Basmati,Okara,2009-09-04,2009-10-23,8
+Paddy,Basmati,Okara,2010-05-07,2010-10-22,25
+Paddy,Basmati,Okara,2011-06-10,2011-11-11,23
+Paddy,Basmati,Okara,2012-05-25,2012-11-09,25
+Paddy,Basmati,Okara,2013-05-24,2013-10-25,23
+Paddy,Basmati,Okara,2014-05-09,2014-10-17,24
+Paddy,Basmati,Okara,2015-05-22,2015-10-23,23
+Paddy,Basmati,Okara,2016-08-19,2016-11-04,12
+Paddy,Basmati,Okara,2017-01-27,2017-10-27,40
+Paddy,Basmati,Okara,2018-05-18,2018-12-07,30
+Paddy,Basmati,Okara,2019-02-15,2019-11-01,38
+Paddy,Basmati,Okara,2020-02-21,2020-11-13,39
+Paddy,Basmati,Okara,2021-03-05,2021-11-05,36
+Paddy,Basmati,Okara,2022-03-11,2022-09-30,30
+Paddy,Basmati,RahimYarKhan,2009-05-22,2009-11-06,25
+Paddy,Basmati,RahimYarKhan,2010-04-09,2010-06-18,11
+Paddy,Basmati,RahimYarKhan,2010-08-06,2016-01-01,283
+Paddy,Basmati,Sargodha,2010-01-29,2010-04-09,11
+Paddy,Basmati,Sargodha,2010-04-23,2010-10-15,26
+Paddy,Basmati,Sargodha,2011-06-10,2011-09-16,15
+Paddy,Basmati,Sargodha,2012-06-15,2014-08-22,115
+Paddy,Basmati,Sargodha,2014-09-05,2016-12-02,118
+Paddy,Basmati,Sargodha,2016-12-16,2018-11-09,100
+Paddy,Basmati,Sargodha,2018-12-21,2020-01-17,57
+Paddy,Basmati,Sargodha,2020-02-07,2020-10-30,39
+Paddy,Basmati,Sargodha,2021-02-12,2021-04-02,8
+Paddy,Basmati,Sargodha,2021-04-16,2021-11-05,30
+Paddy,Basmati,Sargodha,2022-02-25,2022-12-30,45
+Paddy,Basmati,Sargodha,2023-01-13,2023-11-03,43
+Paddy,Basmati,Sargodha,2023-11-17,2025-11-14,105
+Paddy,IRRI,BahawalNagar,2009-12-04,2010-09-10,41
+Paddy,IRRI,BahawalNagar,2010-11-05,2012-10-19,103
+Paddy,IRRI,BahawalNagar,2013-06-07,2017-02-10,193
+Paddy,IRRI,BahawalNagar,2017-02-24,2017-03-31,6
+Paddy,IRRI,BahawalNagar,2017-05-19,2017-07-21,10
+Paddy,IRRI,BahawalNagar,2017-10-20,2018-09-21,49
+Paddy,IRRI,BahawalNagar,2018-11-09,2019-08-16,41
+Paddy,IRRI,BahawalPur,2009-05-15,2009-10-30,25
+Paddy,IRRI,Chichawatni,2009-10-16,2010-10-08,52
+Paddy,IRRI,Chichawatni,2010-11-19,2010-12-17,5
+Paddy,IRRI,Chichawatni,2010-12-31,2011-10-14,42
+Paddy,IRRI,Chichawatni,2011-12-02,2012-01-06,6
+Paddy,IRRI,Chichawatni,2012-04-06,2012-09-14,24
+Paddy,IRRI,Chichawatni,2012-12-21,2013-10-11,43
+Paddy,IRRI,Chichawatni,2013-10-25,2014-11-07,55
+Paddy,IRRI,Chichawatni,2014-12-05,2015-01-02,5
+Paddy,IRRI,Chichawatni,2015-03-06,2015-09-25,30
+Paddy,IRRI,Chichawatni,2015-10-16,2016-01-01,12
+Paddy,IRRI,Chichawatni,2016-02-05,2016-03-25,8
+Paddy,IRRI,Chichawatni,2016-04-08,2016-10-14,28
+Paddy,IRRI,Chichawatni,2016-10-28,2021-09-24,257
+Paddy,IRRI,Faisalabad,2019-09-06,2021-08-27,104
+Paddy,IRRI,Faisalabad,2021-09-24,2021-11-05,7
+Paddy,IRRI,Faisalabad,2021-11-19,2022-06-03,29
+Paddy,IRRI,Jhang,2012-11-23,2012-12-21,5
+Paddy,IRRI,Jhang,2013-02-01,2013-03-15,7
+Paddy,IRRI,Jhang,2013-03-29,2013-04-26,5
+Paddy,IRRI,Jhang,2013-05-17,2017-02-10,196
+Paddy,IRRI,Jhang,2017-06-16,2023-02-03,295
+Paddy,IRRI,Jhang,2024-04-12,2024-08-16,19
+Paddy,IRRI,Jhang,2024-08-30,2024-10-11,7
+Paddy,IRRI,Layyah,2012-04-06,2013-04-12,54
+Paddy,IRRI,Multan,2009-05-15,2009-09-25,20
+Paddy,IRRI,Multan,2010-03-05,2010-09-24,30
+Paddy,IRRI,Multan,2011-02-04,2011-11-25,43
+Paddy,IRRI,Multan,2012-03-16,2012-10-19,32
+Paddy,IRRI,Multan,2013-01-18,2013-10-18,40
+Paddy,IRRI,Multan,2014-04-25,2014-10-17,26
+Paddy,IRRI,Multan,2015-02-27,2015-10-23,35
+Paddy,IRRI,Multan,2015-12-11,2017-11-10,101
+Paddy,IRRI,Multan,2017-12-29,2018-11-02,45
+Paddy,IRRI,Multan,2018-12-21,2019-11-01,46
+Paddy,IRRI,Okara,2009-05-08,2009-09-25,21
+Paddy,IRRI,Okara,2010-04-16,2010-09-17,23
+Paddy,IRRI,Okara,2011-04-08,2011-09-23,25
+Paddy,IRRI,Okara,2012-03-30,2012-09-28,27
+Paddy,IRRI,Okara,2013-05-24,2013-09-13,17
+Paddy,IRRI,Okara,2014-05-09,2014-09-19,20
+Paddy,IRRI,Okara,2015-04-17,2015-08-28,20
+Paddy,IRRI,Okara,2016-04-29,2016-11-04,28
+Paddy,IRRI,Okara,2017-01-27,2021-12-03,254
+Paddy,IRRI,Okara,2021-12-17,2022-09-23,41
+Paddy,IRRI,Okara,2022-12-30,2023-09-01,36
+Paddy,IRRI,RahimYarKhan,2009-03-20,2009-04-17,5
+Paddy,IRRI,RahimYarKhan,2009-05-01,2009-09-11,20
+Paddy,IRRI,RahimYarKhan,2009-10-30,2010-01-08,11
+Paddy,IRRI,RahimYarKhan,2010-03-26,2010-08-20,22
+Paddy,IRRI,RahimYarKhan,2010-09-03,2013-01-11,124
+Paddy,IRRI,RahimYarKhan,2013-01-25,2015-08-07,133
+Paddy,IRRI,RahimYarKhan,2015-09-11,2016-01-01,17
+Paddy,IRRI,Sargodha,2010-01-08,2010-10-08,40
+Paddy,IRRI,Sargodha,2011-06-03,2025-09-19,747
+Paddy,IRRI,Sargodha,2025-10-10,2025-11-14,6
+Paddy,Kainat,BahawalNagar,2017-03-24,2017-07-28,19
+Paddy,Kainat,BahawalNagar,2017-08-11,2017-10-06,9
+Paddy,Kainat,BahawalNagar,2018-02-02,2018-10-05,36
+Paddy,Kainat,BahawalNagar,2019-03-22,2019-11-15,35
+Paddy,Kainat,BahawalNagar,2020-01-31,2021-11-19,95
+Paddy,Kainat,Chichawatni,2017-02-24,2017-03-31,6
+Paddy,Kainat,Chichawatni,2017-04-14,2018-03-02,47
+Paddy,Kainat,Chichawatni,2018-03-30,2020-11-06,137
+Paddy,Kainat,Chichawatni,2021-08-13,2021-09-24,7
+Paddy,Kainat,Chichawatni,2023-07-07,2023-09-29,13
+Paddy,Kainat,Chichawatni,2024-08-23,2024-09-27,6
+Paddy,Kainat,Chichawatni,2025-08-01,2025-09-26,9
+Paddy,Kainat,Jhang,2017-06-16,2023-02-03,295
+Paddy,Kainat,Sargodha,2018-12-07,2020-01-10,58
+Paddy,Kainat,Sargodha,2020-02-07,2020-10-23,38
+Paddy,Kainat,Sargodha,2021-04-16,2021-10-29,29
+Paddy,Kainat,Sargodha,2022-02-25,2022-11-04,37
+Paddy,Kainat,Sargodha,2022-11-18,2022-12-23,6
+Paddy,Kainat,Sargodha,2023-03-10,2023-10-20,33
+Paddy,Kainat,Sargodha,2023-12-08,2024-11-29,52
+Paddy,Kainat,Sargodha,2024-12-13,2025-02-14,10
+Paddy,Kainat,Sargodha,2025-02-28,2025-12-19,43
+Rice,Basmati 385,BahawalNagar,2012-01-27,2012-07-06,24
+Rice,Basmati 385,BahawalNagar,2013-06-07,2017-02-10,193
+Rice,Basmati 385,BahawalNagar,2017-03-03,2017-05-12,11
+Rice,Basmati 385,BahawalNagar,2017-05-26,2019-07-12,112
+Rice,Basmati 385,BahawalNagar,2019-07-26,2020-01-24,27
+Rice,Basmati 385,BahawalNagar,2020-02-07,2026-02-06,314
+Rice,Basmati 385,BahawalPur,2016-02-12,2016-03-25,7
+Rice,Basmati 385,BahawalPur,2016-04-08,2016-10-14,28
+Rice,Basmati 385,BahawalPur,2016-12-23,2017-02-17,9
+Rice,Basmati 385,Chichawatni,2009-10-16,2011-12-23,115
+Rice,Basmati 385,Chichawatni,2012-01-06,2012-08-24,34
+Rice,Basmati 385,Chichawatni,2012-11-02,2012-11-30,5
+Rice,Basmati 385,Chichawatni,2013-01-18,2013-02-15,5
+Rice,Basmati 385,Chichawatni,2013-04-19,2013-05-17,5
+Rice,Basmati 385,Chichawatni,2018-04-20,2018-09-14,22
+Rice,Basmati 385,Chichawatni,2019-05-10,2019-11-01,26
+Rice,Basmati 385,Faisalabad,2019-07-19,2019-08-23,6
+Rice,Basmati 385,Gujranwala,2009-07-03,2010-05-28,48
+Rice,Basmati 385,Gujranwala,2010-06-11,2015-10-02,278
+Rice,Basmati 385,Jhang,2012-11-23,2012-12-21,5
+Rice,Basmati 385,Jhang,2013-02-01,2013-03-15,7
+Rice,Basmati 385,Jhang,2013-03-29,2013-04-26,5
+Rice,Basmati 385,Jhang,2013-05-10,2017-03-24,203
+Rice,Basmati 385,Jhang,2017-06-16,2023-02-17,297
+Rice,Basmati 385,Jhang,2024-01-19,2024-03-29,11
+Rice,Basmati 385,Lahore,2011-07-08,2017-06-02,309
+Rice,Basmati 385,Lahore,2017-06-16,2020-11-13,179
+Rice,Basmati 385,Layyah,2009-08-28,2009-10-23,9
+Rice,Basmati 385,Layyah,2011-07-29,2011-09-30,10
+Rice,Basmati 385,Layyah,2012-08-17,2013-01-11,22
+Rice,Basmati 385,Layyah,2013-05-03,2013-06-28,9
+Rice,Basmati 385,Layyah,2016-04-22,2017-04-14,52
+Rice,Basmati 385,Layyah,2017-04-28,2017-06-09,7
+Rice,Basmati 385,Multan,2020-10-30,2021-01-22,13
+Rice,Basmati 385,Okara,2009-06-19,2009-10-02,16
+Rice,Basmati 385,Okara,2011-09-02,2013-03-22,82
+Rice,Basmati 385,Okara,2013-04-05,2013-06-07,10
+Rice,Basmati 385,RahimYarKhan,2014-03-14,2014-05-23,11
+Rice,Basmati 385,RahimYarKhan,2014-06-06,2014-08-08,10
+Rice,Basmati 385,RahimYarKhan,2015-03-20,2016-01-08,43
+Rice,Basmati 385,RahimYarKhan,2016-02-05,2016-05-13,15
+Rice,Basmati 385,RahimYarKhan,2016-11-11,2016-12-23,7
+Rice,Basmati 385,RahimYarKhan,2017-01-20,2017-02-24,6
+Rice,Basmati 385,Rawalpindi,2009-02-06,2010-08-06,79
+Rice,Basmati 385,Sargodha,2010-01-15,2011-01-21,54
+Rice,Basmati 385,Sargodha,2011-02-11,2011-05-20,15
+Rice,Basmati 385,Sargodha,2011-06-10,2011-09-09,14
+Rice,Basmati 385,Sargodha,2011-10-07,2012-05-25,34
+Rice,Basmati 385,Sargodha,2012-06-22,2021-01-22,449
+Rice,Basmati 385,Sargodha,2021-03-05,2023-07-14,124
+Rice,Basmati 385,Sargodha,2024-03-08,2024-06-21,16
+Rice,Basmati 385,Sargodha,2024-08-09,2024-10-04,9
+Rice,Basmati 385,Sargodha,2024-10-18,2024-12-13,9
+Rice,Basmati 385,Sargodha,2024-12-27,2025-01-31,6
+Rice,Basmati 385,Sargodha,2025-02-14,2025-04-11,9
+Rice,Basmati 385,Sargodha,2025-05-16,2025-06-13,5
+Rice,Basmati 385,Sargodha,2025-07-04,2025-09-05,10
+Rice,Basmati 385,Sargodha,2025-10-24,2025-11-28,6
+Rice,Basmati 385,Sargodha,2025-12-12,2026-01-23,7
+Rice,Basmati 385,Sargodha,2026-02-06,2026-04-03,9
+Rice,Basmati 385,Sargodha,2026-04-17,2026-05-15,5
+Rice,Basmati 385,Sialkot,2009-10-30,2015-07-03,297
+Rice,Basmati 385,Sialkot,2015-08-07,2015-12-04,18
+Rice,Basmati 385,Sialkot,2015-12-18,2017-12-01,103
+Rice,Basmati 385,Sialkot,2017-12-15,2022-07-08,239
+Rice,Basmati Super New,BahawalNagar,2012-01-27,2012-07-06,24
+Rice,Basmati Super New,BahawalNagar,2013-06-07,2015-06-12,106
+Rice,Basmati Super New,BahawalNagar,2015-06-26,2017-02-10,86
+Rice,Basmati Super New,BahawalNagar,2017-12-01,2018-12-28,57
+Rice,Basmati Super New,BahawalNagar,2019-01-11,2019-02-22,7
+Rice,Basmati Super New,BahawalNagar,2019-03-29,2019-04-26,5
+Rice,Basmati Super New,BahawalNagar,2019-05-10,2019-06-21,7
+Rice,Basmati Super New,BahawalNagar,2019-10-25,2019-11-22,5
+Rice,Basmati Super New,BahawalNagar,2019-12-06,2020-01-03,5
+Rice,Basmati Super New,BahawalNagar,2020-03-06,2024-01-12,202
+Rice,Basmati Super New,BahawalNagar,2024-01-26,2024-03-15,8
+Rice,Basmati Super New,BahawalPur,2010-11-05,2010-12-03,5
+Rice,Basmati Super New,BahawalPur,2011-10-14,2011-11-18,6
+Rice,Basmati Super New,BahawalPur,2011-12-09,2012-04-27,21
+Rice,Basmati Super New,BahawalPur,2013-01-11,2013-02-15,6
+Rice,Basmati Super New,BahawalPur,2013-12-06,2015-04-24,73
+Rice,Basmati Super New,BahawalPur,2015-06-12,2015-07-31,8
+Rice,Basmati Super New,BahawalPur,2017-11-17,2018-02-02,12
+Rice,Basmati Super New,BahawalPur,2019-07-05,2019-10-04,14
+Rice,Basmati Super New,BahawalPur,2019-10-18,2020-04-24,28
+Rice,Basmati Super New,BahawalPur,2020-06-05,2021-08-06,62
+Rice,Basmati Super New,BahawalPur,2022-04-08,2022-06-03,9
+Rice,Basmati Super New,BahawalPur,2023-03-17,2023-04-28,7
+Rice,Basmati Super New,BahawalPur,2023-05-12,2024-04-12,49
+Rice,Basmati Super New,BahawalPur,2024-05-17,2024-08-02,12
+Rice,Basmati Super New,BahawalPur,2024-11-29,2025-01-17,8
+Rice,Basmati Super New,BahawalPur,2025-04-04,2025-10-03,27
+Rice,Basmati Super New,Chichawatni,2010-05-14,2010-07-02,8
+Rice,Basmati Super New,Chichawatni,2010-07-23,2010-11-05,16
+Rice,Basmati Super New,Chichawatni,2011-07-15,2011-08-12,5
+Rice,Basmati Super New,Chichawatni,2012-07-13,2012-08-24,7
+Rice,Basmati Super New,Faisalabad,2012-10-05,2012-11-16,7
+Rice,Basmati Super New,Gujranwala,2012-07-27,2012-08-31,6
+Rice,Basmati Super New,Gujranwala,2015-06-05,2015-07-24,8
+Rice,Basmati Super New,Gujranwala,2022-12-02,2022-12-30,5
+Rice,Basmati Super New,Gujranwala,2023-05-12,2026-02-13,145
+Rice,Basmati Super New,Jhang,2009-09-04,2010-03-19,29
+Rice,Basmati Super New,Jhang,2012-11-23,2012-12-21,5
+Rice,Basmati Super New,Jhang,2013-02-01,2013-03-15,7
+Rice,Basmati Super New,Jhang,2013-03-29,2013-04-26,5
+Rice,Basmati Super New,Jhang,2013-05-10,2017-02-10,197
+Rice,Basmati Super New,Jhang,2017-04-14,2023-02-03,304
+Rice,Basmati Super New,Jhang,2025-06-13,2025-07-18,6
+Rice,Basmati Super New,Layyah,2011-02-25,2011-04-15,8
+Rice,Basmati Super New,Layyah,2011-06-24,2011-07-22,5
+Rice,Basmati Super New,Layyah,2011-09-02,2011-11-11,11
+Rice,Basmati Super New,Layyah,2012-12-21,2013-01-18,5
+Rice,Basmati Super New,Layyah,2013-02-08,2013-04-12,10
+Rice,Basmati Super New,Layyah,2013-05-03,2013-08-09,15
+Rice,Basmati Super New,Layyah,2017-01-06,2017-02-10,6
+Rice,Basmati Super New,Layyah,2018-08-24,2024-03-15,291
+Rice,Basmati Super New,Layyah,2024-03-29,2025-12-05,89
+Rice,Basmati Super New,Okara,2009-10-16,2010-01-22,15
+Rice,Basmati Super New,Okara,2010-10-01,2011-05-06,32
+Rice,Basmati Super New,Okara,2011-10-28,2012-02-03,15
+Rice,Basmati Super New,Okara,2012-02-17,2012-03-16,5
+Rice,Basmati Super New,Okara,2012-08-03,2012-08-31,5
+Rice,Basmati Super New,Okara,2012-09-14,2012-11-23,11
+Rice,Basmati Super New,Okara,2013-10-11,2014-02-07,18
+Rice,Basmati Super New,Okara,2025-09-12,2025-10-31,8
+Rice,Basmati Super New,Okara,2025-11-14,2026-03-27,20
+Rice,Basmati Super New,RahimYarKhan,2009-06-19,2009-07-24,6
+Rice,Basmati Super New,RahimYarKhan,2014-02-28,2014-05-23,13
+Rice,Basmati Super New,RahimYarKhan,2014-06-06,2014-08-01,9
+Rice,Basmati Super New,RahimYarKhan,2015-05-15,2015-06-19,6
+Rice,Basmati Super New,RahimYarKhan,2015-10-02,2016-01-29,18
+Rice,Basmati Super New,RahimYarKhan,2016-02-26,2016-03-25,5
+Rice,Basmati Super New,RahimYarKhan,2016-09-30,2017-02-10,20
+Rice,Basmati Super New,RahimYarKhan,2018-05-04,2019-05-03,53
+Rice,Basmati Super New,RahimYarKhan,2019-06-21,2019-08-02,7
+Rice,Basmati Super New,RahimYarKhan,2019-09-06,2023-10-13,215
+Rice,Basmati Super New,RahimYarKhan,2024-04-12,2024-05-24,7
+Rice,Basmati Super New,RahimYarKhan,2024-06-07,2024-07-05,5
+Rice,Basmati Super New,RahimYarKhan,2024-07-19,2024-08-23,6
+Rice,Basmati Super New,RahimYarKhan,2025-06-06,2025-10-31,22
+Rice,Basmati Super New,Rawalpindi,2016-11-04,2016-12-16,7
+Rice,Basmati Super New,Rawalpindi,2017-09-15,2018-01-19,19
+Rice,Basmati Super New,Rawalpindi,2020-08-07,2021-02-12,28
+Rice,Basmati Super New,Rawalpindi,2021-08-13,2021-09-17,6
+Rice,Basmati Super New,Rawalpindi,2022-11-04,2023-02-03,14
+Rice,Basmati Super New,Rawalpindi,2023-06-16,2024-03-08,39
+Rice,Basmati Super New,Rawalpindi,2025-08-01,2026-01-09,24
+Rice,Basmati Super New,Sargodha,2013-07-05,2013-09-13,11
+Rice,Basmati Super New,Sargodha,2013-12-20,2014-05-09,21
+Rice,Basmati Super New,Sargodha,2014-06-27,2014-08-01,6
+Rice,Basmati Super New,Sargodha,2017-09-22,2017-11-17,9
+Rice,Basmati Super New,Sargodha,2018-05-25,2018-06-22,5
+Rice,Basmati Super New,Sargodha,2019-04-26,2019-06-14,8
+Rice,Basmati Super New,Sargodha,2020-02-21,2020-03-20,5
+Rice,Basmati Super New,Sargodha,2020-05-22,2020-08-21,14
+Rice,Basmati Super New,Sargodha,2020-09-04,2020-10-02,5
+Rice,Basmati Super New,Sargodha,2021-05-07,2021-06-18,7
+Rice,Basmati Super New,Sialkot,2009-02-06,2009-05-08,14
+Rice,Basmati Super New,Sialkot,2009-08-28,2009-09-25,5
+Rice,Basmati Super New,Sialkot,2010-10-08,2010-12-10,10
+Rice,Basmati Super New,Sialkot,2011-06-10,2011-07-08,5
+Rice,Basmati Super New,Sialkot,2011-07-22,2011-09-16,9
+Rice,Basmati Super New,Sialkot,2012-07-20,2012-08-31,7
+Rice,Basmati Super New,Sialkot,2013-02-22,2013-04-19,9
+Rice,Basmati Super New,Sialkot,2013-05-03,2013-06-21,8
+Rice,Basmati Super New,Sialkot,2013-07-26,2013-08-23,5
+Rice,Basmati Super New,Sialkot,2013-11-22,2014-01-17,9
+Rice,Basmati Super New,Sialkot,2014-01-31,2014-03-07,6
+Rice,Basmati Super New,Sialkot,2014-04-11,2014-05-16,6
+Rice,Basmati Super New,Sialkot,2014-06-27,2014-11-21,22
+Rice,Basmati Super New,Sialkot,2020-10-30,2020-11-27,5
+Rice,Basmati Super Old,BahawalNagar,2012-01-27,2012-10-12,38
+Rice,Basmati Super Old,BahawalNagar,2013-06-07,2015-06-12,106
+Rice,Basmati Super Old,BahawalNagar,2015-06-26,2017-02-10,86
+Rice,Basmati Super Old,BahawalNagar,2018-08-17,2019-01-04,21
+Rice,Basmati Super Old,BahawalNagar,2019-03-29,2019-06-21,13
+Rice,Basmati Super Old,BahawalNagar,2019-10-25,2019-11-22,5
+Rice,Basmati Super Old,BahawalNagar,2019-12-06,2020-01-03,5
+Rice,Basmati Super Old,BahawalPur,2010-01-01,2010-02-12,7
+Rice,Basmati Super Old,BahawalPur,2013-03-15,2013-04-12,5
+Rice,Basmati Super Old,BahawalPur,2013-04-26,2013-07-05,11
+Rice,Basmati Super Old,BahawalPur,2013-07-26,2013-08-23,5
+Rice,Basmati Super Old,BahawalPur,2015-06-12,2015-07-24,7
+Rice,Basmati Super Old,BahawalPur,2017-06-23,2017-08-18,9
+Rice,Basmati Super Old,BahawalPur,2018-02-23,2018-05-04,11
+Rice,Basmati Super Old,BahawalPur,2018-05-18,2018-08-03,12
+Rice,Basmati Super Old,BahawalPur,2018-08-24,2019-06-14,43
+Rice,Basmati Super Old,BahawalPur,2019-08-02,2020-03-27,35
+Rice,Basmati Super Old,BahawalPur,2020-05-08,2021-08-06,66
+Rice,Basmati Super Old,BahawalPur,2022-04-08,2022-05-06,5
+Rice,Basmati Super Old,BahawalPur,2022-12-30,2023-02-03,6
+Rice,Basmati Super Old,Chichawatni,2009-03-27,2009-06-12,12
+Rice,Basmati Super Old,Chichawatni,2010-12-10,2011-01-28,8
+Rice,Basmati Super Old,Chichawatni,2011-07-15,2011-08-12,5
+Rice,Basmati Super Old,Chichawatni,2012-07-13,2012-08-24,7
+Rice,Basmati Super Old,Chichawatni,2019-02-22,2019-03-29,6
+Rice,Basmati Super Old,Faisalabad,2013-05-17,2013-11-01,25
+Rice,Basmati Super Old,Faisalabad,2013-11-29,2014-11-28,53
+Rice,Basmati Super Old,Gujranwala,2009-07-03,2009-11-20,21
+Rice,Basmati Super Old,Gujranwala,2010-01-15,2010-10-29,42
+Rice,Basmati Super Old,Gujranwala,2012-01-13,2012-11-16,45
+Rice,Basmati Super Old,Gujranwala,2013-05-17,2013-09-27,20
+Rice,Basmati Super Old,Gujranwala,2013-12-06,2014-11-07,49
+Rice,Basmati Super Old,Gujranwala,2015-06-05,2015-07-24,8
+Rice,Basmati Super Old,Gujranwala,2022-12-02,2023-03-17,16
+Rice,Basmati Super Old,Gujranwala,2023-04-07,2023-05-12,6
+Rice,Basmati Super Old,Jhang,2009-06-26,2009-08-21,9
+Rice,Basmati Super Old,Jhang,2010-03-19,2017-03-24,367
+Rice,Basmati Super Old,Jhang,2017-06-16,2023-02-03,295
+Rice,Basmati Super Old,Jhang,2023-03-03,2023-04-21,8
+Rice,Basmati Super Old,Layyah,2011-02-18,2011-04-01,7
+Rice,Basmati Super Old,Layyah,2011-05-13,2011-07-22,11
+Rice,Basmati Super Old,Layyah,2012-04-06,2013-01-11,41
+Rice,Basmati Super Old,Layyah,2013-05-03,2013-06-28,9
+Rice,Basmati Super Old,Layyah,2017-01-06,2025-12-05,466
+Rice,Basmati Super Old,Multan,2023-05-19,2023-06-16,5
+Rice,Basmati Super Old,Multan,2023-08-25,2023-10-06,7
+Rice,Basmati Super Old,Multan,2023-12-01,2024-01-05,6
+Rice,Basmati Super Old,Multan,2024-02-23,2024-06-28,19
+Rice,Basmati Super Old,Multan,2024-07-12,2025-01-10,27
+Rice,Basmati Super Old,Multan,2025-01-24,2025-05-09,16
+Rice,Basmati Super Old,Okara,2009-07-03,2009-10-02,14
+Rice,Basmati Super Old,Okara,2010-02-26,2010-09-17,30
+Rice,Basmati Super Old,Okara,2025-09-12,2025-10-31,8
+Rice,Basmati Super Old,RahimYarKhan,2009-04-24,2009-06-05,7
+Rice,Basmati Super Old,RahimYarKhan,2014-03-14,2014-05-23,11
+Rice,Basmati Super Old,RahimYarKhan,2014-06-06,2014-08-08,10
+Rice,Basmati Super Old,RahimYarKhan,2014-11-21,2015-04-10,21
+Rice,Basmati Super Old,RahimYarKhan,2015-05-15,2015-06-19,6
+Rice,Basmati Super Old,RahimYarKhan,2018-02-02,2018-04-20,12
+Rice,Basmati Super Old,RahimYarKhan,2018-07-13,2018-08-10,5
+Rice,Basmati Super Old,RahimYarKhan,2019-05-17,2019-08-02,12
+Rice,Basmati Super Old,RahimYarKhan,2019-09-06,2023-10-20,216
+Rice,Basmati Super Old,RahimYarKhan,2024-01-26,2025-10-31,93
+Rice,Basmati Super Old,Rawalpindi,2009-10-16,2009-11-13,5
+Rice,Basmati Super Old,Rawalpindi,2012-02-10,2014-04-04,113
+Rice,Basmati Super Old,Sargodha,2009-06-19,2009-09-25,15
+Rice,Basmati Super Old,Sargodha,2009-10-30,2011-09-16,99
+Rice,Basmati Super Old,Sargodha,2011-10-21,2012-09-28,50
+Rice,Basmati Super Old,Sargodha,2012-10-26,2013-01-11,12
+Rice,Basmati Super Old,Sargodha,2013-06-28,2013-08-09,7
+Rice,Basmati Super Old,Sargodha,2013-08-30,2013-12-06,15
+Rice,Basmati Super Old,Sargodha,2013-12-20,2014-08-22,36
+Rice,Basmati Super Old,Sargodha,2014-09-26,2014-11-07,7
+Rice,Basmati Super Old,Sargodha,2018-05-25,2018-06-22,5
+Rice,Basmati Super Old,Sargodha,2019-04-26,2019-06-14,8
+Rice,Basmati Super Old,Sargodha,2020-02-21,2020-03-20,5
+Rice,Basmati Super Old,Sargodha,2020-05-22,2020-08-21,14
+Rice,Basmati Super Old,Sargodha,2020-09-04,2020-10-30,9
+Rice,Basmati Super Old,Sargodha,2021-05-07,2021-06-18,7
+Rice,Basmati Super Old,Sargodha,2021-12-31,2023-10-06,93
+Rice,Basmati Super Old,Sargodha,2023-11-24,2024-07-26,36
+Rice,Basmati Super Old,Sargodha,2024-12-06,2025-04-11,19
+Rice,Basmati Super Old,Sargodha,2025-05-16,2025-06-13,5
+Rice,Basmati Super Old,Sargodha,2025-07-04,2025-09-12,11
+Rice,Basmati Super Old,Sargodha,2025-11-14,2026-04-03,21
+Rice,Basmati Super Old,Sargodha,2026-04-17,2026-05-15,5
+Rice,Basmati Super Old,Sialkot,2009-08-28,2009-09-25,5
+Rice,Basmati Super Old,Sialkot,2011-06-10,2011-07-08,5
+Rice,Basmati Super Old,Sialkot,2011-07-22,2011-09-16,9
+Rice,Basmati Super Old,Sialkot,2012-07-20,2012-08-31,7
+Rice,Basmati Super Old,Sialkot,2012-10-26,2012-11-30,6
+Rice,Basmati Super Old,Sialkot,2013-02-22,2013-07-12,21
+Rice,Basmati Super Old,Sialkot,2013-07-26,2013-08-23,5
+Rice,Basmati Super Old,Sialkot,2013-12-06,2014-01-17,7
+Rice,Basmati Super Old,Sialkot,2014-01-31,2014-08-01,27
+Rice,Basmati Super Old,Sialkot,2014-10-17,2014-11-21,6
+Rice,Basmati Super Old,Sialkot,2014-12-12,2015-04-10,18
+Rice,Basmati Super Old,Sialkot,2022-09-16,2023-06-23,41
+Rice,IRRI,BahawalNagar,2010-02-05,2010-04-16,11
+Rice,IRRI,BahawalNagar,2012-01-27,2012-07-06,24
+Rice,IRRI,BahawalNagar,2013-06-07,2017-02-10,193
+Rice,IRRI,BahawalNagar,2019-03-29,2019-04-26,5
+Rice,IRRI,BahawalNagar,2019-05-10,2019-06-21,7
+Rice,IRRI,BahawalNagar,2019-10-25,2019-12-27,10
+Rice,IRRI,BahawalNagar,2020-03-06,2024-03-15,211
+Rice,IRRI,BahawalNagar,2024-04-12,2026-02-06,96
+Rice,IRRI,BahawalPur,2015-06-12,2015-07-24,7
+Rice,IRRI,BahawalPur,2019-08-02,2019-10-04,10
+Rice,IRRI,BahawalPur,2019-10-18,2020-03-27,24
+Rice,IRRI,BahawalPur,2020-06-05,2021-08-06,62
+Rice,IRRI,BahawalPur,2022-04-08,2022-05-06,5
+Rice,IRRI,Chichawatni,2013-05-31,2013-09-06,15
+Rice,IRRI,Chichawatni,2014-01-10,2014-12-26,51
+Rice,IRRI,Chichawatni,2018-12-07,2019-01-11,6
+Rice,IRRI,Chichawatni,2019-02-22,2019-04-05,7
+Rice,IRRI,Jhang,2012-11-23,2013-01-18,9
+Rice,IRRI,Jhang,2013-02-01,2013-03-15,7
+Rice,IRRI,Jhang,2013-03-29,2013-04-26,5
+Rice,IRRI,Jhang,2013-05-10,2017-02-10,197
+Rice,IRRI,Jhang,2017-06-16,2023-02-03,295
+Rice,IRRI,Jhang,2024-04-05,2024-07-05,14
+Rice,IRRI,Layyah,2013-05-03,2013-06-28,9
+Rice,IRRI,Layyah,2017-01-06,2017-05-26,21
+Rice,IRRI,Layyah,2017-06-09,2025-10-17,437
+Rice,IRRI,RahimYarKhan,2014-03-14,2014-05-23,11
+Rice,IRRI,RahimYarKhan,2014-06-06,2014-08-01,9
+Rice,IRRI,RahimYarKhan,2015-05-15,2015-06-19,6
+Rice,IRRI,RahimYarKhan,2017-01-27,2017-02-24,5
+Rice,IRRI,RahimYarKhan,2019-12-27,2023-10-13,199
+Rice,IRRI,RahimYarKhan,2023-11-10,2024-01-12,10
+Rice,IRRI,RahimYarKhan,2024-02-23,2024-04-19,9
+Rice,IRRI,RahimYarKhan,2024-05-03,2024-08-23,17
+Rice,IRRI,RahimYarKhan,2024-09-06,2025-02-21,25
+Rice,IRRI,Sargodha,2010-02-05,2010-10-22,38
+Rice,IRRI,Sargodha,2011-06-03,2012-02-10,37
+Rice,IRRI,Sargodha,2012-02-24,2012-06-01,15
+Rice,Kainat New,BahawalNagar,2017-03-03,2017-07-21,21
+Rice,Kainat New,BahawalNagar,2017-08-04,2017-12-22,21
+Rice,Kainat New,BahawalNagar,2018-01-05,2018-10-19,42
+Rice,Kainat New,BahawalNagar,2018-11-02,2019-02-01,14
+Rice,Kainat New,BahawalNagar,2019-03-08,2020-01-03,44
+Rice,Kainat New,BahawalNagar,2020-02-07,2026-02-13,315
+Rice,Kainat New,BahawalPur,2022-12-23,2024-10-18,96
+Rice,Kainat New,BahawalPur,2025-04-04,2025-07-11,15
+Rice,Kainat New,BahawalPur,2025-07-25,2025-10-03,11
+Rice,Kainat New,BahawalPur,2025-11-21,2025-12-19,5
+Rice,Kainat New,BahawalPur,2026-01-09,2026-02-27,8
+Rice,Kainat New,Chichawatni,2017-04-14,2018-03-09,48
+Rice,Kainat New,Faisalabad,2017-02-10,2017-06-30,21
+Rice,Kainat New,Faisalabad,2017-08-11,2018-04-13,36
+Rice,Kainat New,Faisalabad,2018-07-20,2019-06-07,47
+Rice,Kainat New,Jhang,2017-06-16,2023-02-03,295
+Rice,Kainat New,Lahore,2019-01-04,2025-12-05,362
+Rice,Kainat New,Layyah,2025-12-19,2026-01-16,5
+Rice,Kainat New,Okara,2017-05-19,2019-04-26,102
+Rice,Kainat New,Okara,2019-05-10,2021-06-11,110
+Rice,Kainat New,Okara,2021-06-25,2024-11-08,177
+Rice,Kainat New,Okara,2024-12-20,2025-07-11,30
+Rice,Kainat New,Okara,2025-08-01,2025-09-05,6
+Rice,Kainat New,RahimYarKhan,2017-06-23,2019-05-03,98
+Rice,Kainat New,Rawalpindi,2017-04-07,2017-06-09,10
+Rice,Kainat New,Rawalpindi,2017-06-23,2017-09-08,12
+Rice,Kainat New,Rawalpindi,2017-09-22,2018-02-09,21
+Rice,Kainat New,Rawalpindi,2023-07-14,2023-08-18,6
+Rice,Kainat New,Rawalpindi,2023-09-01,2024-01-19,21
+Rice,Kainat New,Sargodha,2022-07-08,2022-09-16,11
+Rice,Kainat New,Sargodha,2023-03-10,2023-04-21,7
+Rice,Kainat New,Sargodha,2023-05-05,2023-06-30,9
+Rice,Kainat New,Sargodha,2023-11-03,2024-01-05,10
+Rice,Kainat New,Sargodha,2024-02-23,2024-05-24,14
+Rice,Kainat New,Sargodha,2024-06-07,2024-08-09,10
+Rice,Kainat New,Sargodha,2024-09-20,2024-10-18,5
+Rice,Kainat New,Sargodha,2024-11-01,2024-11-29,5
+Rice,Kainat New,Sialkot,2025-01-10,2026-03-13,62
+Seed Cotton (Phutti),,BahawalNagar,2009-02-13,2009-07-24,24
+Seed Cotton (Phutti),,BahawalNagar,2009-09-11,2010-09-24,55
+Seed Cotton (Phutti),,BahawalNagar,2010-11-05,2017-07-28,352
+Seed Cotton (Phutti),,BahawalNagar,2018-02-09,2018-09-14,32
+Seed Cotton (Phutti),,BahawalNagar,2019-02-22,2019-08-16,26
+Seed Cotton (Phutti),,BahawalNagar,2020-01-24,2023-07-07,181
+Seed Cotton (Phutti),,BahawalPur,2009-03-20,2009-08-21,23
+Seed Cotton (Phutti),,BahawalPur,2010-02-26,2010-09-10,29
+Seed Cotton (Phutti),,BahawalPur,2011-03-25,2011-09-09,25
+Seed Cotton (Phutti),,BahawalPur,2012-04-06,2012-09-07,23
+Seed Cotton (Phutti),,BahawalPur,2013-03-22,2013-08-23,23
+Seed Cotton (Phutti),,BahawalPur,2014-03-28,2014-08-22,22
+Seed Cotton (Phutti),,BahawalPur,2015-04-03,2015-09-18,25
+Seed Cotton (Phutti),,BahawalPur,2016-02-19,2016-09-23,32
+Seed Cotton (Phutti),,BahawalPur,2016-10-07,2017-08-18,46
+Seed Cotton (Phutti),,BahawalPur,2018-02-09,2021-08-06,183
+Seed Cotton (Phutti),,BahawalPur,2022-03-04,2022-08-12,24
+Seed Cotton (Phutti),,BahawalPur,2023-02-24,2023-07-28,23
+Seed Cotton (Phutti),,BahawalPur,2024-03-08,2024-08-09,23
+Seed Cotton (Phutti),,BahawalPur,2025-02-21,2025-06-27,19
+Seed Cotton (Phutti),,Chichawatni,2009-03-27,2009-07-24,18
+Seed Cotton (Phutti),,Chichawatni,2010-03-05,2010-06-25,17
+Seed Cotton (Phutti),,Chichawatni,2011-04-15,2011-06-24,11
+Seed Cotton (Phutti),,Chichawatni,2012-05-25,2012-06-22,5
+Seed Cotton (Phutti),,Chichawatni,2013-04-26,2013-06-21,9
+Seed Cotton (Phutti),,Chichawatni,2014-01-17,2014-02-28,7
+Seed Cotton (Phutti),,Chichawatni,2014-03-14,2014-08-08,22
+Seed Cotton (Phutti),,Chichawatni,2014-10-03,2014-11-07,6
+Seed Cotton (Phutti),,Chichawatni,2014-12-05,2015-01-23,8
+Seed Cotton (Phutti),,Chichawatni,2015-02-27,2015-08-07,24
+Seed Cotton (Phutti),,Chichawatni,2015-10-16,2016-01-01,12
+Seed Cotton (Phutti),,Chichawatni,2016-01-15,2016-07-15,27
+Seed Cotton (Phutti),,Chichawatni,2016-07-29,2016-09-02,6
+Seed Cotton (Phutti),,Chichawatni,2016-09-16,2016-10-14,5
+Seed Cotton (Phutti),,Chichawatni,2016-10-28,2017-08-11,42
+Seed Cotton (Phutti),,Chichawatni,2017-08-25,2018-02-02,24
+Seed Cotton (Phutti),,Chichawatni,2018-03-02,2019-02-01,49
+Seed Cotton (Phutti),,Chichawatni,2019-02-15,2020-10-09,87
+Seed Cotton (Phutti),,Chichawatni,2021-04-02,2021-06-11,11
+Seed Cotton (Phutti),,Chichawatni,2022-02-18,2022-06-17,18
+Seed Cotton (Phutti),,Chichawatni,2023-04-14,2023-06-09,9
+Seed Cotton (Phutti),,Chichawatni,2024-02-23,2024-06-21,18
+Seed Cotton (Phutti),,Chichawatni,2025-01-24,2025-07-04,24
+Seed Cotton (Phutti),,Jhang,2009-02-27,2009-09-11,29
+Seed Cotton (Phutti),,Jhang,2010-01-29,2010-07-09,24
+Seed Cotton (Phutti),,Jhang,2011-04-08,2011-08-19,20
+Seed Cotton (Phutti),,Jhang,2012-04-27,2012-08-10,16
+Seed Cotton (Phutti),,Jhang,2012-11-23,2012-12-21,5
+Seed Cotton (Phutti),,Jhang,2013-02-01,2013-03-15,7
+Seed Cotton (Phutti),,Jhang,2013-03-29,2023-07-07,537
+Seed Cotton (Phutti),,Layyah,2009-01-30,2009-10-16,38
+Seed Cotton (Phutti),,Layyah,2010-02-05,2010-09-10,32
+Seed Cotton (Phutti),,Layyah,2011-02-18,2011-04-15,9
+Seed Cotton (Phutti),,Layyah,2011-04-29,2011-09-02,19
+Seed Cotton (Phutti),,Layyah,2012-02-24,2012-08-31,28
+Seed Cotton (Phutti),,Layyah,2013-02-15,2013-08-23,28
+Seed Cotton (Phutti),,Layyah,2014-02-14,2014-09-12,31
+Seed Cotton (Phutti),,Layyah,2015-02-27,2015-09-11,29
+Seed Cotton (Phutti),,Layyah,2016-02-19,2016-10-21,36
+Seed Cotton (Phutti),,Layyah,2017-01-06,2017-09-01,35
+Seed Cotton (Phutti),,Layyah,2018-01-05,2018-08-31,35
+Seed Cotton (Phutti),,Layyah,2019-02-01,2020-09-25,87
+Seed Cotton (Phutti),,Layyah,2021-01-01,2021-08-20,34
+Seed Cotton (Phutti),,Layyah,2021-12-17,2022-07-29,33
+Seed Cotton (Phutti),,Layyah,2023-02-17,2023-07-07,21
+Seed Cotton (Phutti),,Layyah,2024-01-26,2024-07-19,26
+Seed Cotton (Phutti),,Layyah,2024-08-09,2024-09-20,7
+Seed Cotton (Phutti),,Layyah,2024-11-29,2025-07-04,32
+Seed Cotton (Phutti),,Multan,2009-03-06,2009-10-02,31
+Seed Cotton (Phutti),,Multan,2010-01-22,2010-09-24,36
+Seed Cotton (Phutti),,Multan,2011-02-18,2011-09-30,33
+Seed Cotton (Phutti),,Multan,2012-03-16,2012-10-05,30
+Seed Cotton (Phutti),,Multan,2013-04-19,2013-09-06,21
+Seed Cotton (Phutti),,Multan,2014-01-17,2014-09-05,34
+Seed Cotton (Phutti),,Multan,2015-02-13,2015-10-09,35
+Seed Cotton (Phutti),,Multan,2016-01-08,2016-10-14,41
+Seed Cotton (Phutti),,Multan,2017-02-10,2017-09-15,32
+Seed Cotton (Phutti),,Multan,2018-02-16,2018-10-05,34
+Seed Cotton (Phutti),,Okara,2009-01-30,2009-07-10,24
+Seed Cotton (Phutti),,Okara,2010-02-05,2010-07-02,22
+Seed Cotton (Phutti),,Okara,2011-05-06,2011-08-05,14
+Seed Cotton (Phutti),,Okara,2012-03-30,2013-03-22,52
+Seed Cotton (Phutti),,Okara,2013-04-05,2013-09-13,24
+Seed Cotton (Phutti),,Okara,2014-03-21,2015-09-18,79
+Seed Cotton (Phutti),,Okara,2015-12-25,2016-10-07,42
+Seed Cotton (Phutti),,Okara,2017-01-13,2023-07-28,342
+Seed Cotton (Phutti),,RahimYarKhan,2009-03-27,2009-07-10,16
+Seed Cotton (Phutti),,RahimYarKhan,2010-04-09,2010-06-25,12
+Seed Cotton (Phutti),,RahimYarKhan,2011-03-25,2011-07-15,17
+Seed Cotton (Phutti),,RahimYarKhan,2012-05-04,2012-07-13,11
+Seed Cotton (Phutti),,RahimYarKhan,2013-03-29,2013-07-26,18
+Seed Cotton (Phutti),,RahimYarKhan,2014-03-14,2014-08-01,21
+Seed Cotton (Phutti),,RahimYarKhan,2015-03-06,2015-08-14,24
+Seed Cotton (Phutti),,RahimYarKhan,2016-02-19,2016-07-22,23
+Seed Cotton (Phutti),,RahimYarKhan,2017-02-24,2017-09-01,28
+Seed Cotton (Phutti),,RahimYarKhan,2018-01-12,2018-08-24,33
+Seed Cotton (Phutti),,RahimYarKhan,2019-01-25,2019-08-02,28
+Seed Cotton (Phutti),,RahimYarKhan,2020-02-28,2020-07-31,23
+Seed Cotton (Phutti),,RahimYarKhan,2021-02-19,2021-08-06,25
+Seed Cotton (Phutti),,RahimYarKhan,2022-01-28,2022-06-24,22
+Seed Cotton (Phutti),,RahimYarKhan,2023-03-17,2023-06-16,14
+Seed Cotton (Phutti),,RahimYarKhan,2024-03-01,2024-06-28,18
+Seed Cotton (Phutti),,RahimYarKhan,2025-02-14,2025-06-20,19
+Sugar,,BahawalNagar,2013-06-07,2015-06-12,106
+Sugar,,BahawalNagar,2015-06-26,2017-02-17,87
+Sugar,,BahawalNagar,2019-05-10,2019-06-14,6
+Sugar,,BahawalPur,2015-06-12,2015-07-24,7
+Sugar,,BahawalPur,2017-06-16,2017-08-18,10
+Sugar,,BahawalPur,2017-10-06,2017-11-03,5
+Sugar,,BahawalPur,2018-03-09,2018-05-04,9
+Sugar,,BahawalPur,2018-05-18,2018-08-03,12
+Sugar,,BahawalPur,2018-08-24,2018-10-19,9
+Sugar,,BahawalPur,2018-11-02,2019-03-15,20
+Sugar,,BahawalPur,2019-03-29,2019-05-03,6
+Sugar,,BahawalPur,2019-08-02,2019-10-04,10
+Sugar,,BahawalPur,2019-10-18,2019-11-22,6
+Sugar,,BahawalPur,2019-12-06,2020-01-03,5
+Sugar,,BahawalPur,2020-06-05,2021-09-10,67
+Sugar,,BahawalPur,2021-10-08,2021-11-12,6
+Sugar,,BahawalPur,2022-01-14,2022-02-11,5
+Sugar,,BahawalPur,2022-04-08,2022-05-06,5
+Sugar,,BahawalPur,2022-07-15,2022-08-12,5
+Sugar,,Chichawatni,2009-10-16,2009-12-18,10
+Sugar,,Chichawatni,2010-06-04,2010-07-02,5
+Sugar,,Chichawatni,2010-09-03,2010-10-22,8
+Sugar,,Chichawatni,2011-07-15,2011-08-12,5
+Sugar,,Chichawatni,2012-07-13,2012-08-10,5
+Sugar,,Chichawatni,2016-02-05,2016-03-25,8
+Sugar,,Chichawatni,2016-04-08,2016-05-13,6
+Sugar,,Chichawatni,2016-09-16,2016-10-14,5
+Sugar,,Chichawatni,2016-10-28,2017-01-06,11
+Sugar,,Gujranwala,2012-07-27,2012-08-31,6
+Sugar,,Gujranwala,2015-06-05,2015-07-24,8
+Sugar,,Gujranwala,2024-01-12,2024-05-31,21
+Sugar,,Gujranwala,2024-06-14,2026-02-13,88
+Sugar,,Jhang,2012-11-23,2012-12-21,5
+Sugar,,Jhang,2013-02-01,2013-03-15,7
+Sugar,,Jhang,2013-03-29,2013-04-26,5
+Sugar,,Jhang,2013-05-10,2017-02-10,197
+Sugar,,Jhang,2017-06-16,2023-02-03,295
+Sugar,,Jhang,2023-10-20,2023-11-17,5
+Sugar,,Jhang,2023-12-15,2025-01-10,57
+Sugar,,Layyah,2013-05-03,2013-06-28,9
+Sugar,,RahimYarKhan,2014-03-14,2014-05-23,11
+Sugar,,RahimYarKhan,2014-06-06,2014-08-01,9
+Sugar,,RahimYarKhan,2015-05-15,2015-06-19,6
+Sugar,,RahimYarKhan,2015-10-16,2015-11-20,6
+Sugar,,RahimYarKhan,2018-05-25,2018-07-27,10
+Sugar,,RahimYarKhan,2018-10-05,2018-11-09,6
+Sugar,,RahimYarKhan,2018-11-23,2019-02-01,11
+Sugar,,Sargodha,2013-07-05,2013-08-09,6
+Sugar,,Sargodha,2013-12-20,2014-05-09,21
+Sugar,,Sargodha,2014-06-27,2014-08-01,6
+Sugar,,Sargodha,2018-05-25,2018-06-22,5
+Sugar,,Sargodha,2019-04-26,2019-06-14,8
+Sugar,,Sargodha,2019-10-11,2019-11-15,6
+Sugar,,Sargodha,2020-02-21,2020-03-20,5
+Sugar,,Sargodha,2020-06-05,2020-08-21,12
+Sugar,,Sargodha,2020-09-04,2020-10-02,5
+Sugar,,Sargodha,2021-02-26,2021-04-02,6
+Sugar,,Sargodha,2021-05-07,2021-06-25,8
+Sugar,,Sargodha,2024-04-05,2024-05-24,8
+Sugar,,Sialkot,2009-02-06,2009-05-08,14
+Sugar,,Sialkot,2009-08-28,2009-09-25,5
+Sugar,,Sialkot,2011-06-10,2011-07-08,5
+Sugar,,Sialkot,2011-07-22,2011-09-16,9
+Sugar,,Sialkot,2012-07-20,2012-08-31,7
+Sugar,,Sialkot,2013-02-22,2013-04-19,9
+Sugar,,Sialkot,2013-05-03,2013-07-12,11
+Sugar,,Sialkot,2013-07-26,2013-08-23,5
+Sugar,,Sialkot,2013-11-29,2014-01-17,8
+Sugar,,Sialkot,2014-01-31,2014-03-07,6
+Sugar,,Sialkot,2014-04-11,2014-05-16,6
+Sugar,,Sialkot,2014-06-27,2014-08-01,6
+Sugar,,Sialkot,2014-10-17,2014-11-21,6
+Sugar,,Sialkot,2025-08-08,2025-10-03,9
+Wheat,,BahawalNagar,2011-03-11,2011-04-15,6
+Wheat,,BahawalNagar,2013-06-07,2017-02-10,193
+Wheat,,BahawalNagar,2017-03-24,2017-04-21,5
+Wheat,,BahawalNagar,2017-06-09,2017-07-21,7
+Wheat,,BahawalNagar,2017-12-01,2018-04-06,19
+Wheat,,BahawalNagar,2018-07-20,2019-04-26,41
+Wheat,,BahawalNagar,2019-05-10,2019-06-21,7
+Wheat,,BahawalNagar,2019-08-02,2020-01-17,25
+Wheat,,BahawalNagar,2020-01-31,2021-11-19,95
+Wheat,,BahawalNagar,2021-12-03,2024-04-12,124
+Wheat,,BahawalNagar,2024-05-03,2025-10-31,79
+Wheat,,BahawalPur,2010-01-22,2010-03-26,10
+Wheat,,BahawalPur,2010-06-11,2010-10-01,17
+Wheat,,BahawalPur,2010-12-10,2011-04-15,19
+Wheat,,BahawalPur,2011-07-22,2012-04-20,40
+Wheat,,BahawalPur,2015-06-12,2015-07-24,7
+Wheat,,BahawalPur,2015-11-13,2016-03-25,20
+Wheat,,BahawalPur,2019-08-02,2019-10-04,10
+Wheat,,BahawalPur,2019-10-18,2020-03-27,24
+Wheat,,BahawalPur,2020-06-05,2021-08-06,62
+Wheat,,BahawalPur,2022-04-08,2022-05-06,5
+Wheat,,BahawalPur,2023-01-27,2023-03-24,9
+Wheat,,Chichawatni,2014-03-28,2014-08-01,19
+Wheat,,Chichawatni,2014-10-03,2014-11-07,6
+Wheat,,Chichawatni,2014-12-05,2015-01-02,5
+Wheat,,Chichawatni,2015-03-06,2015-08-07,23
+Wheat,,Chichawatni,2015-10-16,2016-01-01,12
+Wheat,,Chichawatni,2016-02-05,2016-03-25,8
+Wheat,,Chichawatni,2016-04-08,2016-05-13,6
+Wheat,,Chichawatni,2016-05-27,2016-07-08,7
+Wheat,,Chichawatni,2016-07-29,2016-09-02,6
+Wheat,,Chichawatni,2016-09-16,2016-10-14,5
+Wheat,,Chichawatni,2016-10-28,2017-01-06,11
+Wheat,,Chichawatni,2017-06-16,2017-08-11,9
+Wheat,,Chichawatni,2017-08-25,2018-02-02,24
+Wheat,,Chichawatni,2018-03-30,2018-05-04,6
+Wheat,,Chichawatni,2018-05-18,2019-01-25,37
+Wheat,,Chichawatni,2019-02-15,2020-10-09,87
+Wheat,,Gujranwala,2009-06-19,2010-04-09,43
+Wheat,,Gujranwala,2010-06-18,2010-12-03,25
+Wheat,,Gujranwala,2011-07-01,2012-01-06,28
+Wheat,,Gujranwala,2012-07-27,2012-08-31,6
+Wheat,,Gujranwala,2014-08-22,2015-05-01,37
+Wheat,,Gujranwala,2015-06-05,2015-07-24,8
+Wheat,,Gujranwala,2022-12-09,2023-02-03,9
+Wheat,,Gujranwala,2023-09-01,2024-04-12,33
+Wheat,,Jhang,2012-11-23,2012-12-21,5
+Wheat,,Jhang,2013-02-01,2013-03-15,7
+Wheat,,Jhang,2013-03-29,2013-04-26,5
+Wheat,,Jhang,2013-05-17,2017-02-10,196
+Wheat,,Jhang,2017-06-16,2023-02-03,295
+Wheat,,Lahore,2016-08-05,2019-07-26,156
+Wheat,,Layyah,2013-05-03,2013-06-28,9
+Wheat,,Layyah,2017-01-06,2017-02-10,6
+Wheat,,Multan,2023-01-20,2024-04-26,67
+Wheat,,Multan,2025-10-17,2026-04-17,27
+Wheat,,Okara,2011-09-23,2011-12-30,15
+Wheat,,Okara,2014-01-17,2014-04-18,14
+Wheat,,Okara,2017-11-24,2018-04-13,21
+Wheat,,Okara,2020-08-07,2021-04-16,37
+Wheat,,Okara,2022-03-11,2022-04-22,7
+Wheat,,Okara,2022-07-08,2023-04-14,41
+Wheat,,Okara,2023-06-30,2024-04-12,42
+Wheat,,Okara,2024-11-01,2025-04-11,24
+Wheat,,Okara,2025-05-09,2025-10-03,22
+Wheat,,RahimYarKhan,2011-01-14,2011-02-18,6
+Wheat,,RahimYarKhan,2012-01-27,2012-03-09,7
+Wheat,,RahimYarKhan,2012-12-07,2013-04-05,18
+Wheat,,RahimYarKhan,2013-12-06,2014-01-17,7
+Wheat,,RahimYarKhan,2014-03-14,2014-05-23,11
+Wheat,,RahimYarKhan,2014-06-06,2014-08-01,9
+Wheat,,RahimYarKhan,2015-03-20,2015-04-24,6
+Wheat,,RahimYarKhan,2015-05-15,2015-06-19,6
+Wheat,,RahimYarKhan,2017-12-22,2018-03-30,15
+Wheat,,RahimYarKhan,2018-10-05,2019-04-12,28
+Wheat,,RahimYarKhan,2019-10-25,2020-04-03,24
+Wheat,,RahimYarKhan,2024-07-12,2025-03-21,37
+Wheat,,RahimYarKhan,2026-01-16,2026-03-27,11
+Wheat,,Rawalpindi,2010-11-12,2011-04-22,24
+Wheat,,Rawalpindi,2011-10-21,2012-01-06,12
+Wheat,,Rawalpindi,2012-03-23,2012-05-04,7
+Wheat,,Rawalpindi,2013-02-08,2013-05-10,14
+Wheat,,Rawalpindi,2014-03-21,2014-04-25,6
+Wheat,,Rawalpindi,2014-09-26,2016-04-22,83
+Wheat,,Rawalpindi,2016-06-24,2016-11-04,20
+Wheat,,Rawalpindi,2017-02-03,2018-09-21,86
+Wheat,,Rawalpindi,2018-10-12,2019-05-10,31
+Wheat,,Rawalpindi,2020-06-26,2025-10-03,276
+Wheat,,Sargodha,2013-07-05,2013-08-09,6
+Wheat,,Sargodha,2013-12-20,2014-05-09,21
+Wheat,,Sargodha,2014-06-27,2014-08-01,6
+Wheat,,Sargodha,2018-05-25,2018-06-22,5
+Wheat,,Sargodha,2019-04-26,2019-06-14,8
+Wheat,,Sargodha,2020-02-21,2020-03-20,5
+Wheat,,Sargodha,2020-05-22,2020-08-21,14
+Wheat,,Sargodha,2020-09-04,2020-10-02,5
+Wheat,,Sargodha,2021-05-07,2021-06-18,7
+Wheat,,Sialkot,2009-02-06,2009-05-08,14
+Wheat,,Sialkot,2009-08-28,2009-09-25,5
+Wheat,,Sialkot,2010-10-15,2011-05-20,32
+Wheat,,Sialkot,2011-06-10,2011-07-08,5
+Wheat,,Sialkot,2011-07-22,2011-09-16,9
+Wheat,,Sialkot,2012-07-20,2012-08-31,7
+Wheat,,Sialkot,2012-11-09,2013-06-21,33
+Wheat,,Sialkot,2013-07-26,2013-08-23,5
+Wheat,,Sialkot,2013-11-29,2014-05-16,25
+Wheat,,Sialkot,2014-06-06,2015-06-12,54
+Wheat,,Sialkot,2015-09-25,2017-02-10,73
+Wheat,,Sialkot,2017-06-16,2017-09-15,14
+Wheat,,Sialkot,2017-09-29,2018-04-27,31
+Wheat,,Sialkot,2018-11-30,2019-05-03,23
+Wheat,,Sialkot,2019-08-30,2023-02-03,180
