@@ -42,6 +42,9 @@ const AdminPanel = () => {
   const [scrapeMessage, setScrapeMessage] = useState("");
   const [scrapeError, setScrapeError] = useState("");
   const [scraperStatus, setScraperStatus] = useState(null);
+  const [mlMonitoring, setMlMonitoring] = useState(null);
+  const [mlJobs, setMlJobs] = useState([]);
+  const [mlLoading, setMlLoading] = useState(false);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -760,7 +763,38 @@ const AdminPanel = () => {
     if (activeTab === "support") {
       fetchSupportTickets();
     }
+    if (activeTab === "ml") {
+      fetchMlMonitoring();
+      fetchMlJobs();
+    }
   }, [activeTab]);
+
+  const fetchMlMonitoring = async () => {
+    setMlLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/ml/monitoring/latest`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok) setMlMonitoring(data.data || data);
+    } catch (err) {
+      console.error("Error fetching ML monitoring:", err);
+    } finally {
+      setMlLoading(false);
+    }
+  };
+
+  const fetchMlJobs = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/ml/jobs/recent`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok) setMlJobs(data.data || data);
+    } catch (err) {
+      console.error("Error fetching ML jobs:", err);
+    }
+  };
 
   // Handle URL parameters for tab and ticket selection
   useEffect(() => {
@@ -938,6 +972,15 @@ const AdminPanel = () => {
                 {totalUnreadTickets}
               </span>
             )}
+          </button>
+          <button
+            onClick={() => setActiveTab("ml")}
+            className={`px-4 sm:px-6 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap text-sm sm:text-base ${activeTab === "ml"
+              ? "bg-indigo-600 text-white"
+              : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700"
+              }`}
+          >
+            ML
           </button>
         </div>
 
@@ -1846,6 +1889,37 @@ const AdminPanel = () => {
 
                     {/* Reply Input - Only for user tickets */}
                     {selectedSupportTicket.user ? (
+
+                {activeTab === "ml" && (
+                  <Card className="mb-8">
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">ML Monitoring</h2>
+                    {mlLoading ? (
+                      <Loader />
+                    ) : (
+                      <div>
+                        {mlMonitoring ? (
+                          <div className="space-y-3">
+                            <div><strong>Last Run:</strong> {new Date(mlMonitoring.timestamp).toLocaleString()}</div>
+                            <div><strong>Recent Accuracy:</strong> {mlMonitoring.recent_accuracy ?? 'N/A'}</div>
+                            <div><strong>Drift Detected:</strong> {mlMonitoring.drift_detected ? 'Yes' : 'No'}</div>
+                            <div className="mt-3">
+                              <h3 className="font-semibold">Recent Job Runs</h3>
+                              {mlJobs.length === 0 ? <p>No recent jobs</p> : (
+                                <ul className="list-disc list-inside">
+                                  {mlJobs.map(j => (
+                                    <li key={j._id}>{j.type} — {j.status} — {new Date(j.started_at).toLocaleString()}</li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <p>No monitoring data available</p>
+                        )}
+                      </div>
+                    )}
+                  </Card>
+                )}
                       selectedSupportTicket.status !== "closed" && (
                         <form
                           onSubmit={(e) => {
