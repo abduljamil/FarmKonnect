@@ -1,5 +1,10 @@
+from __future__ import annotations
+
+try:
+    from .logging_config import get_logger, start_metrics
+except Exception:
+    from logging_config import get_logger, start_metrics
 from pymongo import MongoClient
-from logging_config import get_logger, start_metrics
 
 logger = get_logger("predict_and_push")
 # start metrics server if available
@@ -24,8 +29,6 @@ This script:
 Usage:
   MONGODB_URI="..." python predict_and_push.py --features ml/training/data/features.parquet --ensemble ml/training/ensemble_models --horizon 4
 """
-from __future__ import annotations
-
 import argparse
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -35,7 +38,6 @@ import json
 import joblib
 import numpy as np
 import pandas as pd
-from pymongo import MongoClient
 
 try:
     from hijri_converter import Gregorian

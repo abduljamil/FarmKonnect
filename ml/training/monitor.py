@@ -18,7 +18,10 @@ import numpy as np
 import pandas as pd
 from pymongo import MongoClient
 from scipy.stats import ks_2samp
-from logging_config import get_logger
+try:
+    from .logging_config import get_logger, start_metrics
+except Exception:
+    from logging_config import get_logger, start_metrics
 
 logger = get_logger("monitor")
 start_metrics()

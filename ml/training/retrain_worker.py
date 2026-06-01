@@ -19,7 +19,10 @@ from datetime import datetime
 from pathlib import Path
 
 from pymongo import MongoClient, ReturnDocument
-from logging_config import get_logger, start_metrics
+try:
+    from .logging_config import get_logger, start_metrics
+except Exception:
+    from logging_config import get_logger, start_metrics
 
 logger = get_logger("retrain_worker")
 start_metrics()
