@@ -1,0 +1,13 @@
+pandas
+numpy
+scikit-learn>=1.0
+lightgbm
+pyarrow
+joblib
+matplotlib
+seaborn
+pymongo
+hijri-converter
+scipy
+pytest
+mongomock
