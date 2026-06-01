@@ -156,7 +156,17 @@ def main(argv: list[str] | None = None) -> int:
         raise EnvironmentError("Set MONGODB_URI environment variable to push forecasts")
 
     client = MongoClient(mongo_uri)
-    db = client.get_default_database()
+    # derive a database from URI if present, else fallback to a sensible default
+    from urllib.parse import urlparse
+    parsed = urlparse(mongo_uri)
+    if parsed.path and parsed.path != "/":
+        dbname = parsed.path.lstrip("/")
+        db = client.get_database(dbname)
+    else:
+        try:
+            db = client.get_default_database()
+        except Exception:
+            db = client.get_database("farmkonnect_ml")
     coll = db[args.collection]
     if forecasts:
         # upsert by unique key (commodity,variety,city,forecast_date,horizon_weeks,model)

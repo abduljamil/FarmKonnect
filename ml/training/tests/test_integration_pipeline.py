@@ -41,7 +41,7 @@ def test_predict_monitor_retrain_pipeline(tmp_path, monkeypatch):
     os.environ["MONGODB_URI"] = "mongodb://test"
 
     # seed historical prices: many small-price records to make median small
-    db = client.get_default_database()
+    db = client.get_database('farmkonnect_ml')
     prices = []
     for i in range(30):
         prices.append({

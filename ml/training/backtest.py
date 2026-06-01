@@ -32,7 +32,8 @@ def metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict:
     from sklearn.metrics import mean_absolute_error, mean_squared_error
 
     mae = mean_absolute_error(y_true, y_pred)
-    rmse = mean_squared_error(y_true, y_pred, squared=False)
+    # compute RMSE directly for compatibility
+    rmse = float(((y_true - y_pred) ** 2).mean() ** 0.5)
     nonzero = y_true != 0
     if nonzero.sum() > 0:
         mape = (np.abs((y_true[nonzero] - y_pred[nonzero]) / y_true[nonzero])).mean() * 100
@@ -71,6 +72,13 @@ def expanding_backtest(df: pd.DataFrame, target_col: str, horizon: int = 4, min_
         X_val = df.loc[val_idx].drop(columns=[target_col])
         y_val = df.loc[val_idx, target_col].values
 
+        # Drop non-feature or problematic columns like the original date
+        for col in ("date",):
+            if col in X_train.columns:
+                X_train = X_train.drop(columns=[col])
+            if col in X_val.columns:
+                X_val = X_val.drop(columns=[col])
+
         # convert object columns to category
         for c in X_train.select_dtypes(include="object").columns:
             X_train[c] = X_train[c].astype("category")
@@ -79,7 +87,14 @@ def expanding_backtest(df: pd.DataFrame, target_col: str, horizon: int = 4, min_
         model = LGBMRegressor(n_estimators=1000, learning_rate=0.05, random_state=42)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            model.fit(X_train, y_train, eval_set=[(X_val, y_val)], early_stopping_rounds=50, verbose=False)
+            # Try multiple fit signatures to support various LightGBM versions
+            try:
+                model.fit(X_train, y_train, eval_set=[(X_val, y_val)], early_stopping_rounds=50, verbose=False)
+            except TypeError:
+                try:
+                    model.fit(X_train, y_train, eval_set=[(X_val, y_val)])
+                except TypeError:
+                    model.fit(X_train, y_train)
 
         preds = model.predict(X_val)
 

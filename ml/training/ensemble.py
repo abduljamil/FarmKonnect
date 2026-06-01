@@ -13,6 +13,7 @@ from pathlib import Path
 import warnings
 
 import joblib
+from sklearn.base import clone
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import Ridge
@@ -34,7 +35,8 @@ def detect_target(df: pd.DataFrame) -> str:
 
 def metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict:
     mae = mean_absolute_error(y_true, y_pred)
-    rmse = mean_squared_error(y_true, y_pred, squared=False)
+    # compute RMSE directly for compatibility
+    rmse = float(((y_true - y_pred) ** 2).mean() ** 0.5)
     nonzero = y_true != 0
     if nonzero.sum() > 0:
         mape = (np.abs((y_true[nonzero] - y_pred[nonzero]) / y_true[nonzero])).mean() * 100
@@ -52,7 +54,11 @@ def make_oof_preds(models, X: pd.DataFrame, y: np.ndarray, n_splits: int = 5):
         y_train = y[train_idx]
         for name, model in models.items():
             # clone model to avoid state leakage
-            mdl = joblib.loads(joblib.dumps(model))
+            try:
+                mdl = clone(model)
+            except Exception:
+                # fallback: try joblib roundtrip
+                mdl = joblib.loads(joblib.dumps(model))
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 mdl.fit(X_train, y_train)

@@ -38,7 +38,7 @@ def test_predict_and_push_monkeypatched_mongo(tmp_path, monkeypatch):
 
     # verify DB inserted docs
     client = mongomock.MongoClient()
-    db = client.get_default_database()
+    db = client.get_database('farmkonnect_ml')
     coll = db['priceforecasts']
     # Since predict_and_push uses its own MongoClient instance, we cannot easily
     # inspect it here via mongomock without patching the connection string.

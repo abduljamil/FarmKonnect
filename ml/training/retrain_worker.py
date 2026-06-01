@@ -30,7 +30,15 @@ def get_mongo():
     if not uri:
         raise EnvironmentError("Set MONGODB_URI environment variable")
     client = MongoClient(uri)
-    return client.get_default_database()
+    from urllib.parse import urlparse
+    parsed = urlparse(uri)
+    if parsed.path and parsed.path != "/":
+        dbname = parsed.path.lstrip("/")
+        return client.get_database(dbname)
+    try:
+        return client.get_default_database()
+    except Exception:
+        return client.get_database("farmkonnect_ml")
 
 
 def claim_job(coll):

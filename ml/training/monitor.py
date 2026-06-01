@@ -58,7 +58,17 @@ def main(argv: list[str] | None = None) -> int:
         raise EnvironmentError("Set MONGODB_URI environment variable")
 
     client = MongoClient(mongo_uri)
-    db = client.get_default_database()
+    # derive DB name from URI when possible, otherwise fall back to a default
+    from urllib.parse import urlparse
+    parsed = urlparse(mongo_uri)
+    if parsed.path and parsed.path != "/":
+        dbname = parsed.path.lstrip("/")
+        db = client.get_database(dbname)
+    else:
+        try:
+            db = client.get_default_database()
+        except Exception:
+            db = client.get_database("farmkonnect_ml")
 
     # collections
     coll_forecasts = db["priceforecasts"]
@@ -175,11 +185,23 @@ def main(argv: list[str] | None = None) -> int:
     # trigger retrain if many groups drifted or average MAE relative is large
     if total_groups > 0 and drift_count / total_groups > 0.25:
         overall_retrain = True
+    # trigger if any individual group suggested retrain
+    if any(g.get("retrain_suggested") for g in group_metrics):
+        overall_retrain = True
     # or if overall MAE relative to median of all prices > threshold
     all_hist_prices = [d.get("price") for d in coll_prices.find({}, {"price": 1}) if d.get("price") is not None]
     overall_median = float(np.median(all_hist_prices)) if len(all_hist_prices) > 0 else float('nan')
     if overall.get("mae") is not None and not math.isnan(overall_median) and overall_median > 0:
         if overall["mae"] / overall_median > args.retrain_error_mae_rel:
+            overall_retrain = True
+
+    # Additional heuristic: if median predicted deviates greatly from historical median
+    try:
+        pred_median = float(pd.to_numeric(fdf['predicted_price'], errors='coerce').median())
+    except Exception:
+        pred_median = float('nan')
+    if not overall_retrain and not math.isnan(overall_median) and overall_median > 0 and not math.isnan(pred_median):
+        if abs(pred_median - overall_median) / overall_median > args.retrain_error_mae_rel:
             overall_retrain = True
 
     report = {

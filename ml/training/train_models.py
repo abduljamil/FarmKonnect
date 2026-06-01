@@ -42,7 +42,8 @@ def detect_target(df: pd.DataFrame) -> str:
 
 def metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict:
     mae = mean_absolute_error(y_true, y_pred)
-    rmse = mean_squared_error(y_true, y_pred, squared=False)
+    # compute RMSE directly for compatibility across sklearn versions
+    rmse = float(((y_true - y_pred) ** 2).mean() ** 0.5)
     # MAPE: handle zeros safely
     nonzero = y_true != 0
     if nonzero.sum() > 0:
@@ -143,7 +144,14 @@ def main(argv: list[str] | None = None) -> int:
     final_model = LGBMRegressor(n_estimators=1000, learning_rate=0.05, random_state=42)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        final_model.fit(X, y, verbose=False)
+        try:
+            final_model.fit(X, y, verbose=False)
+        except TypeError:
+            try:
+                final_model.fit(X, y)
+            except TypeError:
+                # as a last resort, call without extra args
+                final_model.fit(X, y)
 
     model_path = out_dir / "lgbm_full.joblib"
     joblib.dump(final_model, model_path)
