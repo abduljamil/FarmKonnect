@@ -18,6 +18,9 @@ import numpy as np
 import pandas as pd
 from pymongo import MongoClient
 from scipy.stats import ks_2samp
+from logging_config import get_logger
+
+logger = get_logger("monitor")
 
 
 def choose_model_preference(models: list[str]) -> str:
@@ -83,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
     cursor = coll_forecasts.find({"forecast_date": {"$gte": since}, "horizon_weeks": 1})
     forecasts = list(cursor)
     if len(forecasts) == 0:
-        print("No recent forecasts found in DB for the lookback window.")
+        logger.info("No recent forecasts found in DB for the lookback window.")
         return 0
 
     fdf = pd.DataFrame(forecasts)
@@ -112,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
     actuals = list(actual_cursor)
     a_df = pd.DataFrame(actuals)
     if a_df.empty:
-        print("No matching actual prices found for forecast dates.")
+        logger.info("No matching actual prices found for forecast dates.")
 
     # Merge forecasts with actuals on commodity,variety,city and date
     # normalize keys
@@ -216,12 +219,12 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     coll_monitor.insert_one(report)
-    print("Wrote monitoring report to ml_monitoring")
+    logger.info("Wrote monitoring report to ml_monitoring")
 
     if overall_retrain:
         job = {"type": "retrain", "created_at": datetime.utcnow(), "reason": "drift_or_high_error"}
         coll_jobs.insert_one(job)
-        print("Enqueued retrain job in ml_jobs collection")
+        logger.info("Enqueued retrain job in ml_jobs collection")
 
     return 0
 

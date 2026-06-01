@@ -1,3 +1,7 @@
+from pymongo import MongoClient
+from logging_config import get_logger
+
+logger = get_logger("predict_and_push")
 """Generate short-horizon forecasts and push them to the backend MongoDB.
 
 This script:
@@ -181,7 +185,9 @@ def main(argv: list[str] | None = None) -> int:
             }
             coll.update_one(key, {"$set": doc}, upsert=True)
 
-    print(f"Wrote {len(forecasts)} forecast documents to {db.name}.{args.collection}")
+            logger.info("Wrote %d forecast documents to %s.%s", len(forecasts), db.name, args.collection)
+        else:
+            logger.info("No forecasts to write")
     return 0
 
 

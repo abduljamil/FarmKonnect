@@ -6,6 +6,7 @@ on:
       - 'ml/**'
   schedule:
     - cron: '0 2 * * *' # daily at 02:00 UTC
+  workflow_dispatch: {}
 
 permissions:
   contents: read
