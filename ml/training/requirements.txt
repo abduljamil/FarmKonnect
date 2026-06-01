@@ -11,3 +11,5 @@ hijri-converter
 scipy
 pytest
 mongomock
+prometheus_client
+sentry-sdk

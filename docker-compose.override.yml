@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: fk_ml_mongo
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_DATABASE: farmkonnect_ml
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

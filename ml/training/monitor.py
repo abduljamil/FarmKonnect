@@ -21,6 +21,17 @@ from scipy.stats import ks_2samp
 from logging_config import get_logger
 
 logger = get_logger("monitor")
+start_metrics()
+
+try:
+    from prometheus_client import Counter, Gauge
+    METRICS_ENABLED = True
+except Exception:
+    METRICS_ENABLED = False
+
+if METRICS_ENABLED:
+    MONITOR_RUNS = Counter("fk_monitor_runs_total", "Total monitor runs")
+    RETRAIN_JOBS_ENQUEUED = Counter("fk_retrain_jobs_enqueued_total", "Retrain jobs enqueued")
 
 
 def choose_model_preference(models: list[str]) -> str:
@@ -220,11 +231,21 @@ def main(argv: list[str] | None = None) -> int:
 
     coll_monitor.insert_one(report)
     logger.info("Wrote monitoring report to ml_monitoring")
+    if METRICS_ENABLED:
+        try:
+            MONITOR_RUNS.inc()
+        except Exception:
+            pass
 
     if overall_retrain:
         job = {"type": "retrain", "created_at": datetime.utcnow(), "reason": "drift_or_high_error"}
         coll_jobs.insert_one(job)
         logger.info("Enqueued retrain job in ml_jobs collection")
+        if METRICS_ENABLED:
+            try:
+                RETRAIN_JOBS_ENQUEUED.inc()
+            except Exception:
+                pass
 
     return 0
 

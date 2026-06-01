@@ -19,6 +19,21 @@ from datetime import datetime
 from pathlib import Path
 
 from pymongo import MongoClient, ReturnDocument
+from logging_config import get_logger, start_metrics
+
+logger = get_logger("retrain_worker")
+start_metrics()
+
+try:
+    from prometheus_client import Counter
+    METRICS_ENABLED = True
+except Exception:
+    METRICS_ENABLED = False
+
+if METRICS_ENABLED:
+    JOBS_CLAIMED = Counter("fk_retrain_jobs_claimed_total", "Retrain jobs claimed by worker")
+    JOBS_SUCCEEDED = Counter("fk_retrain_jobs_succeeded_total", "Retrain jobs completed successfully")
+    JOBS_FAILED = Counter("fk_retrain_jobs_failed_total", "Retrain jobs failed")
 
 
 POLL_INTERVAL = int(os.environ.get("RETRAIN_POLL_INTERVAL", "30"))
@@ -74,7 +89,7 @@ def main():
     jobs_coll = db.get_collection("ml_jobs")
     runs_coll = db.get_collection("ml_job_runs")
 
-    print("Retrain worker started. Polling for jobs...")
+    logger.info("Retrain worker started. Polling for jobs...")
     while True:
         try:
             job = claim_job(jobs_coll)
@@ -82,7 +97,12 @@ def main():
                 time.sleep(POLL_INTERVAL)
                 continue
 
-            print(f"Claimed job id={job.get('_id')}")
+            logger.info("Claimed job id=%s", job.get("_id"))
+            if METRICS_ENABLED:
+                try:
+                    JOBS_CLAIMED.inc()
+                except Exception:
+                    pass
             job_id = job.get("_id")
             rc, out, err, model_dir = run_training(job)
 
@@ -99,13 +119,23 @@ def main():
 
             if rc == 0:
                 jobs_coll.update_one({"_id": job_id}, {"$set": {"status": "completed", "finished_at": datetime.utcnow(), "model_dir": model_dir}})
-                print(f"Job {job_id} completed successfully.")
+                logger.info("Job %s completed successfully.", job_id)
+                if METRICS_ENABLED:
+                    try:
+                        JOBS_SUCCEEDED.inc()
+                    except Exception:
+                        pass
             else:
                 jobs_coll.update_one({"_id": job_id}, {"$set": {"status": "failed", "finished_at": datetime.utcnow(), "error": err[:2000]}})
-                print(f"Job {job_id} failed (exit {rc}).")
+                logger.error("Job %s failed (exit %s).", job_id, rc)
+                if METRICS_ENABLED:
+                    try:
+                        JOBS_FAILED.inc()
+                    except Exception:
+                        pass
 
         except Exception as e:
-            print("Worker error:", str(e))
+            logger.exception("Worker error: %s", e)
             time.sleep(POLL_INTERVAL)
 
 

@@ -1,7 +1,18 @@
 from pymongo import MongoClient
-from logging_config import get_logger
+from logging_config import get_logger, start_metrics
 
 logger = get_logger("predict_and_push")
+# start metrics server if available
+start_metrics()
+
+try:
+    from prometheus_client import Counter
+    METRICS_ENABLED = True
+except Exception:
+    METRICS_ENABLED = False
+
+if METRICS_ENABLED:
+    FORECASTS_WRITTEN = Counter("fk_forecasts_written_total", "Total forecasts written to DB")
 """Generate short-horizon forecasts and push them to the backend MongoDB.
 
 This script:
@@ -186,6 +197,11 @@ def main(argv: list[str] | None = None) -> int:
             coll.update_one(key, {"$set": doc}, upsert=True)
 
             logger.info("Wrote %d forecast documents to %s.%s", len(forecasts), db.name, args.collection)
+            if METRICS_ENABLED:
+                try:
+                    FORECASTS_WRITTEN.inc(len(forecasts))
+                except Exception:
+                    pass
         else:
             logger.info("No forecasts to write")
     return 0
