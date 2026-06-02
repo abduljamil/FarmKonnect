@@ -1,0 +1,17 @@
+metric,value
+rows_in,64247
+rows_out,64247
+cols_in,66
+cols_out,77
+series,146
+new_cols,"price_lag1_ma13, price_lag1_ma4, price_lag1_std4, price_lag_1, price_lag_13, price_lag_2, price_lag_4, price_lag_8, wb_cotton_a_lag1, wb_crude_brent_lag1, wb_dap_lag1, wb_maize_lag1, wb_rice_thai25_lag1, wb_rice_thai5_lag1, wb_rice_viet5_lag1, wb_sugar_world_lag1, wb_urea_lag1, wb_wheat_hrw_lag1, wb_wheat_srw_lag1, wx_precip_sum_lag1, wx_rh_mean_lag1, wx_t2m_mean_lag1, wx_tmax_max_lag1, wx_tmin_min_lag1, y_1, y_12, y_2, y_4, yf_brent_lag1, yf_cotton_lag1, yf_maize_lag1, yf_sugar_lag1, yf_usdpkr_lag1, yf_wheat_cbot_lag1, yf_wheat_kc_lag1"
+dropped_cols,"price_raw, wb_cotton_a, wb_crude_brent, wb_dap, wb_maize, wb_rice_thai25, wb_rice_thai5, wb_rice_viet5, wb_sugar_world, wb_urea, wb_wheat_hrw, wb_wheat_srw, wx_precip_sum, wx_rh_mean, wx_t2m_mean, wx_tmax_max, wx_tmin_min, yf_brent, yf_cotton, yf_maize, yf_sugar, yf_usdpkr, yf_wheat_cbot, yf_wheat_kc"
+nan_y_1,146
+nan_y_2,287
+nan_y_4,568
+nan_y_12,1671
+nan_price_lag_1,146
+nan_price_lag_2,287
+nan_price_lag_4,568
+nan_price_lag_8,1124
+nan_price_lag_13,1807
