@@ -1,0 +1,14 @@
+{
+  "rows_in": 64247,
+  "rows_train": 59557,
+  "rows_test": 4690,
+  "n_series": 146,
+  "n_features": 69,
+  "test_weeks": 52,
+  "horizons": [
+    1,
+    2,
+    4,
+    12
+  ]
+}
