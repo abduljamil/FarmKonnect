@@ -1,4 +1,4 @@
-import React, { useEffect, memo, useState, useCallback } from "react";
+import React, { useEffect, memo, useState, useCallback, useMemo } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import {
   LineChart,
@@ -62,17 +62,33 @@ const ChartSkeleton = () => (
   </div>
 );
 
-// Custom Tooltip
+// Custom Tooltip — distinguishes historical prices from model forecasts.
+// A forecast point's payload has `is_forecast`, the predicted value, an
+// expected MAPE, and which model produced it (persistence/lgbm_per_commodity/
+// lgbm_quantile_median/etc.).
 const CustomTooltip = memo(({ active, payload }) => {
   if (active && payload && payload.length) {
-    const dataPoint = payload[0].payload;
-    const value = payload[0].value;
+    // recharts sometimes passes multiple series — pick whichever has a value.
+    const hit = payload.find((p) => p.value != null) || payload[0];
+    const d = hit.payload;
+    const value = hit.value;
+    const isForecast = !!d.is_forecast && hit.dataKey === "predicted_price";
     return (
-      <div className="bg-white dark:bg-gray-800 px-3 py-2 border border-primary-500 rounded-xl shadow-lg">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white">{dataPoint.fullDate || dataPoint.date}</p>
-        <p className="text-lg font-bold text-primary-600 dark:text-primary-400">
-          ₨{value?.toLocaleString()}
+      <div className={`bg-white dark:bg-gray-800 px-3 py-2 border rounded-xl shadow-lg ${isForecast ? "border-orange-500" : "border-primary-500"}`}>
+        <p className="text-sm font-semibold text-gray-900 dark:text-white">{d.fullDate || d.date}</p>
+        <p className={`text-lg font-bold ${isForecast ? "text-orange-600 dark:text-orange-400" : "text-primary-600 dark:text-primary-400"}`}>
+          ₨{value?.toLocaleString(undefined, { maximumFractionDigits: 0 })}
         </p>
+        {isForecast && (
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p>
+              Predicted ({d.horizon_weeks} wk forecast)
+            </p>
+            {d.expected_mape != null && (
+              <p>± {d.expected_mape.toFixed(1)}% expected error</p>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -203,6 +219,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
   const [varieties, setVarieties] = useState([]);
   const [cities, setCities] = useState([]);
   const [data, setData] = useState([]);
+  const [forecastDocs, setForecastDocs] = useState([]); // raw forecast rows
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [chartType, setChartType] = useState("area");
@@ -430,6 +447,52 @@ const PriceChart = ({ user, onLoginRequired }) => {
     return () => { isMounted = false; };
   }, [selectedCommodity, selectedVariety, selectedCity, days, selectedDate]);
 
+  // Fetch model forecasts for the same (commodity, variety, city). The router
+  // emits one prediction per horizon (1, 2, 4, 12 wk) anchored to the most
+  // recent W-FRI week. We keep only the *latest* anchor's set so the chart
+  // shows one forward-looking forecast curve, not a tangle of historical
+  // ones. (Older anchors are still in the DB for monitoring / debug.)
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchForecast = async () => {
+      if (!selectedCommodity || !selectedCity) {
+        setForecastDocs([]);
+        return;
+      }
+      try {
+        const params = new URLSearchParams({
+          commodity: selectedCommodity,
+          city: selectedCity,
+        });
+        if (selectedVariety) params.set("variety", selectedVariety);
+
+        const response = await fetch(
+          `${API_URL}/prices/forecast?${params.toString()}`
+        );
+        const responseData = await response.json();
+        if (!response.ok || !isMounted) return;
+
+        const docs = responseData.data || [];
+        if (docs.length === 0) {
+          setForecastDocs([]);
+          return;
+        }
+        const latestAnchor = docs.reduce(
+          (m, d) => (new Date(d.anchor_date) > new Date(m) ? d.anchor_date : m),
+          docs[0].anchor_date
+        );
+        const latestSet = docs.filter((d) => d.anchor_date === latestAnchor);
+        setForecastDocs(latestSet);
+      } catch {
+        if (isMounted) setForecastDocs([]);
+      }
+    };
+
+    fetchForecast();
+    return () => { isMounted = false; };
+  }, [selectedCommodity, selectedVariety, selectedCity]);
+
   const handleProtectedAction = useCallback((action) => {
     if (!user && onLoginRequired) {
       onLoginRequired();
@@ -449,6 +512,46 @@ const PriceChart = ({ user, onLoginRequired }) => {
   const isPositive = priceChange > 0;
   const isNegative = priceChange < 0;
 
+  // Forecast forward into the future — append the latest-anchor forecast rows
+  // after the historical data so recharts draws a continuous left-to-right axis.
+  // History rows have `price` only; forecast rows have `predicted_price` only.
+  // That way the two series render as visually distinct, non-overlapping lines.
+  const chartData = useMemo(() => {
+    if (forecastDocs.length === 0) return data;
+    const longRange = !selectedDate && days > 365;
+    const forecastRows = [...forecastDocs]
+      .sort((a, b) => new Date(a.forecast_date) - new Date(b.forecast_date))
+      .map((d) => {
+        const fd = new Date(d.forecast_date);
+        return {
+          date: longRange
+            ? fd.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+            : fd.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          fullDate: fd.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
+          price: null,
+          predicted_price: d.predicted_price,
+          band_low: d.expected_mape != null ? d.predicted_price * (1 - d.expected_mape / 100) : null,
+          band_high: d.expected_mape != null ? d.predicted_price * (1 + d.expected_mape / 100) : null,
+          is_forecast: true,
+          horizon_weeks: d.horizon_weeks,
+          model: d.model,
+          expected_mape: d.expected_mape,
+          unit: d.unit,
+        };
+      });
+    // Bridge: include `predicted_price` on the last historical row so the
+    // forecast line picks up visually from the actual current price.
+    const anchorPrice = forecastDocs[0].anchor_price;
+    const bridgedHistory = data.map((d, i) =>
+      i === data.length - 1 ? { ...d, predicted_price: anchorPrice } : d
+    );
+    return [...bridgedHistory, ...forecastRows];
+  }, [data, forecastDocs, selectedDate, days]);
+
+  // The h=12 forecast — used in the stats area to show users a model-based
+  // outlook alongside the historical high/avg/low.
+  const longestForecast = forecastDocs.find((d) => d.horizon_weeks === 12);
+
   // Fall back to base family config when a variant has no dedicated entry.
   const currentConfig = getCommodityConfig(selectedCommodity);
 
@@ -458,18 +561,21 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
   const isEmpty = !loading && data.length === 0;
 
-  // Render chart based on type
+  // Render chart based on type. History uses `dataKey="price"` (green/area);
+  // forecast uses `dataKey="predicted_price"` (orange/dashed) and renders only
+  // when forecastDocs is populated.
   const renderChart = () => {
     const isMobile = window.innerWidth < 640;
+    const hasForecast = forecastDocs.length > 0;
     const commonProps = {
-      data,
+      data: chartData,
       margin: { top: 10, right: isMobile ? 10 : 30, left: 5, bottom: 5 }
     };
 
     const xAxisProps = {
       dataKey: "date",
       tick: { fontSize: isMobile ? 10 : 13, fill: "#6b7280", fontWeight: 500 },
-      interval: data.length > (isMobile ? 8 : 14) ? Math.floor(data.length / (isMobile ? 4 : 5)) : 0,
+      interval: chartData.length > (isMobile ? 8 : 14) ? Math.floor(chartData.length / (isMobile ? 4 : 5)) : 0,
       axisLine: false,
       tickLine: false,
       tickMargin: 8,
@@ -483,6 +589,22 @@ const PriceChart = ({ user, onLoginRequired }) => {
       tickLine: false,
       width: isMobile ? 50 : 80,
     };
+
+    // Orange dashed line for forecast — connectNulls=true so the forecast line
+    // jumps from the bridged-history anchor to the future forecast points.
+    const forecastLine = (
+      <Line
+        type="monotone"
+        dataKey="predicted_price"
+        stroke="#f97316"
+        strokeWidth={isMobile ? 2 : 2.5}
+        strokeDasharray="6 4"
+        dot={{ r: 3.5, fill: "#f97316", stroke: "#fff", strokeWidth: 1.5 }}
+        activeDot={{ r: 5, fill: "#f97316", stroke: "#fff", strokeWidth: 2 }}
+        connectNulls
+        isAnimationActive={false}
+      />
+    );
 
     switch (chartType) {
       case "line":
@@ -505,7 +627,9 @@ const PriceChart = ({ user, onLoginRequired }) => {
               strokeWidth={isMobile ? 2 : 2.5}
               dot={false}
               activeDot={{ r: 5, fill: "#059669", stroke: "#fff", strokeWidth: 2 }}
+              connectNulls={false}
             />
+            {hasForecast && forecastLine}
           </LineChart>
         );
 
@@ -517,12 +641,19 @@ const PriceChart = ({ user, onLoginRequired }) => {
                 <stop offset="0%" stopColor="#10b981" />
                 <stop offset="100%" stopColor="#059669" />
               </linearGradient>
+              <linearGradient id="forecastBarGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fb923c" />
+                <stop offset="100%" stopColor="#f97316" />
+              </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
             <XAxis {...xAxisProps} />
             <YAxis {...yAxisProps} />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="price" fill="url(#barGradient)" radius={[4, 4, 0, 0]} />
+            {hasForecast && (
+              <Bar dataKey="predicted_price" fill="url(#forecastBarGradient)" radius={[4, 4, 0, 0]} />
+            )}
           </BarChart>
         );
 
@@ -549,7 +680,9 @@ const PriceChart = ({ user, onLoginRequired }) => {
               stroke="url(#areaStroke)"
               strokeWidth={isMobile ? 2 : 2.5}
               fill="url(#areaGradient)"
+              connectNulls={false}
             />
+            {hasForecast && forecastLine}
           </AreaChart>
         );
     }
@@ -795,6 +928,31 @@ const PriceChart = ({ user, onLoginRequired }) => {
                 </ResponsiveContainer>
               )}
             </div>
+            {/* Forecast legend + summary */}
+            {forecastDocs.length > 0 && !isEmpty && !error && (
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block w-4 h-0.5 bg-primary-600 rounded" />
+                    Actual price
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block w-4 h-0.5 border-t-2 border-dashed border-orange-500" />
+                    Model forecast
+                  </span>
+                </div>
+                {longestForecast && (
+                  <span className="text-gray-500 dark:text-gray-400">
+                    12-week outlook: <span className="font-semibold text-orange-600 dark:text-orange-400">
+                      ₨{Math.round(longestForecast.predicted_price).toLocaleString()}
+                    </span>
+                    {longestForecast.expected_mape != null && (
+                      <> ± {longestForecast.expected_mape.toFixed(1)}%</>
+                    )}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Footer */}
