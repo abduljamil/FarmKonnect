@@ -50,6 +50,23 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
 
+  prediction_service:
+    # Phase 8 — weekly forecaster. Long-running container, ticks hourly, runs
+    # one prediction cycle per week (Saturday onwards for the prior W-FRI panel).
+    # First run backfills 12 weeks so the chart has historical context.
+    build:
+      context: .
+      dockerfile: prediction_service/Dockerfile
+    env_file:
+      - ./backend/.env       # provides MONGODB_URI (same as backend / scraper)
+    environment:
+      - PREDICTION_COLLECTION=pricepredictions
+      - MONGODB_DB=FarmKonnect
+      - RUN_INTERVAL_SECONDS=3600
+      - EARLIEST_RUN_DAY_OFFSET=1   # wait until Saturday UTC before predicting for Fri
+      - BACKFILL_WEEKS=12
+    restart: always
+
 networks:
   default:
     driver: bridge

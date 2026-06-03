@@ -1,0 +1,12 @@
+pandas
+pyarrow
+numpy
+pymongo
+lightgbm
+joblib
+scikit-learn
+hijridate
+requests
+openpyxl
+yfinance
+python-dotenv
