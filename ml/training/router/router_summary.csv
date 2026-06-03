@@ -1,0 +1,25 @@
+commodity,horizon,chosen,chosen_mape,persistence_mape,edge_pct,reason,n
+Maize,1,persistence,2.175957584924596,2.175957584924596,0.0,persistence_is_best,601
+Maize,2,persistence,3.691359659148315,3.691359659148315,0.0,persistence_is_best,588
+Maize,4,persistence,5.9057849363219015,5.9057849363219015,0.0,persistence_is_best,562
+Maize,12,persistence,10.570825460384778,10.570825460384778,0.0,persistence_is_best,458
+Paddy,1,persistence,4.171925512635823,4.171925512635823,0.0,persistence_is_best,437
+Paddy,2,persistence,7.102135724926158,7.102135724926158,0.0,persistence_is_best,413
+Paddy,4,persistence,11.82748243018255,11.82748243018255,0.0,persistence_is_best,370
+Paddy,12,lgbm,17.628151670330013,18.93447699390656,6.89918883947492,beats_persistence_by_6.9pct,225
+Rice,1,persistence,1.3377099950346154,1.3377099950346154,0.0,persistence_is_best,2176
+Rice,2,persistence,2.289714890778417,2.289714890778417,0.0,persistence_is_best,2117
+Rice,4,persistence,3.8802828338600346,3.8802828338600346,0.0,persistence_is_best,2003
+Rice,12,persistence,7.160765114436559,7.160765114436559,0.0,persistence_is_best,1582
+Seed Cotton (Phutti),1,persistence,2.3858225939093014,2.3858225939093014,0.0,persistence_is_best,178
+Seed Cotton (Phutti),2,persistence,4.129179144923249,4.129179144923249,0.0,persistence_is_best,171
+Seed Cotton (Phutti),4,persistence,6.4432460153509,6.4432460153509,0.0,persistence_is_best,157
+Seed Cotton (Phutti),12,lgbm,8.31407056827957,9.651375668812044,13.856108667015324,beats_persistence_by_13.9pct,107
+Sugar,1,persistence,1.169954735481681,1.169954735481681,0.0,persistence_is_best,617
+Sugar,2,persistence,2.055694680275388,2.055694680275388,0.0,persistence_is_best,603
+Sugar,4,persistence,3.636041356957261,3.636041356957261,0.0,persistence_is_best,575
+Sugar,12,persistence,7.619707695925476,7.619707695925476,0.0,persistence_is_best,469
+Wheat,1,persistence,2.355106862860904,2.355106862860904,0.0,persistence_is_best,535
+Wheat,2,persistence,4.146197320817217,4.146197320817217,0.0,persistence_is_best,522
+Wheat,4,persistence,7.497660895901187,7.497660895901187,0.0,persistence_is_best,496
+Wheat,12,lgbm,16.18366248442729,16.976064037689472,4.667757800058527,beats_persistence_by_4.7pct,392
