@@ -77,14 +77,31 @@ def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict:
 
 
 def _train_one(
-    df_train: pd.DataFrame, df_test: pd.DataFrame, horizon: int
+    df_train_full: pd.DataFrame, df_test: pd.DataFrame, horizon: int,
+    val_weeks: int = 26,
 ) -> tuple[LGBMRegressor, pd.Series, list[str]]:
-    """Train one LGBM on the pct-change target; return absolute-price predictions."""
-    X_tr, pct_tr = _features_target_split(df_train, horizon)
-    X_te, pct_te = _features_target_split(df_test, horizon)
+    """Train one LGBM on the pct-change target; return absolute-price predictions.
 
-    keep = ~pct_tr.isna()
-    X_tr, pct_tr = X_tr[keep], pct_tr[keep]
+    Phase 6.5 (2026-06-03): hold out the last `val_weeks` of TRAIN per series as
+    a proper validation set for early stopping. The test set is no longer the
+    eval_set — that was a mild leak that flattered reported LGBM MAPE by ~1-5%.
+    """
+    # Per-series, the last val_weeks rows of df_train_full become the validation.
+    max_date_train = df_train_full.groupby(GROUP_COLS, dropna=False, sort=False)["date"].transform("max")
+    weeks_from_train_end = (max_date_train - df_train_full["date"]).dt.days // 7
+    is_val = weeks_from_train_end < val_weeks
+
+    df_tr = df_train_full[~is_val].copy()
+    df_va = df_train_full[is_val].copy()
+
+    X_tr, pct_tr = _features_target_split(df_tr, horizon)
+    X_va, pct_va = _features_target_split(df_va, horizon)
+    X_te, _      = _features_target_split(df_test, horizon)
+
+    keep_tr = ~pct_tr.isna()
+    X_tr, pct_tr = X_tr[keep_tr], pct_tr[keep_tr]
+    keep_va = ~pct_va.isna()
+    X_va, pct_va = X_va[keep_va], pct_va[keep_va]
 
     model = LGBMRegressor(
         n_estimators=2000,
@@ -103,7 +120,7 @@ def _train_one(
         model.fit(
             X_tr,
             pct_tr,
-            eval_set=[(X_te[~pct_te.isna()], pct_te[~pct_te.isna()])],
+            eval_set=[(X_va, pct_va)],   # validation, NOT the test set
             callbacks=[early_stopping(100, verbose=False), log_evaluation(0)],
             categorical_feature=[c for c in CATEGORICALS if c in X_tr.columns],
         )

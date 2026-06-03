@@ -3,7 +3,7 @@
   "rows_train": 59557,
   "rows_test": 4690,
   "n_series": 146,
-  "n_features": 69,
+  "n_features": 81,
   "test_weeks": 52,
   "horizons": [
     1,

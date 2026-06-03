@@ -18,10 +18,28 @@ COPY ml/training/features/   /app/ml/training/features/
 
 # --- ML artifacts: router config + trained model bundles ---
 COPY ml/training/router/router_config.json /app/ml/training/router/
+# Global mean LGBM per horizon (always present; baseline candidate)
 COPY ml/training/models/lgbm_h1.joblib  /app/ml/training/models/
 COPY ml/training/models/lgbm_h2.joblib  /app/ml/training/models/
 COPY ml/training/models/lgbm_h4.joblib  /app/ml/training/models/
 COPY ml/training/models/lgbm_h12.joblib /app/ml/training/models/
+# Per-commodity specialists (Phase 6.5) — used when router routes to lgbm_per_commodity
+COPY ml/training/models/lgbm_wheat_h1.joblib  /app/ml/training/models/
+COPY ml/training/models/lgbm_wheat_h2.joblib  /app/ml/training/models/
+COPY ml/training/models/lgbm_wheat_h4.joblib  /app/ml/training/models/
+COPY ml/training/models/lgbm_wheat_h12.joblib /app/ml/training/models/
+COPY ml/training/models/lgbm_paddy_h1.joblib  /app/ml/training/models/
+COPY ml/training/models/lgbm_paddy_h2.joblib  /app/ml/training/models/
+COPY ml/training/models/lgbm_paddy_h4.joblib  /app/ml/training/models/
+COPY ml/training/models/lgbm_paddy_h12.joblib /app/ml/training/models/
+COPY ml/training/models/lgbm_seed_cotton_phutti_h1.joblib  /app/ml/training/models/
+COPY ml/training/models/lgbm_seed_cotton_phutti_h2.joblib  /app/ml/training/models/
+COPY ml/training/models/lgbm_seed_cotton_phutti_h4.joblib  /app/ml/training/models/
+COPY ml/training/models/lgbm_seed_cotton_phutti_h12.joblib /app/ml/training/models/
+# Quantile LGBM bundles at h=12 (median is a candidate; q10/q90 reserved for Phase 10 bands)
+COPY ml/training/models/lgbm_h12_q10.joblib /app/ml/training/models/
+COPY ml/training/models/lgbm_h12_q50.joblib /app/ml/training/models/
+COPY ml/training/models/lgbm_h12_q90.joblib /app/ml/training/models/
 
 # --- Reference data used by build_deterministic.py ---
 COPY ml/external/policy_events.csv /app/ml/external/

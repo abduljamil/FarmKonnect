@@ -37,7 +37,11 @@ from pathlib import Path
 import pandas as pd
 
 GROUP_COLS = ["commodity", "variety", "city"]
-PRICE_LAGS = [1, 2, 4, 8, 13]
+# Phase 6.5 (2026-06-03): extended price lags to include 26 / 39 / 52 weeks.
+# At h=12, "what was the price 6/9/12 months ago" gives the model a year-shaped
+# anchor that the prior 1-13 wk window misses (pure seasonal_naive at 52 wk is
+# bad, but blended with recent lags it helps LGBM at h=12 on the hard series).
+PRICE_LAGS = [1, 2, 4, 8, 13, 26, 39, 52]
 TARGET_HORIZONS = [1, 2, 4, 12]
 EXOG_PREFIXES = ("wx_", "yf_", "wb_")
 

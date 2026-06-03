@@ -120,12 +120,52 @@ def load_router() -> dict:
     return cfg
 
 
-def load_models() -> dict[int, dict]:
-    models = {}
-    for h in HORIZONS:
-        path = MODELS_DIR / f"lgbm_h{h}.joblib"
-        models[h] = joblib.load(path)
-    log("models", f"loaded {len(models)} LGBM bundles from {MODELS_DIR}")
+def _slug(c: str) -> str:
+    return (c.lower()
+              .replace(" ", "_")
+              .replace("(", "")
+              .replace(")", ""))
+
+
+def load_models(router: dict) -> dict:
+    """Load only the joblib bundles the router actually references.
+
+    Returns a dict keyed by:
+      ("lgbm", h)                                — global mean LGBM per horizon
+      ("lgbm_per_commodity", commodity, h)      — Phase 6.5 specialist
+      ("lgbm_quantile_median", h)               — Phase 6.5 quantile median
+    """
+    cells = router["cells"]
+    need_global: set[int] = set()
+    need_per_commodity: set[tuple[str, int]] = set()
+    need_quantile_median: set[int] = set()
+
+    for cell in cells.values():
+        m = cell["model"]
+        h = cell["horizon"]
+        if m == "lgbm":
+            need_global.add(h)
+        elif m == "lgbm_per_commodity":
+            need_per_commodity.add((cell["commodity"], h))
+        elif m == "lgbm_quantile_median":
+            need_quantile_median.add(h)
+
+    models: dict = {}
+    for h in need_global:
+        models[("lgbm", h)] = joblib.load(MODELS_DIR / f"lgbm_h{h}.joblib")
+    for commodity, h in need_per_commodity:
+        models[("lgbm_per_commodity", commodity, h)] = joblib.load(
+            MODELS_DIR / f"lgbm_{_slug(commodity)}_h{h}.joblib"
+        )
+    for h in need_quantile_median:
+        models[("lgbm_quantile_median", h)] = joblib.load(
+            MODELS_DIR / f"lgbm_h{h}_q50.joblib"
+        )
+
+    log("models",
+        f"loaded global={sorted(need_global)} "
+        f"per_commodity={sorted(need_per_commodity)} "
+        f"quantile_median={sorted(need_quantile_median)}")
     return models
 
 
@@ -141,15 +181,15 @@ def _select_anchors(df: pd.DataFrame, mode: str, backfill_weeks: int) -> pd.Data
     return df.groupby(GROUP_COLS, dropna=False, sort=False).tail(n).reset_index(drop=True)
 
 
-def _predict_lgbm_batch(anchors: pd.DataFrame, horizon: int, bundle: dict) -> pd.Series:
-    """Vectorized LGBM prediction for one horizon. Returns absolute price predictions."""
+def _predict_lgbm_batch(anchors: pd.DataFrame, bundle: dict) -> pd.Series:
+    """Vectorized LGBM prediction. Returns absolute price predictions.
+
+    Works for any LGBM bundle: global, per-commodity, or quantile. All share
+    the same {model, feature_cols, categoricals} structure.
+    """
     feature_cols = bundle["feature_cols"]
     cats = bundle["categoricals"]
     model = bundle["model"]
-
-    # Some columns from feature_cols (y_h targets, drop-always) shouldn't actually be in
-    # features_lagged.parquet rows — but feature_cols *was* built from training features
-    # after the drops in _features_target_split, so they're already clean. Defensive: reindex.
     X = anchors.reindex(columns=feature_cols).copy()
     for c in cats:
         if c in X.columns:
@@ -158,10 +198,70 @@ def _predict_lgbm_batch(anchors: pd.DataFrame, horizon: int, bundle: dict) -> pd
     return pd.Series(anchors["price"].values * (1.0 + pct), index=anchors.index)
 
 
+def _dispatch_for_horizon(
+    anchors: pd.DataFrame, h: int, cells: dict, models: dict,
+) -> dict[int, float]:
+    """One-horizon dispatch: returns dict {anchor_idx: predicted_price}.
+
+    Routes each anchor to whichever model the router chose for (commodity, h),
+    then runs each model type as one batched call over its routed slice.
+    """
+    out: dict[int, float] = {}
+
+    # Map each anchor to its model name at this horizon
+    anchor_models = anchors["commodity"].map(
+        lambda c: cells.get(f"{c}__h{h}", {}).get("model")
+    )
+
+    # persistence: y_pred = price
+    m_p = anchor_models == "persistence"
+    if m_p.any():
+        for idx, price in zip(anchors.index[m_p], anchors.loc[m_p, "price"].values):
+            out[idx] = float(price)
+
+    # ma4: y_pred = price_lag1_ma4
+    m_ma = anchor_models == "ma4"
+    if m_ma.any():
+        for idx, v in zip(anchors.index[m_ma], anchors.loc[m_ma, "price_lag1_ma4"].values):
+            if not pd.isna(v):
+                out[idx] = float(v)
+
+    # global LGBM (mean): one batched predict over the routed slice
+    m_lg = anchor_models == "lgbm"
+    if m_lg.any() and ("lgbm", h) in models:
+        preds = _predict_lgbm_batch(anchors[m_lg], models[("lgbm", h)])
+        for idx, p in preds.items():
+            if not pd.isna(p):
+                out[idx] = float(p)
+
+    # per-commodity LGBM: one batched predict per (commodity, h) slice
+    m_pc = anchor_models == "lgbm_per_commodity"
+    if m_pc.any():
+        for commodity, csub in anchors[m_pc].groupby("commodity"):
+            key = ("lgbm_per_commodity", commodity, h)
+            if key not in models:
+                log("predict", f"missing model bundle {key}; skipping {len(csub)} anchors")
+                continue
+            preds = _predict_lgbm_batch(csub, models[key])
+            for idx, p in preds.items():
+                if not pd.isna(p):
+                    out[idx] = float(p)
+
+    # quantile-median LGBM: one batched predict over the routed slice
+    m_qm = anchor_models == "lgbm_quantile_median"
+    if m_qm.any() and ("lgbm_quantile_median", h) in models:
+        preds = _predict_lgbm_batch(anchors[m_qm], models[("lgbm_quantile_median", h)])
+        for idx, p in preds.items():
+            if not pd.isna(p):
+                out[idx] = float(p)
+
+    return out
+
+
 def build_prediction_docs(
     features_path: Path,
     router: dict,
-    models: dict[int, dict],
+    models: dict,
     mode: str = "live",
     backfill_weeks: int = 12,
 ) -> list[dict]:
@@ -177,39 +277,17 @@ def build_prediction_docs(
     docs: list[dict] = []
 
     for h in HORIZONS:
-        # Which anchor rows route to LGBM at this horizon? (vectorized batch predict)
-        commodities_for_lgbm = [
-            cell["commodity"] for k, cell in cells.items()
-            if cell["horizon"] == h and cell["model"] == "lgbm"
-        ]
-        lgbm_mask = anchors["commodity"].isin(commodities_for_lgbm) if commodities_for_lgbm else pd.Series(False, index=anchors.index)
-        lgbm_preds = (
-            _predict_lgbm_batch(anchors[lgbm_mask], h, models[h])
-            if lgbm_mask.any()
-            else pd.Series(dtype=float)
-        )
+        # Per-horizon dispatch — one batched LGBM call per (model_type [× commodity]) slice.
+        preds_by_idx = _dispatch_for_horizon(anchors, h, cells, models)
 
         for idx, row in anchors.iterrows():
             cell_key = f"{row['commodity']}__h{h}"
             cell = cells.get(cell_key)
             if cell is None:
                 continue
-            model_name = cell["model"]
-
-            if model_name == "persistence":
-                y_pred = float(row["price"])
-            elif model_name == "ma4":
-                v = row.get("price_lag1_ma4")
-                if pd.isna(v):
-                    continue
-                y_pred = float(v)
-            elif model_name == "lgbm":
-                if idx not in lgbm_preds.index or pd.isna(lgbm_preds.loc[idx]):
-                    continue
-                y_pred = float(lgbm_preds.loc[idx])
-            else:
-                log("predict", f"unknown model '{model_name}' for {cell_key}; skipping")
-                continue
+            if idx not in preds_by_idx:
+                continue  # anchor missing its required feature (e.g. NaN price_lag1_ma4)
+            y_pred = preds_by_idx[idx]
 
             anchor_date = pd.Timestamp(row["date"]).to_pydatetime()
             forecast_date = (pd.Timestamp(row["date"]) + pd.Timedelta(weeks=h)).to_pydatetime()
@@ -230,7 +308,7 @@ def build_prediction_docs(
                 "forecast_date":        forecast_date,
                 "horizon_weeks":        h,
                 "predicted_price":      y_pred,
-                "model":                model_name,
+                "model":                cell["model"],
                 "expected_mape":        cell.get("expected_mape"),
                 "router_version":       router_version,
                 "router_generated_at":  router_generated_at,
@@ -313,7 +391,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     router = load_router()
-    models = load_models()
+    models = load_models(router)
     docs = build_prediction_docs(
         features_path, router, models,
         mode=args.mode, backfill_weeks=args.backfill_weeks,

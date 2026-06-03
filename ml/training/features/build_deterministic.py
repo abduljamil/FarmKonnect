@@ -148,6 +148,45 @@ def main():
     # only meaningful for wheat
     df["msp_value_wheat"] = np.where(df["commodity"] == "Wheat", msp_val, np.nan)
 
+    # --- Phase 6.5 (2026-06-03): richer MSP-derived features for h=12 hard series ---
+    # msp_weeks_since_change: integer count of weeks since the LAST regime transition.
+    # Captures the "shock decay" pattern — prices respond strongly in the first ~12
+    # weeks after a regime change, then mean-revert. We INCLUDE the 1900 baseline so
+    # the very-long stable period 2009-2024 gets a continuously increasing value
+    # (~5,500-7,500 weeks), not a sentinel. The model can then linearly distinguish
+    # "shock just landed" (small) from "regime stable for decades" (large).
+    regime_break_dates = [pd.Timestamp(d) for d, _ in MSP_REGIME_BREAKS]
+    all_breaks = pd.Series(regime_break_dates)
+    def _weeks_since_last_break(d):
+        prior = all_breaks[all_breaks <= d]
+        if prior.empty:
+            return 0
+        return int((d - prior.max()).days // 7)
+    weeks_since_break = df["date"].apply(_weeks_since_last_break).astype(int)
+    df["msp_weeks_since_change"] = weeks_since_break
+
+    # msp_value_yoy_ratio: msp_value_wheat[t] / msp_value_wheat[t - 52 wk]. NaN where
+    # either side is NaN. Picks up the "MSP just got reinstated +75%" signal that a
+    # flat msp_regime categorical misses.
+    df = df.sort_values(["commodity", "variety", "city", "date"]).reset_index(drop=True)
+    msp_lag52 = (
+        df.groupby(["commodity", "variety", "city"], dropna=False, sort=False)
+          ["msp_value_wheat"].shift(52)
+    )
+    df["msp_value_yoy_ratio"] = df["msp_value_wheat"] / msp_lag52
+
+    # pol_announcement_window: ±2 weeks around any of the MSP regime change dates.
+    # Captures the "announcement shock" effect on prices around the change date,
+    # which is when news lands publicly and traders react.
+    announcement_dates = regime_break_dates
+    win = pd.Series(0, index=df.index, dtype=int)
+    for ad in announcement_dates:
+        win |= (
+            (df["date"] >= ad - pd.Timedelta(weeks=2))
+            & (df["date"] <= ad + pd.Timedelta(weeks=2))
+        ).astype(int)
+    df["pol_announcement_window"] = win.values
+
     # ---------- policy event flags ----------
     pol = pd.read_csv(args.policy)
     pol["start_date"] = pd.to_datetime(pol["start_date"])

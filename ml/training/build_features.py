@@ -56,33 +56,70 @@ def main():
     ext = os.path.join(d, "external")
 
     det = pd.read_parquet(os.path.join(d, "features_deterministic.parquet"))
-    det["date"] = pd.to_datetime(det["date"])
+    det["date"] = pd.to_datetime(det["date"]).astype("datetime64[ns]")
     n0 = len(det)
     weeks = pd.DataFrame({"date": sorted(det["date"].unique())}).sort_values("date")
+    weeks["date"] = weeks["date"].astype("datetime64[ns]")
 
     # ---- weather: daily -> weekly per city ----
     wx = pd.read_parquet(os.path.join(ext, "weather_daily.parquet"))
-    wx["date"] = pd.to_datetime(wx["date"])
+    wx["date"] = pd.to_datetime(wx["date"]).astype("datetime64[ns]")
     agg_map = {src: how for src, (_, how) in WX_AGG.items()}
     wxw = (wx.set_index("date").groupby("city").resample(FREQ).agg(agg_map))
     wxw = wxw.rename(columns={src: new for src, (new, _) in WX_AGG.items()}).reset_index()
+    wxw["date"] = wxw["date"].astype("datetime64[ns]")
 
     # ---- markets: daily -> weekly mean, aligned to panel weeks + ffilled ----
     mk = pd.read_parquet(os.path.join(ext, "markets_daily.parquet"))
-    mk["date"] = pd.to_datetime(mk["date"])
+    mk["date"] = pd.to_datetime(mk["date"]).astype("datetime64[ns]")
     mkw = mk.set_index("date").resample(FREQ).mean(numeric_only=True)
     mkw = mkw.reindex(weeks["date"]).ffill().reset_index()
     mkw.columns = ["date"] + list(mkw.columns[1:])
+    mkw["date"] = mkw["date"].astype("datetime64[ns]")
 
     # ---- world bank: monthly -> as-of latest known month per week ----
     wb = pd.read_parquet(os.path.join(ext, "worldbank_monthly.parquet"))
-    wb["date"] = pd.to_datetime(wb["date"])
+    wb["date"] = pd.to_datetime(wb["date"]).astype("datetime64[ns]")
     wbw = pd.merge_asof(weeks, wb.sort_values("date"), on="date", direction="backward")
+    wbw["date"] = wbw["date"].astype("datetime64[ns]")
+
+    # ---- cross-commodity panel features (Phase 6.5 spillover signal) ----
+    # For each (city, week), the city-average price of each TARGET_COMMODITY
+    # (mean across its varieties), then its 4-week pct change computed with
+    # a 1-week safety lag so prediction-time information isn't seeped in.
+    #
+    # Output columns: xc_<commodity>_pct4w. These are NOT re-lagged by
+    # build_lagged.py (its EXOG_PREFIXES is wx_/yf_/wb_ only) — they're
+    # already leakage-safe by construction.
+    panel_for_xc = (
+        det[["commodity", "city", "date", "price"]]
+        .groupby(["commodity", "city", "date"], as_index=False)["price"].mean()
+    )
+    wide_xc = (
+        panel_for_xc.pivot_table(index=["city", "date"], columns="commodity", values="price")
+        .sort_index()
+    )
+    # leakage-safe: lag the price one full week, then compute 4-week pct change
+    lag1 = wide_xc.groupby(level="city").shift(1)
+    lag5 = wide_xc.groupby(level="city").shift(5)
+    pct_4w = (lag1 - lag5) / lag5
+    def _slug(c: str) -> str:
+        return (
+            c.lower()
+            .replace(" ", "_")
+            .replace("(", "")
+            .replace(")", "")
+        )
+    pct_4w.columns = [f"xc_{_slug(c)}_pct4w" for c in pct_4w.columns]
+    pct_4w = pct_4w.reset_index()
+    # Match panel's datetime resolution (some pandas versions emit us, not ns)
+    pct_4w["date"] = pd.to_datetime(pct_4w["date"]).astype("datetime64[ns]")
 
     # ---- join (all many-to-one => no row blowup) ----
     feat = (det.merge(wxw, on=["city", "date"], how="left")
                .merge(mkw, on="date", how="left")
-               .merge(wbw, on="date", how="left"))
+               .merge(wbw, on="date", how="left")
+               .merge(pct_4w, on=["city", "date"], how="left"))
 
     assert len(feat) == n0, f"row blowup! {n0} -> {len(feat)}"
     feat = feat.sort_values(["commodity", "variety", "city", "date"]).reset_index(drop=True)

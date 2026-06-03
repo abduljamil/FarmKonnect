@@ -33,16 +33,25 @@ from pathlib import Path
 import pandas as pd
 
 HORIZONS = [1, 2, 4, 12]
-CANDIDATE_MODELS = ["persistence", "ma4", "lgbm"]
+CANDIDATE_MODELS = ["persistence", "ma4", "lgbm", "lgbm_per_commodity", "lgbm_quantile_median"]
 # NOTE: Chronos (Amazon foundation model) was evaluated 2026-06-03 — see
 # `ml/training/models/chronos_metrics.csv` + `chronos_predictions.parquet`.
 # On a *fair* comparison (persistence MAPE recomputed on Chronos's exact anchor
 # set), Chronos lost to persistence in every (commodity, horizon) cell by 1–18%.
 # It is NOT a router candidate. The earlier "wins on Paddy h=1/2/4" were an
 # apples-to-oranges artifact of MAPE numbers computed on different anchor sets.
+#
+# All current candidates are scored on the SAME (commodity × horizon) anchor
+# set — the recent-52-week per-series holdout from features_lagged.parquet —
+# so MAPE values are directly comparable.
 
 
-def _load_recent_mapes(baselines_csv: Path, lgbm_csv: Path) -> pd.DataFrame:
+def _load_recent_mapes(
+    baselines_csv: Path,
+    lgbm_csv: Path,
+    per_commodity_csv: Path | None = None,
+    quantile_csv: Path | None = None,
+) -> pd.DataFrame:
     bl = pd.read_csv(baselines_csv)
     bl = bl[(bl["scope"] == "recent_year") & (bl["commodity"] != "ALL")].copy()
     bl = bl[bl["baseline"].isin(["persistence", "ma4"])]
@@ -55,7 +64,23 @@ def _load_recent_mapes(baselines_csv: Path, lgbm_csv: Path) -> pd.DataFrame:
     lg["model"] = "lgbm"
     lg_long = lg[["commodity", "horizon", "model", "mape", "n"]]
 
-    return pd.concat([bl_long, lg_long], ignore_index=True)
+    frames = [bl_long, lg_long]
+
+    if per_commodity_csv and per_commodity_csv.exists():
+        pc = pd.read_csv(per_commodity_csv)
+        pc = pc[pc["commodity"] != "ALL"].copy()
+        pc["model"] = "lgbm_per_commodity"
+        frames.append(pc[["commodity", "horizon", "model", "mape", "n"]])
+
+    if quantile_csv and quantile_csv.exists():
+        q = pd.read_csv(quantile_csv)
+        # Only the median (alpha=0.5) is a point-forecast candidate. The 0.1/0.9
+        # are for bands, not router selection.
+        q = q[(q["commodity"] != "ALL") & (q["alpha"] == 0.5)].copy()
+        q["model"] = "lgbm_quantile_median"
+        frames.append(q[["commodity", "horizon", "model", "mape", "n"]])
+
+    return pd.concat(frames, ignore_index=True)
 
 
 def _pick_winner_per_cell(
@@ -150,6 +175,18 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
     )
     ap.add_argument(
+        "--per-commodity-metrics",
+        default="ml/training/models/lgbm_per_commodity_metrics.csv",
+        type=Path,
+        help="optional; ignored if file doesn't exist",
+    )
+    ap.add_argument(
+        "--quantile-metrics",
+        default="ml/training/models/lgbm_quantile_metrics.csv",
+        type=Path,
+        help="optional; only alpha=0.5 rows used for point-forecast selection",
+    )
+    ap.add_argument(
         "--out",
         default="ml/training/router/router_config.json",
         type=Path,
@@ -164,8 +201,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = ap.parse_args(argv)
 
-    df = _load_recent_mapes(args.baselines, args.lgbm_metrics)
-    print(f"Loaded {len(df)} (commodity, horizon, model) rows from metrics")
+    df = _load_recent_mapes(
+        args.baselines, args.lgbm_metrics,
+        args.per_commodity_metrics, args.quantile_metrics,
+    )
+    print(f"Loaded {len(df)} (commodity, horizon, model) rows from metrics "
+          f"({sorted(df['model'].unique())})")
 
     routes = _pick_winner_per_cell(df, args.min_edge_pct, args.fallback)
 
@@ -189,6 +230,13 @@ def main(argv: list[str] | None = None) -> int:
         sources={
             "baselines": str(args.baselines),
             "lgbm_metrics": str(args.lgbm_metrics),
+            "per_commodity_metrics": (
+                str(args.per_commodity_metrics)
+                if args.per_commodity_metrics.exists() else None
+            ),
+            "quantile_metrics": (
+                str(args.quantile_metrics) if args.quantile_metrics.exists() else None
+            ),
             "min_edge_pct": args.min_edge_pct,
         },
     )
