@@ -1,4 +1,7 @@
 const CommodityPrice = require("../models/CommodityPrice");
+const PricePrediction = require("../models/PricePrediction");
+
+const VALID_HORIZONS = new Set([1, 2, 4, 12]);
 
 // Max window: ~20 years -- we now have AMIS history back to 2009 in Atlas.
 // (The 90-day cap was tied to the old TTL index which has been dropped.)
@@ -233,6 +236,102 @@ exports.getCitiesByFilters = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to fetch cities",
+    });
+  }
+};
+
+// Phase 9 — forecasts from the `pricepredictions` collection (produced weekly
+// by the prediction_service container). Returns predictions ordered by
+// forecast_date ASC so the chart can render them in time-series order.
+//
+// Query params:
+//   commodity      (required)
+//   city           (optional)   — single city or omit for all cities
+//   variety        (optional)   — explicit variety value, or omit / pass an
+//                                  empty string for the varietyless commodities
+//                                  (Wheat / Sugar / Maize / Seed Cotton)
+//   horizon_weeks  (optional)   — 1, 2, 4 or 12. Omit to return all horizons.
+//   since          (optional)   — YYYY-MM-DD lower bound on forecast_date.
+//                                  Defaults to anchor_date >= today - 12 weeks
+//                                  so historical-prediction context shows up.
+//
+// Response: { success, data: [...predictions ordered by forecast_date ASC] }
+exports.getForecast = async (req, res) => {
+  try {
+    const { commodity, city, variety, horizon_weeks, since } = req.query;
+
+    if (!commodity) {
+      return res.status(400).json({
+        success: false,
+        message: "commodity is required",
+      });
+    }
+
+    const criteria = { commodity };
+
+    // Variety: explicit value -> filter; omitted/empty -> null (mirrors how
+    // commodityprices stores Wheat/Sugar/Maize/Seed Cotton).
+    if (variety && variety !== "null") {
+      criteria.variety = variety;
+    } else {
+      criteria.variety = null;
+    }
+
+    if (city) {
+      criteria.city = city;
+    }
+
+    if (horizon_weeks !== undefined) {
+      const h = parseInt(horizon_weeks, 10);
+      if (!VALID_HORIZONS.has(h)) {
+        return res.status(400).json({
+          success: false,
+          message: "horizon_weeks must be one of 1, 2, 4, 12",
+        });
+      }
+      criteria.horizon_weeks = h;
+    }
+
+    if (since) {
+      const sinceDate = new Date(since);
+      if (isNaN(sinceDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid 'since' format. Use YYYY-MM-DD",
+        });
+      }
+      criteria.forecast_date = { $gte: sinceDate };
+    }
+
+    const data = await PricePrediction.find(criteria)
+      .sort({ forecast_date: 1, horizon_weeks: 1 })
+      .select({
+        commodity: 1,
+        variety: 1,
+        city: 1,
+        unit: 1,
+        anchor_date: 1,
+        anchor_price: 1,
+        forecast_date: 1,
+        horizon_weeks: 1,
+        predicted_price: 1,
+        model: 1,
+        expected_mape: 1,
+        router_version: 1,
+        router_generated_at: 1,
+        generated_at: 1,
+        _id: 0,
+      })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch forecast",
     });
   }
 };
