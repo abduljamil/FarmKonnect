@@ -523,6 +523,21 @@ const PriceChart = ({ user, onLoginRequired }) => {
       .sort((a, b) => new Date(a.forecast_date) - new Date(b.forecast_date))
       .map((d) => {
         const fd = new Date(d.forecast_date);
+        // Phase 10.5: prefer real q10/q90 band when the prediction doc carries
+        // it (currently only Sugar h=12 cells). Fall back to expected_mape%
+        // around the point forecast otherwise.
+        const hasRealBand =
+          d.predicted_price_low != null && d.predicted_price_high != null;
+        const band_low = hasRealBand
+          ? d.predicted_price_low
+          : (d.expected_mape != null
+              ? d.predicted_price * (1 - d.expected_mape / 100)
+              : null);
+        const band_high = hasRealBand
+          ? d.predicted_price_high
+          : (d.expected_mape != null
+              ? d.predicted_price * (1 + d.expected_mape / 100)
+              : null);
         return {
           date: longRange
             ? fd.toLocaleDateString("en-US", { month: "short", year: "numeric" })
@@ -530,8 +545,11 @@ const PriceChart = ({ user, onLoginRequired }) => {
           fullDate: fd.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
           price: null,
           predicted_price: d.predicted_price,
-          band_low: d.expected_mape != null ? d.predicted_price * (1 - d.expected_mape / 100) : null,
-          band_high: d.expected_mape != null ? d.predicted_price * (1 + d.expected_mape / 100) : null,
+          band_low,
+          band_high,
+          // For Area stacking trick — height of the band above the lower bound.
+          band_range: band_low != null && band_high != null ? band_high - band_low : null,
+          band_is_real: hasRealBand,
           is_forecast: true,
           horizon_weeks: d.horizon_weeks,
           model: d.model,
@@ -606,6 +624,41 @@ const PriceChart = ({ user, onLoginRequired }) => {
       />
     );
 
+    // Phase 10.5: uncertainty band rendered via the recharts stacked-Area trick.
+    // - First Area: dataKey="band_low", invisible base lifting the next layer up
+    // - Second Area: dataKey="band_range" = band_high - band_low, filled orange
+    // Stacking the two yields a coloured strip from band_low to band_high.
+    // Only emit when at least one forecast row carries a real band; otherwise
+    // recharts can't compute the stack and just collapses cleanly.
+    const hasBand = hasForecast && chartData.some(
+      (r) => r.band_low != null && r.band_range != null
+    );
+    const bandAreas = hasBand ? (
+      <>
+        <Area
+          type="monotone"
+          dataKey="band_low"
+          stackId="forecast_band"
+          stroke="none"
+          fill="transparent"
+          isAnimationActive={false}
+          legendType="none"
+          activeDot={false}
+        />
+        <Area
+          type="monotone"
+          dataKey="band_range"
+          stackId="forecast_band"
+          stroke="none"
+          fill="#f97316"
+          fillOpacity={0.15}
+          isAnimationActive={false}
+          legendType="none"
+          activeDot={false}
+        />
+      </>
+    ) : null;
+
     switch (chartType) {
       case "line":
         return (
@@ -620,6 +673,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
             <XAxis {...xAxisProps} />
             <YAxis {...yAxisProps} />
             <Tooltip content={<CustomTooltip />} />
+            {bandAreas}
             <Line
               type="monotone"
               dataKey="price"
@@ -674,6 +728,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
             <XAxis {...xAxisProps} />
             <YAxis {...yAxisProps} />
             <Tooltip content={<CustomTooltip />} />
+            {bandAreas}
             <Area
               type="monotone"
               dataKey="price"
@@ -940,15 +995,25 @@ const PriceChart = ({ user, onLoginRequired }) => {
                     <span className="inline-block w-4 h-0.5 border-t-2 border-dashed border-orange-500" />
                     Model forecast
                   </span>
+                  {forecastDocs.some(
+                    (d) => d.predicted_price_low != null && d.predicted_price_high != null
+                  ) && (
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block w-4 h-3 bg-orange-500/20 rounded-sm" />
+                      Confidence range
+                    </span>
+                  )}
                 </div>
                 {longestForecast && (
                   <span className="text-gray-500 dark:text-gray-400">
                     12-week outlook: <span className="font-semibold text-orange-600 dark:text-orange-400">
                       ₨{Math.round(longestForecast.predicted_price).toLocaleString()}
                     </span>
-                    {longestForecast.expected_mape != null && (
+                    {longestForecast.predicted_price_low != null && longestForecast.predicted_price_high != null ? (
+                      <> (₨{Math.round(longestForecast.predicted_price_low).toLocaleString()}–{Math.round(longestForecast.predicted_price_high).toLocaleString()})</>
+                    ) : longestForecast.expected_mape != null ? (
                       <> ± {longestForecast.expected_mape.toFixed(1)}%</>
-                    )}
+                    ) : null}
                   </span>
                 )}
               </div>

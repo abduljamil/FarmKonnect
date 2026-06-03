@@ -26,6 +26,14 @@ const pricePredictionSchema = new mongoose.Schema(
 
     predicted_price: { type: Number, required: true, min: 0 },
 
+    // Phase 10.5: optional 80% confidence band. Populated only for cells
+    // routed to lgbm_quantile_median (currently Sugar h=12 in production).
+    // Derived from matched q10 / q90 quantile LGBM bundles. Empirical 80%
+    // interval coverage was 69% in Phase 6.5 — close enough to be useful
+    // but the chart should label this as "model band", not a strict 80% CI.
+    predicted_price_low: { type: Number, default: null, min: 0 },
+    predicted_price_high: { type: Number, default: null, min: 0 },
+
     // Which model the router chose for this cell. One of:
     //   persistence / ma4 / lgbm / lgbm_per_commodity / lgbm_quantile_median
     model: { type: String, required: true },

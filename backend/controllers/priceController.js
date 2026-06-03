@@ -315,6 +315,8 @@ exports.getForecast = async (req, res) => {
         forecast_date: 1,
         horizon_weeks: 1,
         predicted_price: 1,
+        predicted_price_low: 1,
+        predicted_price_high: 1,
         model: 1,
         expected_mape: 1,
         router_version: 1,

@@ -161,11 +161,21 @@ def load_models(router: dict) -> dict:
         models[("lgbm_quantile_median", h)] = joblib.load(
             MODELS_DIR / f"lgbm_h{h}_q50.joblib"
         )
+        # Phase 10.5: when a cell uses the quantile median for its point
+        # forecast, also load the matched q10/q90 bundles so we can write a
+        # real 80% confidence band on the prediction doc (empirical coverage
+        # was 69% in Phase 6.5 — close enough to be useful).
+        q10_path = MODELS_DIR / f"lgbm_h{h}_q10.joblib"
+        q90_path = MODELS_DIR / f"lgbm_h{h}_q90.joblib"
+        if q10_path.exists() and q90_path.exists():
+            models[("lgbm_quantile_q10", h)] = joblib.load(q10_path)
+            models[("lgbm_quantile_q90", h)] = joblib.load(q90_path)
 
     log("models",
         f"loaded global={sorted(need_global)} "
         f"per_commodity={sorted(need_per_commodity)} "
-        f"quantile_median={sorted(need_quantile_median)}")
+        f"quantile_median={sorted(need_quantile_median)} "
+        f"with bands={'yes' if any(k[0] in ('lgbm_quantile_q10','lgbm_quantile_q90') for k in models) else 'no'}")
     return models
 
 
@@ -200,41 +210,45 @@ def _predict_lgbm_batch(anchors: pd.DataFrame, bundle: dict) -> pd.Series:
 
 def _dispatch_for_horizon(
     anchors: pd.DataFrame, h: int, cells: dict, models: dict,
-) -> dict[int, float]:
-    """One-horizon dispatch: returns dict {anchor_idx: predicted_price}.
+) -> dict[int, dict]:
+    """One-horizon dispatch.
 
-    Routes each anchor to whichever model the router chose for (commodity, h),
-    then runs each model type as one batched call over its routed slice.
+    Returns dict {anchor_idx: {predicted_price, predicted_price_low?,
+                                predicted_price_high?}}.
+
+    `predicted_price_low/high` are only populated for cells routed to
+    lgbm_quantile_median where matched q10/q90 bundles are available.
+    Other cells have no band at the prediction-service layer; the chart
+    falls back to `expected_mape%` for those.
     """
-    out: dict[int, float] = {}
+    out: dict[int, dict] = {}
 
-    # Map each anchor to its model name at this horizon
     anchor_models = anchors["commodity"].map(
         lambda c: cells.get(f"{c}__h{h}", {}).get("model")
     )
 
-    # persistence: y_pred = price
+    # persistence: y_pred = price (no band — chart uses expected_mape%)
     m_p = anchor_models == "persistence"
     if m_p.any():
         for idx, price in zip(anchors.index[m_p], anchors.loc[m_p, "price"].values):
-            out[idx] = float(price)
+            out[idx] = {"predicted_price": float(price)}
 
     # ma4: y_pred = price_lag1_ma4
     m_ma = anchor_models == "ma4"
     if m_ma.any():
         for idx, v in zip(anchors.index[m_ma], anchors.loc[m_ma, "price_lag1_ma4"].values):
             if not pd.isna(v):
-                out[idx] = float(v)
+                out[idx] = {"predicted_price": float(v)}
 
-    # global LGBM (mean): one batched predict over the routed slice
+    # global LGBM (mean)
     m_lg = anchor_models == "lgbm"
     if m_lg.any() and ("lgbm", h) in models:
         preds = _predict_lgbm_batch(anchors[m_lg], models[("lgbm", h)])
         for idx, p in preds.items():
             if not pd.isna(p):
-                out[idx] = float(p)
+                out[idx] = {"predicted_price": float(p)}
 
-    # per-commodity LGBM: one batched predict per (commodity, h) slice
+    # per-commodity LGBM specialists
     m_pc = anchor_models == "lgbm_per_commodity"
     if m_pc.any():
         for commodity, csub in anchors[m_pc].groupby("commodity"):
@@ -245,15 +259,37 @@ def _dispatch_for_horizon(
             preds = _predict_lgbm_batch(csub, models[key])
             for idx, p in preds.items():
                 if not pd.isna(p):
-                    out[idx] = float(p)
+                    out[idx] = {"predicted_price": float(p)}
 
-    # quantile-median LGBM: one batched predict over the routed slice
+    # quantile median LGBM (+ matched q10/q90 bands if available)
     m_qm = anchor_models == "lgbm_quantile_median"
     if m_qm.any() and ("lgbm_quantile_median", h) in models:
-        preds = _predict_lgbm_batch(anchors[m_qm], models[("lgbm_quantile_median", h)])
-        for idx, p in preds.items():
-            if not pd.isna(p):
-                out[idx] = float(p)
+        sub = anchors[m_qm]
+        preds_med = _predict_lgbm_batch(sub, models[("lgbm_quantile_median", h)])
+        preds_low = (
+            _predict_lgbm_batch(sub, models[("lgbm_quantile_q10", h)])
+            if ("lgbm_quantile_q10", h) in models else None
+        )
+        preds_high = (
+            _predict_lgbm_batch(sub, models[("lgbm_quantile_q90", h)])
+            if ("lgbm_quantile_q90", h) in models else None
+        )
+        for idx in preds_med.index:
+            m = preds_med.loc[idx]
+            if pd.isna(m):
+                continue
+            entry = {"predicted_price": float(m)}
+            if preds_low is not None and not pd.isna(preds_low.loc[idx]):
+                entry["predicted_price_low"] = float(preds_low.loc[idx])
+            if preds_high is not None and not pd.isna(preds_high.loc[idx]):
+                entry["predicted_price_high"] = float(preds_high.loc[idx])
+            # Sanity: low ≤ median ≤ high. Quantile crossing happens
+            # occasionally; sort to keep the band meaningful.
+            if "predicted_price_low" in entry and "predicted_price_high" in entry:
+                lo, hi = sorted([entry["predicted_price_low"], entry["predicted_price_high"]])
+                entry["predicted_price_low"] = lo
+                entry["predicted_price_high"] = hi
+            out[idx] = entry
 
     return out
 
@@ -287,7 +323,8 @@ def build_prediction_docs(
                 continue
             if idx not in preds_by_idx:
                 continue  # anchor missing its required feature (e.g. NaN price_lag1_ma4)
-            y_pred = preds_by_idx[idx]
+            entry = preds_by_idx[idx]
+            y_pred = entry["predicted_price"]
 
             anchor_date = pd.Timestamp(row["date"]).to_pydatetime()
             forecast_date = (pd.Timestamp(row["date"]) + pd.Timedelta(weeks=h)).to_pydatetime()
@@ -298,7 +335,7 @@ def build_prediction_docs(
             v = row.get("variety")
             variety = None if (pd.isna(v) or v == "") else str(v)
 
-            docs.append({
+            doc = {
                 "commodity":            str(row["commodity"]),
                 "variety":              variety,
                 "city":                 str(row["city"]),
@@ -313,7 +350,14 @@ def build_prediction_docs(
                 "router_version":       router_version,
                 "router_generated_at":  router_generated_at,
                 "generated_at":         now,
-            })
+            }
+            # Phase 10.5: real q10/q90 bands when available (currently only
+            # lgbm_quantile_median cells — Sugar h=12 in production).
+            if "predicted_price_low" in entry:
+                doc["predicted_price_low"] = entry["predicted_price_low"]
+            if "predicted_price_high" in entry:
+                doc["predicted_price_high"] = entry["predicted_price_high"]
+            docs.append(doc)
 
     log("predict", f"emitted {len(docs)} prediction docs")
     return docs
