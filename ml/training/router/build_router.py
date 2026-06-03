@@ -34,6 +34,12 @@ import pandas as pd
 
 HORIZONS = [1, 2, 4, 12]
 CANDIDATE_MODELS = ["persistence", "ma4", "lgbm"]
+# NOTE: Chronos (Amazon foundation model) was evaluated 2026-06-03 — see
+# `ml/training/models/chronos_metrics.csv` + `chronos_predictions.parquet`.
+# On a *fair* comparison (persistence MAPE recomputed on Chronos's exact anchor
+# set), Chronos lost to persistence in every (commodity, horizon) cell by 1–18%.
+# It is NOT a router candidate. The earlier "wins on Paddy h=1/2/4" were an
+# apples-to-oranges artifact of MAPE numbers computed on different anchor sets.
 
 
 def _load_recent_mapes(baselines_csv: Path, lgbm_csv: Path) -> pd.DataFrame:

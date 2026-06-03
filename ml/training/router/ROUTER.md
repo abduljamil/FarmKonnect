@@ -74,6 +74,34 @@ The prediction service (Phase 8) will:
    - If `lgbm` → load `lgbm_h{h}.joblib` and run inference on the row's features
 3. Upsert into `pricepredictions` collection in Atlas with `expected_mape` tagged so the frontend can show uncertainty bands
 
+## Negative result: Chronos (2026-06-03)
+
+Amazon's [Chronos-t5-small](https://huggingface.co/amazon/chronos-t5-small) foundation model (46M parameters, zero-shot) was evaluated against the same recent-year walk-forward holdout as persistence/ma4/LGBM. Setup: per series, walk forward through the last 52 valid observations; at each anchor T, give Chronos a 104-week context and ask for a 12-step probabilistic forecast (20 samples → median). Result: 25,320 predictions across 127 series (19 sparse skipped). Eval script: [`ml/training/models/run_chronos.py`](../models/run_chronos.py). Outputs: `chronos_metrics.csv` + `chronos_predictions.parquet`.
+
+**Headline:** Chronos overall MAPE is worse than persistence at every horizon —
+2.28 / 3.91 / 6.69 / 13.08 % @ h=1/2/4/12 vs persistence 1.86 / 3.19 / 5.35 / 9.80.
+
+**The trap we caught:** an initial naive router run picked Chronos for Paddy h=1/2/4 because Chronos's MAPE on those cells (3.72 / 6.52 / 11.13) looked lower than persistence's MAPE *as reported by Phase 4 baselines* (4.17 / 7.10 / 11.83). But those persistence numbers were computed on a *different anchor set* than Chronos was — Phase 4's eval uses calendar-week-from-end, Chronos's eval walks valid prices only. For sparse Paddy series these test sets differ.
+
+**Fair comparison** — recompute persistence MAPE on Chronos's exact anchor set:
+
+| commodity | h=1 | h=2 | h=4 | h=12 |
+|---|---|---|---|---|
+| Maize | persist by 8% | persist by 8% | persist by 9% | persist by 7% |
+| Paddy | persist by 10% | persist by 9% | persist by 6% | persist by 1% |
+| Rice | persist by 18% | persist by 13% | persist by 11% | persist by 6% |
+| Seed Cotton | persist by 7% | persist by 9% | persist by 6% | persist by 4% |
+| Sugar | persist by 8% | persist by 7% | persist by 8% | persist by 9% |
+| Wheat | persist by 9% | persist by 7% | persist by 7% | persist by 7% |
+
+Persistence beats Chronos in **every (commodity, horizon) cell by 1–18%**. Chronos is therefore **not a router candidate** and the prediction service does not load it.
+
+**Why this matters more than the result itself:** if you re-evaluate a new model later (chronos-t5-base, TFT, anything), the comparison MUST be on a shared anchor set. The reproducible recipe is to load `chronos_predictions.parquet`, merge with `panel.parquet` to recover the anchor price, compute persistence MAPE row-by-row on the SAME rows the candidate produced, then aggregate. Anything else lies in 5-15% of cells.
+
+**Worth revisiting only if:**
+- A larger Chronos size (-base 200M, -large 710M) helps materially — there's some headroom; the small variant is biased toward smooth trending series, and Pakistani admin'd prices are stickier than smooth.
+- We fine-tune Chronos on AMIS data (requires GPU + 1-2 weeks of work). Zero-shot was the cheap try.
+
 ## Caveats inherited from upstream phases
 
 - Single 52-wk holdout for the Phase 6 LGBM numbers → wins might be year-specific. Especially Wheat at h=12 (tied to 2025 MSP reinstatement, could revert in 2026 deregulation).
