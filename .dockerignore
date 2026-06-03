@@ -1,0 +1,51 @@
+# .dockerignore at repo root — applies to any build with `context: .`
+# (currently: prediction_service in docker-compose.yml).
+# The frontend/backend/scraper containers use their own subdir as context
+# and aren't affected by this file.
+
+# Let's Encrypt certs — owned by root on EC2, unreadable during build context
+# scan; blocks the entire build with "can't stat certbot/conf/accounts".
+certbot/
+
+# MongoDB backups — large, never needed inside a container image.
+mongodump-*/
+
+# Source-control + IDE noise.
+.git/
+.github/
+.gitignore
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Python cache.
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node deps and logs (frontend/mobile/backend each have their own contexts
+# but defense in depth in case anyone changes that).
+node_modules/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Local mobile build artifacts (deploy already ignores mobile/** in CI).
+mobile/
+
+# Working-doc notes — never go inside an image.
+PLAN.md
+HANDOFF.md
+PROJECT_GUIDE.md
+README.md
+*.md.bak
+
+# Large training artifacts that aren't needed by the prediction_service.
+# (The Dockerfile explicitly COPYs the specific joblibs + parquets it wants.)
+ml/training/eda/
+ml/training/models/predictions.parquet
+ml/training/models/chronos_predictions.parquet
+ml/training/baselines/baseline_predictions.parquet
