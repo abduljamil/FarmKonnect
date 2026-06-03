@@ -44,13 +44,24 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Phase 11 (2026-06-03): set -e + set -o pipefail so any failed step
+            # in this remote script aborts the deploy with a non-zero exit code.
+            # Previously the absence of these flags meant `docker-compose up -d
+            # --build` failures (image build errors, OOM during pip install,
+            # etc.) were treated as success — the script silently fell through
+            # to `docker image prune -f` and SSH returned 0. That left the box
+            # in a fully-stopped state after `docker-compose down` while GH
+            # Actions reported a green ✅. We hit this multiple times during
+            # Phase 8.
+            set -euo pipefail
+
             cd ~/FarmKonnect
             echo "🔵 Pulling latest code..."
             git pull origin main
-            
+
             echo "🟡 Rebuilding and restarting containers..."
             docker-compose down
             docker-compose up -d --build
-            
+
             echo "🟢 Deployment complete!"
             docker image prune -f
