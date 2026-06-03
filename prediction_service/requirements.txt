@@ -10,3 +10,5 @@ requests
 openpyxl
 yfinance
 python-dotenv
+tabulate     # build_panel.py EDA writer uses df.to_markdown()
+
