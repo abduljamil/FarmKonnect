@@ -31,11 +31,14 @@ from pymongo import MongoClient
 INTERVAL_SECONDS = int(os.environ.get("RUN_INTERVAL_SECONDS", "3600"))
 EARLIEST_RUN_DAY_OFFSET = int(os.environ.get("EARLIEST_RUN_DAY_OFFSET", "1"))  # 1 = Saturday or later
 BACKFILL_WEEKS = int(os.environ.get("BACKFILL_WEEKS", "12"))
+MONITOR_WINDOW_WEEKS = int(os.environ.get("MONITOR_WINDOW_WEEKS", "4"))
+MONITOR_ALARM_MULTIPLIER = float(os.environ.get("MONITOR_ALARM_MULTIPLIER", "1.5"))
 
 DB_NAME = os.environ.get("MONGODB_DB", "FarmKonnect")
 COLLECTION = os.environ.get("PREDICTION_COLLECTION", "pricepredictions")
 
 PREDICT_SCRIPT = "/app/prediction_service/predict_and_upsert.py"
+MONITOR_SCRIPT = "/app/prediction_service/monitor.py"
 
 
 def log(stage: str, msg: str) -> None:
@@ -49,13 +52,27 @@ def most_recent_friday(today: date) -> date:
     return today - timedelta(days=days_back)
 
 
-def _invoke(args: list[str]) -> int:
-    cmd = [sys.executable, PREDICT_SCRIPT, *args]
+def _invoke(script: str, args: list[str]) -> int:
+    cmd = [sys.executable, script, *args]
     log("invoke", " ".join(cmd))
     # Stream child stdout/stderr straight to our stdout so `docker logs` shows everything
     proc = subprocess.run(cmd, check=False)
     log("invoke", f"exit={proc.returncode}")
     return proc.returncode
+
+
+def run_monitor() -> None:
+    """Run the Phase 12 rolling-MAPE monitor. Cheap (no LGBM inference) so safe
+    to call every tick — it just reads `pricepredictions` + the cached panel.
+    Only does meaningful work once `/work/data/panel.parquet` exists (i.e.,
+    after the first predict cycle of the container's lifetime).
+    """
+    rc = _invoke(MONITOR_SCRIPT, [
+        "--window-weeks", str(MONITOR_WINDOW_WEEKS),
+        "--alarm-multiplier", str(MONITOR_ALARM_MULTIPLIER),
+    ])
+    if rc != 0:
+        log("monitor", f"exited rc={rc} (often just 'panel.parquet not built yet' — safe to ignore on cold start)")
 
 
 def tick(mongo_uri: str) -> None:
@@ -64,7 +81,10 @@ def tick(mongo_uri: str) -> None:
 
     if coll.estimated_document_count() == 0:
         log("tick", f"{DB_NAME}.{COLLECTION} is empty — running backfill ({BACKFILL_WEEKS} weeks)")
-        _invoke(["--mode", "backfill", "--backfill-weeks", str(BACKFILL_WEEKS)])
+        _invoke(PREDICT_SCRIPT, ["--mode", "backfill", "--backfill-weeks", str(BACKFILL_WEEKS)])
+        # First predict cycle just built /work/data/panel.parquet — run the
+        # monitor too so we don't wait an extra week for the first stats.
+        run_monitor()
         return
 
     now = datetime.now(timezone.utc)
@@ -72,19 +92,25 @@ def tick(mongo_uri: str) -> None:
     last_fri = most_recent_friday(today)
     days_since_fri = (today - last_fri).days  # 0 on Fri, 1 on Sat, ... , 6 on Thu
 
+    cutoff_utc = datetime.combine(last_fri, datetime.min.time(), tzinfo=timezone.utc)
+    have_this_week = coll.count_documents({"anchor_date": {"$gte": cutoff_utc}}, limit=1) > 0
+
     if days_since_fri < EARLIEST_RUN_DAY_OFFSET:
         log("tick", f"today={today} is only {days_since_fri}d past Fri {last_fri}; "
                     f"waiting for offset>={EARLIEST_RUN_DAY_OFFSET}")
+        # Still run monitor — it's independent of the predict cadence and
+        # benefits from being checked more often than weekly.
+        run_monitor()
         return
 
-    cutoff_utc = datetime.combine(last_fri, datetime.min.time(), tzinfo=timezone.utc)
-    have_this_week = coll.count_documents({"anchor_date": {"$gte": cutoff_utc}}, limit=1) > 0
     if have_this_week:
-        log("tick", f"predictions for week ending Fri {last_fri} already present; sleeping")
+        log("tick", f"predictions for week ending Fri {last_fri} already present; running monitor only")
+        run_monitor()
         return
 
     log("tick", f"running live cycle for week ending Fri {last_fri}")
-    _invoke(["--mode", "live"])
+    _invoke(PREDICT_SCRIPT, ["--mode", "live"])
+    run_monitor()
 
 
 def main() -> int:

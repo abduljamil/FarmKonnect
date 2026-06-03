@@ -32,6 +32,7 @@ A long-running container ticks hourly:
   prediction_service/
     predict_and_upsert.py       ← core prediction logic (--mode live | backfill)
     run_loop.py                 ← scheduler (container entrypoint)
+    monitor.py                  ← Phase 12 rolling-MAPE monitoring (per tick)
 /work/
   data/                         ← ephemeral; pipeline writes panel/features here
     external/                   ← WB/yfinance/NASA caches (warm across runs in same container lifetime)
@@ -42,7 +43,10 @@ A long-running container ticks hourly:
 - `MONGODB_URI` — from `backend/.env` via docker-compose `env_file`
 - `WORK_DIR` — pipeline workspace (default `/work`)
 - `PREDICTION_COLLECTION` — Atlas collection to upsert into (default `pricepredictions`)
+- `MONITORING_COLLECTION` — Atlas collection for rolling-MAPE summaries (default `prediction_monitoring`)
 - `RUN_INTERVAL_SECONDS` — scheduler tick (default `3600`)
+- `MONITOR_WINDOW_WEEKS` — rolling MAPE window (default `4`)
+- `MONITOR_ALARM_MULTIPLIER` — alarm if rolling MAPE > expected_mape × this (default `1.5`)
 
 ## Manual one-shot runs
 
