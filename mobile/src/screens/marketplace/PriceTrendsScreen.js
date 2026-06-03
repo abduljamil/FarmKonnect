@@ -4,34 +4,57 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronDown, Search, Filter, Home, User } from 'lucide-react-native';
 // Note: Trending icons and RefreshCw are missing in 1.8.0, so we use text/emojis for now
 import Svg, { Path, LinearGradient, Stop, Defs, Polyline } from 'react-native-svg';
-import { getCommodities, getPriceHistory, getVarieties, getCitiesByFilters } from '../../services/priceService';
+import { getCommodities, getPriceHistory, getForecast, getVarieties, getCitiesByFilters } from '../../services/priceService';
 import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
 import { TARGET_COMMODITIES } from '../../utils/commodities';
 
 const { width } = Dimensions.get('window');
 
-// Custom SVG Chart Component
-const SimpleLineChart = ({ data, color = '#16a34a' }) => {
+// Custom SVG Chart Component — supports an optional forecast tail rendered
+// as a dashed orange polyline picking up from the last historical price.
+const SimpleLineChart = ({ data, forecast = [], color = '#16a34a', forecastColor = '#f97316' }) => {
   if (!data || data.length < 2) return null;
-  
+
   const chartHeight = 180;
   const chartWidth = width - 80;
-  
-  const validPrices = data.map(d => Number(d.price)).filter(p => !isNaN(p) && p !== null);
-  const min = validPrices.length ? Math.min(...validPrices) : 0;
-  const max = validPrices.length ? Math.max(...validPrices) : 0;
-  
-  const range = (max - min) || 1;
-  const stepX = chartWidth / (data.length > 1 ? data.length - 1 : 1);
 
-  const points = data.map((d, i) => {
+  // Y-scale spans BOTH history and forecast so the future forecast doesn't
+  // fall off the visible chart when it's significantly higher or lower than
+  // the recent history.
+  const histPrices = data.map(d => Number(d.price)).filter(p => !isNaN(p) && p !== null);
+  const fcPrices = (forecast || []).map(d => Number(d.predicted_price)).filter(p => !isNaN(p));
+  const allPrices = [...histPrices, ...fcPrices];
+  const min = allPrices.length ? Math.min(...allPrices) : 0;
+  const max = allPrices.length ? Math.max(...allPrices) : 0;
+  const range = (max - min) || 1;
+
+  // Total horizontal slots = history + forecast points. Each forecast point
+  // gets its own slot to the right of the last history slot.
+  const totalSlots = (data.length || 0) + (forecast ? forecast.length : 0);
+  const stepX = chartWidth / (totalSlots > 1 ? totalSlots - 1 : 1);
+
+  const histPoints = data.map((d, i) => {
     const price = Number(d.price) || 0;
     const x = i * stepX;
     const y = range === 0 ? chartHeight / 2 : chartHeight - ((price - min) / range) * chartHeight;
-    // Safety check for NaN
     if (isNaN(x) || isNaN(y)) return '0,0';
     return `${x},${y}`;
   }).join(' ');
+
+  // Forecast polyline anchors on the last history point so the lines visually connect.
+  let fcPoints = '';
+  if (forecast && forecast.length > 0 && histPrices.length > 0) {
+    const lastHistPrice = Number(data[data.length - 1].price) || 0;
+    const anchorX = (data.length - 1) * stepX;
+    const anchorY = range === 0 ? chartHeight / 2 : chartHeight - ((lastHistPrice - min) / range) * chartHeight;
+    const future = forecast.map((d, i) => {
+      const price = Number(d.predicted_price) || 0;
+      const x = (data.length + i) * stepX;
+      const y = range === 0 ? chartHeight / 2 : chartHeight - ((price - min) / range) * chartHeight;
+      return `${x},${y}`;
+    }).join(' ');
+    fcPoints = `${anchorX},${anchorY} ${future}`;
+  }
 
   return (
     <View style={{ height: chartHeight, width: chartWidth, alignSelf: 'center' }}>
@@ -43,15 +66,24 @@ const SimpleLineChart = ({ data, color = '#16a34a' }) => {
           </LinearGradient>
         </Defs>
         <Path
-          d={`M ${points} L ${chartWidth},${chartHeight} L 0,${chartHeight} Z`}
+          d={`M ${histPoints} L ${(data.length - 1) * stepX},${chartHeight} L 0,${chartHeight} Z`}
           fill="url(#grad)"
         />
         <Polyline
-          points={points}
+          points={histPoints}
           fill="none"
           stroke={color}
           strokeWidth="3"
         />
+        {fcPoints ? (
+          <Polyline
+            points={fcPoints}
+            fill="none"
+            stroke={forecastColor}
+            strokeWidth="3"
+            strokeDasharray="6,4"
+          />
+        ) : null}
       </Svg>
     </View>
   );
@@ -64,6 +96,7 @@ export default function PriceTrendsScreen({ navigation, route }) {
   const [cities, setCities] = useState([]);
   const [varieties, setVarieties] = useState([]);
   const [data, setData] = useState([]);
+  const [forecastDocs, setForecastDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -170,6 +203,41 @@ export default function PriceTrendsScreen({ navigation, route }) {
     fetchHistory();
   }, [selectedCommodity, selectedCity, selectedVariety, days]);
 
+  // Fetch model forecast for the selected (commodity, variety, city). Keep
+  // only the rows from the most recent anchor — that's the one forward-
+  // looking forecast curve users want to see.
+  useEffect(() => {
+    const fetchForecast = async () => {
+      if (!selectedCommodity || !selectedCity) {
+        setForecastDocs([]);
+        return;
+      }
+      try {
+        const params = { commodity: selectedCommodity, city: selectedCity };
+        if (selectedVariety) params.variety = selectedVariety;
+        const res = await getForecast(params);
+        const docs = (res.data && res.data.data) || [];
+        if (docs.length === 0) {
+          setForecastDocs([]);
+          return;
+        }
+        const latestAnchor = docs.reduce(
+          (m, d) => (new Date(d.anchor_date) > new Date(m) ? d.anchor_date : m),
+          docs[0].anchor_date
+        );
+        const latest = docs
+          .filter(d => d.anchor_date === latestAnchor)
+          .sort((a, b) => new Date(a.forecast_date) - new Date(b.forecast_date));
+        setForecastDocs(latest);
+      } catch (err) {
+        setForecastDocs([]);
+      }
+    };
+    fetchForecast();
+  }, [selectedCommodity, selectedCity, selectedVariety]);
+
+  const longestForecast = forecastDocs.find(d => d.horizon_weeks === 12);
+
   const prices = data.map(d => Number(d.price)).filter(p => !isNaN(p) && p > 0);
   const latestPrice = prices.length ? prices[prices.length - 1] : 0;
   const firstPrice = prices.length ? prices[0] : 0;
@@ -257,7 +325,31 @@ export default function PriceTrendsScreen({ navigation, route }) {
               </View>
            ) : (
              <View style={styles.chartSection}>
-                <SimpleLineChart data={data} color={priceChange >= 0 ? '#16a34a' : '#dc2626'} />
+                <SimpleLineChart
+                  data={data}
+                  forecast={forecastDocs}
+                  color={priceChange >= 0 ? '#16a34a' : '#dc2626'}
+                />
+                {forecastDocs.length > 0 && (
+                  <View style={styles.forecastLegend}>
+                    <View style={styles.legendRow}>
+                      <View style={[styles.legendDot, { backgroundColor: priceChange >= 0 ? '#16a34a' : '#dc2626' }]} />
+                      <Text style={styles.legendText}>Actual</Text>
+                      <View style={[styles.legendDot, { backgroundColor: '#f97316', marginLeft: 16 }]} />
+                      <Text style={styles.legendText}>Forecast</Text>
+                    </View>
+                    {longestForecast && (
+                      <Text style={styles.legendOutlook}>
+                        12-week outlook: <Text style={{ color: '#f97316', fontWeight: '700' }}>
+                          ₨ {Math.round(longestForecast.predicted_price).toLocaleString()}
+                        </Text>
+                        {longestForecast.expected_mape != null
+                          ? ` ± ${longestForecast.expected_mape.toFixed(1)}%`
+                          : ''}
+                      </Text>
+                    )}
+                  </View>
+                )}
              </View>
            )}
         </View>
@@ -310,6 +402,11 @@ const styles = StyleSheet.create({
   chartHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   chartTitle: { color: '#a3a3a3', fontSize: 14, fontWeight: '600' },
   chartSection: { paddingVertical: 10 },
+  forecastLegend: { marginTop: 12, paddingHorizontal: 8 },
+  legendRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  legendDot: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
+  legendText: { color: '#9ca3af', fontSize: 12 },
+  legendOutlook: { color: '#9ca3af', fontSize: 12 },
   errorContainer: { height: 200, justifyContent: 'center', alignItems: 'center' },
   errorText: { color: '#6b7280', marginTop: 10, textAlign: 'center' },
   statsGrid: { flexDirection: 'row', gap: 12, marginBottom: 20 },
