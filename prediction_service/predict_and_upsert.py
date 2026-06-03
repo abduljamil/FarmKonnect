@@ -214,9 +214,15 @@ def build_prediction_docs(
             anchor_date = pd.Timestamp(row["date"]).to_pydatetime()
             forecast_date = (pd.Timestamp(row["date"]) + pd.Timedelta(weeks=h)).to_pydatetime()
 
+            # Mirror the live commodityprices convention: variety is NULL for
+            # varietyless commodities (Wheat/Sugar/Maize/Seed Cotton). The
+            # build_panel.py pipeline writes "" instead, so normalize here.
+            v = row.get("variety")
+            variety = None if (pd.isna(v) or v == "") else str(v)
+
             docs.append({
                 "commodity":            str(row["commodity"]),
-                "variety":              None if pd.isna(row.get("variety")) else str(row["variety"]),
+                "variety":              variety,
                 "city":                 str(row["city"]),
                 "unit":                 None if pd.isna(row.get("unit")) else str(row["unit"]),
                 "anchor_date":          anchor_date,
