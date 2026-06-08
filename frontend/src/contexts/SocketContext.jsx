@@ -1,10 +1,10 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import socketService from "../utils/socket";
 import { useNotifications } from "./NotificationContext";
 
 const SocketContext = createContext(null);
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useSocket = () => {
   const context = useContext(SocketContext);
   if (!context) {
@@ -13,7 +13,6 @@ export const useSocket = () => {
   return context;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [newMessageCount, setNewMessageCount] = useState(0);

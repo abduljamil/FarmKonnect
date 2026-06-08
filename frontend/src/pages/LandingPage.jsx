@@ -23,7 +23,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 
 const LandingPage = () => {
     const navigate = useNavigate();
-    const { t, isUrdu } = useLanguage();
+    const { t } = useLanguage();
     const [user, setUser] = useState(null);
 
     // Check if user is logged in

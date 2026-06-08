@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from "react";
 import en from "../locales/en.json";
 import ur from "../locales/ur.json";
@@ -6,7 +7,6 @@ const LanguageContext = createContext();
 
 const translations = { en, ur };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useLanguage = () => {
     const context = useContext(LanguageContext);
     if (!context) {
@@ -15,7 +15,6 @@ export const useLanguage = () => {
     return context;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const LanguageProvider = ({ children }) => {
     const [language, setLanguage] = useState(() => {
         const saved = localStorage.getItem("language");

@@ -1,9 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { healthAPI } from '../utils/api';
 
 const ConnectionContext = createContext();
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useConnection = () => {
   const context = useContext(ConnectionContext);
   if (!context) {
@@ -12,7 +12,6 @@ export const useConnection = () => {
   return context;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const ConnectionProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(true);
   const [isDBConnected, setIsDBConnected] = useState(true);

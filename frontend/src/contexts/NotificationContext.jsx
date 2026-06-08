@@ -1,9 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import socketService from '../utils/socket';
 
 const NotificationContext = createContext();
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useNotifications = () => {
     const context = useContext(NotificationContext);
     if (!context) {
@@ -12,7 +12,6 @@ export const useNotifications = () => {
     return context;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState([]);
     const [triggeredAlerts, setTriggeredAlerts] = useState([]);
