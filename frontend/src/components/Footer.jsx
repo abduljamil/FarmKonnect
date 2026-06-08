@@ -51,7 +51,7 @@ const Footer = () => {
   return (
     <footer
       className="bg-gray-100 dark:bg-gray-950 text-gray-600 dark:text-gray-300"
-      dir={isUrdu ? "rtl" : "ltr"}
+      
     >
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
@@ -64,7 +64,7 @@ const Footer = () => {
                 FarmKonnect
               </span>
             </Link>
-            <p className={`text-gray-600 dark:text-gray-400 mb-6 max-w-xs leading-relaxed ${isUrdu ? 'text-right' : 'text-left'}`}>
+            <p className={`text-gray-600 dark:text-gray-400 mb-6 max-w-xs leading-relaxed text-left`}>
               {t("footer.description")}
             </p>
 
@@ -109,7 +109,7 @@ const Footer = () => {
 
           {/* Marketplace Links */}
           <div>
-            <h3 className={`text-gray-900 dark:text-white font-semibold mb-4 ${isUrdu ? 'text-right' : 'text-left'}`}>
+            <h3 className={`text-gray-900 dark:text-white font-semibold mb-4 text-left`}>
               {t("nav.marketplace")}
             </h3>
             <ul className="space-y-3">
@@ -117,7 +117,7 @@ const Footer = () => {
                 <Link
                   to="/listings"
                   onClick={() => handleLinkClick("/listings")}
-                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors ${isUrdu ? 'text-right' : 'text-left'}`}
+                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors text-left`}
                 >
                   {t("footer.browseListings")}
                 </Link>
@@ -126,7 +126,7 @@ const Footer = () => {
                 <Link
                   to="/listings/create"
                   onClick={() => handleLinkClick("/listings/create")}
-                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors ${isUrdu ? 'text-right' : 'text-left'}`}
+                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors text-left`}
                 >
                   {t("footer.postListing")}
                 </Link>
@@ -136,7 +136,7 @@ const Footer = () => {
 
           {/* Resources Links */}
           <div>
-            <h3 className={`text-gray-900 dark:text-white font-semibold mb-4 ${isUrdu ? 'text-right' : 'text-left'}`}>
+            <h3 className={`text-gray-900 dark:text-white font-semibold mb-4 text-left`}>
               {t("footer.resources")}
             </h3>
             <ul className="space-y-3">
@@ -144,7 +144,7 @@ const Footer = () => {
                 <Link
                   to="/dashboard"
                   onClick={() => handleLinkClick("/dashboard")}
-                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors ${isUrdu ? 'text-right' : 'text-left'}`}
+                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors text-left`}
                 >
                   {t("footer.dashboard")}
                 </Link>
@@ -153,7 +153,7 @@ const Footer = () => {
                 <Link
                   to="/dashboard"
                   onClick={() => handleLinkClick("/dashboard")}
-                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors ${isUrdu ? 'text-right' : 'text-left'}`}
+                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors text-left`}
                 >
                   {t("footer.priceTrends")}
                 </Link>
@@ -163,7 +163,7 @@ const Footer = () => {
 
           {/* Support Links */}
           <div>
-            <h3 className={`text-gray-900 dark:text-white font-semibold mb-4 ${isUrdu ? 'text-right' : 'text-left'}`}>
+            <h3 className={`text-gray-900 dark:text-white font-semibold mb-4 text-left`}>
               {t("footer.contact")}
             </h3>
             <ul className="space-y-3">
@@ -171,7 +171,7 @@ const Footer = () => {
                 <Link
                   to="/contact"
                   onClick={() => handleLinkClick("/contact")}
-                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors ${isUrdu ? 'text-right' : 'text-left'}`}
+                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors text-left`}
                 >
                   {t("footer.contactUs")}
                 </Link>
@@ -180,7 +180,7 @@ const Footer = () => {
                 <Link
                   to="/support"
                   onClick={() => handleLinkClick("/support")}
-                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors ${isUrdu ? 'text-right' : 'text-left'}`}
+                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors text-left`}
                 >
                   {t("footer.support")}
                 </Link>
@@ -189,7 +189,7 @@ const Footer = () => {
                 <Link
                   to="/about"
                   onClick={() => handleLinkClick("/about")}
-                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors ${isUrdu ? 'text-right' : 'text-left'}`}
+                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors text-left`}
                 >
                   {t("footer.about")}
                 </Link>
@@ -199,7 +199,7 @@ const Footer = () => {
 
           {/* Legal Links */}
           <div>
-            <h3 className={`text-gray-900 dark:text-white font-semibold mb-4 ${isUrdu ? 'text-right' : 'text-left'}`}>
+            <h3 className={`text-gray-900 dark:text-white font-semibold mb-4 text-left`}>
               {t("footer.legal")}
             </h3>
             <ul className="space-y-3">
@@ -207,7 +207,7 @@ const Footer = () => {
                 <Link
                   to="/privacy"
                   onClick={() => handleLinkClick("/privacy")}
-                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors ${isUrdu ? 'text-right' : 'text-left'}`}
+                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors text-left`}
                 >
                   {t("footer.privacyPolicy")}
                 </Link>
@@ -216,7 +216,7 @@ const Footer = () => {
                 <Link
                   to="/terms"
                   onClick={() => handleLinkClick("/terms")}
-                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors ${isUrdu ? 'text-right' : 'text-left'}`}
+                  className={`block text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-white transition-colors text-left`}
                 >
                   {t("footer.termsOfService")}
                 </Link>
@@ -230,11 +230,11 @@ const Footer = () => {
       {/* Bottom Bar */}
       <div className="border-t border-gray-300 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${isUrdu ? 'sm:flex-row-reverse' : ''}`}>
-            <p className={`text-gray-500 dark:text-gray-500 text-sm ${isUrdu ? 'text-right' : 'text-center sm:text-left'}`}>
+          <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 `}>
+            <p className={`text-gray-500 dark:text-gray-500 text-sm text-center sm:text-left`}>
               {t("footer.copyright")} {t("footer.madeWith")} 💚 {t("footer.forFarmers")}
             </p>
-            <div className={`flex items-center gap-4 text-sm ${isUrdu ? 'flex-row-reverse' : ''}`}>
+            <div className={`flex items-center gap-4 text-sm `}>
               <Link
                 to="/privacy"
                 onClick={() => handleLinkClick("/privacy")}

@@ -23,7 +23,7 @@ export const LanguageProvider = ({ children }) => {
     });
 
     const isUrdu = language === "ur";
-    const isRTL = language === "ur";
+    const isRTL = false; // Disable RTL mirroring per user request
 
     useEffect(() => {
         localStorage.setItem("language", language);

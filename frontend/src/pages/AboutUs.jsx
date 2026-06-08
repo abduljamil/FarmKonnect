@@ -36,19 +36,24 @@ const AboutUs = () => {
 
     const team = [
         {
-            name: "Muhammad Ali",
-            role: "Founder & CEO",
-            description: "Agricultural engineer with 10+ years of experience in farming technology.",
+            name: "Ahtsham Adil",
+            role: "Developer",
+            description: "Full-stack developer passionate about building solutions for rural communities.",
         },
         {
-            name: "Fatima Hassan",
-            role: "Head of Operations",
+            name: "Sameer Ahmad",
+            role: "Developer",
+            description: "Agricultural engineer with experience in farming technology.",
+        },
+        {
+            name: "Javeria Zahid",
+            role: "Developer",
             description: "Expert in supply chain management and rural development initiatives.",
         },
         {
-            name: "Ahmed Khan",
-            role: "Tech Lead",
-            description: "Full-stack developer passionate about building solutions for rural communities.",
+            name: "Hamdan Aftab",
+            role: "Developer",
+            description: "Expert in operations and agricultural scaling.",
         },
     ];
 

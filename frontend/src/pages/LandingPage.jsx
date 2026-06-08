@@ -129,7 +129,7 @@ const LandingPage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950" dir={isUrdu ? "rtl" : "ltr"}>
+        <div className="min-h-screen bg-white dark:bg-gray-950" >
             {user ? <Navbar user={user} onLogout={handleLogout} /> : <GuestNavbar />}
 
             {/* Hero Section */}
@@ -148,15 +148,15 @@ const LandingPage = () => {
 
                 {/* Content */}
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className={`max-w-3xl ${isUrdu ? 'mr-0 ml-auto' : ''}`}>
+                    <div className={`max-w-3xl `}>
                         {/* Badge */}
-                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/20 border border-primary-500/30 text-primary-300 text-sm font-medium mb-6 sm:mb-8 ${isUrdu ? 'flex-row-reverse' : ''}`}>
+                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/20 border border-primary-500/30 text-primary-300 text-sm font-medium mb-6 sm:mb-8 `}>
                             <Zap className="w-4 h-4" />
                             <span>{t("landing.hero.badge")}</span>
                         </div>
 
                         {/* Headline */}
-                        <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 ${isUrdu ? 'text-right' : 'text-left'}`}>
+                        <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 text-left`}>
                             {t("landing.hero.title1")}{" "}
                             <span className="bg-gradient-to-r from-primary-400 to-emerald-400 bg-clip-text text-transparent">
                                 {t("landing.hero.title2")}
@@ -165,18 +165,18 @@ const LandingPage = () => {
                         </h1>
 
                         {/* Subheadline */}
-                        <p className={`text-lg sm:text-xl text-gray-300 mb-8 sm:mb-10 leading-relaxed ${isUrdu ? 'text-right' : 'text-left'}`}>
+                        <p className={`text-lg sm:text-xl text-gray-300 mb-8 sm:mb-10 leading-relaxed text-left`}>
                             {t("landing.hero.subtitle")}
                         </p>
 
                         {/* CTAs */}
-                        <div className={`flex flex-col sm:flex-row gap-4 ${isUrdu ? 'sm:flex-row-reverse' : ''}`}>
+                        <div className={`flex flex-col sm:flex-row gap-4 `}>
                             <Button
                                 onClick={() => navigate("/signup")}
-                                className={`px-8 py-4 text-lg flex items-center justify-center gap-2 group ${isUrdu ? 'flex-row-reverse' : ''}`}
+                                className={`px-8 py-4 text-lg flex items-center justify-center gap-2 group `}
                             >
                                 {t("landing.hero.cta")}
-                                <ArrowRight className={`w-5 h-5 group-hover:translate-x-1 transition-transform ${isUrdu ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
+                                <ArrowRight className={`w-5 h-5 group-hover:translate-x-1 transition-transform `} />
                             </Button>
                             <Button
                                 onClick={() => {
@@ -199,16 +199,16 @@ const LandingPage = () => {
                         </div>
 
                         {/* Trust Indicators */}
-                        <div className={`flex flex-wrap items-center gap-6 mt-10 pt-10 border-t border-white/10 ${isUrdu ? 'justify-end' : ''}`}>
-                            <div className={`flex items-center gap-2 text-gray-300 ${isUrdu ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex flex-wrap items-center gap-6 mt-10 pt-10 border-t border-white/10 `}>
+                            <div className={`flex items-center gap-2 text-gray-300 `}>
                                 <CheckCircle className="w-5 h-5 text-primary-400" />
                                 <span>{t("landing.hero.noCommission")}</span>
                             </div>
-                            <div className={`flex items-center gap-2 text-gray-300 ${isUrdu ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex items-center gap-2 text-gray-300 `}>
                                 <CheckCircle className="w-5 h-5 text-primary-400" />
                                 <span>{t("landing.hero.verifiedUsers")}</span>
                             </div>
-                            <div className={`flex items-center gap-2 text-gray-300 ${isUrdu ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex items-center gap-2 text-gray-300 `}>
                                 <CheckCircle className="w-5 h-5 text-primary-400" />
                                 <span>{t("landing.hero.securePayments")}</span>
                             </div>
@@ -297,11 +297,8 @@ const LandingPage = () => {
                                 {/* Connector Line */}
                                 {index < steps.length - 1 && (
                                     <div
-                                        className={`hidden md:block absolute top-12 h-0.5 ${isUrdu ? 'bg-gradient-to-l' : 'bg-gradient-to-r'} from-green-500 to-green-500/30`}
-                                        style={isUrdu ? {
-                                            right: '50%',
-                                            left: '-50%',
-                                        } : {
+                                        className={`hidden md:block absolute top-12 h-0.5 ${'bg-gradient-to-r'} from-green-500 to-green-500/30`}
+                                        style={{
                                             left: '50%',
                                             right: '-50%',
                                         }}
@@ -357,7 +354,7 @@ const LandingPage = () => {
                                 className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-gray-700"
                             >
                                 {/* Rating */}
-                                <div className={`flex gap-1 mb-4 ${isUrdu ? 'justify-end' : ''}`}>
+                                <div className={`flex gap-1 mb-4 `}>
                                     {[...Array(testimonial.rating)].map((_, i) => (
                                         <Star
                                             key={i}
@@ -367,12 +364,12 @@ const LandingPage = () => {
                                 </div>
 
                                 {/* Quote */}
-                                <p className={`text-gray-700 dark:text-gray-300 mb-6 leading-relaxed ${isUrdu ? 'text-right' : 'text-left'}`}>
+                                <p className={`text-gray-700 dark:text-gray-300 mb-6 leading-relaxed text-left`}>
                                     "{testimonial.quote}"
                                 </p>
 
                                 {/* Author */}
-                                <div className={`flex items-center gap-4 ${isUrdu ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-4 `}>
                                     <img
                                         src={testimonial.image}
                                         alt={testimonial.name}
@@ -387,7 +384,7 @@ const LandingPage = () => {
                                     <div className="hidden w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold text-lg">
                                         {testimonial.name?.charAt(0)?.toUpperCase() || "?"}
                                     </div>
-                                    <div className={isUrdu ? 'text-right' : 'text-left'}>
+                                    <div className="text-left">
                                         <div className="font-semibold text-gray-900 dark:text-white">
                                             {testimonial.name}
                                         </div>

@@ -242,7 +242,7 @@ const GuestNavbar = () => {
                   scrollToPriceChart(e);
                   closeMobileMenu();
                 }}
-                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 w-full ${isUrdu ? 'text-right' : 'text-left'} ${
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 w-full text-left ${
                   isPriceChartInView
                     ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
                     : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
