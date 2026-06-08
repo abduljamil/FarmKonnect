@@ -77,10 +77,16 @@ export const LanguageProvider = ({ children }) => {
             }
         }
 
-        // Replace parameters like {name} with actual values
+        // Replace parameters like {name} with actual values. In Urdu mode, wrap
+        // every interpolated value in Unicode isolates (FSI…PDI) so embedded
+        // left-to-right fragments — prices, IDs, names, numbers — keep their own
+        // internal order instead of being reordered by the surrounding bidi
+        // context. This fixes "English words out of order" without touching layout.
         if (typeof value === "string" && Object.keys(params).length > 0) {
+            const FSI = String.fromCharCode(0x2068), PDI = String.fromCharCode(0x2069); // First-Strong-Isolate … Pop-Directional-Isolate
             Object.entries(params).forEach(([paramKey, paramValue]) => {
-                value = value.replace(new RegExp(`{${paramKey}}`, "g"), paramValue);
+                const injected = isUrdu ? `${FSI}${paramValue}${PDI}` : String(paramValue);
+                value = value.replace(new RegExp(`{${paramKey}}`, "g"), injected);
             });
         }
 

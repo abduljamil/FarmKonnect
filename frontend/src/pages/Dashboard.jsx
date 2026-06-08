@@ -9,8 +9,9 @@ import Loader from "../components/Loader";
 import DashboardHero from "../components/DashboardHero";
 import QuickStatsGrid from "../components/QuickStatsGrid";
 import WeatherWidget from "../components/WeatherWidget";
-import MarketNewsFeed from "../components/MarketNewsFeed";
 import PriceAlertsPanel from "../components/PriceAlertsPanel";
+import MarketOutlookCard from "../components/MarketOutlookCard";
+import AttentionStrip from "../components/AttentionStrip";
 import chatAPI from "../utils/chatApi";
 import { authAPI } from "../utils/api";
 import socketService from "../utils/socket";
@@ -143,46 +144,47 @@ const Dashboard = () => {
                     <PriceTicker />
                 </div>
 
-            {/* Hero and Stats in max-w-7xl container */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-                {/* Hero Section */}
-                <section className="mb-8 animate-fadeIn">
-                    <DashboardHero user={user} />
-                </section>
-
-                {/* Quick Stats Grid */}
-                <section className="mb-8">
-                    <QuickStatsGrid user={user} unreadCount={unreadCount} />
-                </section>
-            </div>
-
-            {/* Full-width Price Chart - breaks out of container */}
-            <section id="price-chart" className="mb-8 px-4 sm:px-6 lg:px-8 animate-fadeIn" style={{ animationDelay: '0.1s' }}>
-                <PriceChart
-                    user={user}
-                    onLoginRequired={() => navigate("/signin")}
-                />
-            </section>
-
-            {/* Widgets Grid in max-w-7xl container */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
-                <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Weather Widget */}
-                    <div className="animate-fadeIn" style={{ animationDelay: '0.15s' }}>
-                        <WeatherWidget />
+                {/* Top bento row: greeting hero (2/3) + promoted Market Outlook (1/3) */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 animate-fadeIn">
+                        <div className="lg:col-span-2">
+                            <DashboardHero user={user} />
+                        </div>
+                        <div className="lg:col-span-1">
+                            <MarketOutlookCard />
+                        </div>
                     </div>
 
-                    {/* Price Alerts */}
-                    <div className="animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                        <PriceAlertsPanel user={user} />
-                    </div>
+                    {/* Quick Stats Grid */}
+                    <section className="mb-8 animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+                        <QuickStatsGrid user={user} unreadCount={unreadCount} />
+                    </section>
+                </div>
 
-                    {/* Market News */}
-                    <div className="animate-fadeIn" style={{ animationDelay: '0.25s' }}>
-                        <MarketNewsFeed maxItems={4} />
-                    </div>
+                {/* Full-width Price Chart - breaks out of container */}
+                <section id="price-chart" className="mb-8 px-4 sm:px-6 lg:px-8 animate-fadeIn" style={{ animationDelay: '0.15s' }}>
+                    <PriceChart
+                        user={user}
+                        onLoginRequired={() => navigate("/signin")}
+                    />
                 </section>
-            </div>
+
+                {/* Bottom bento: attention strip + weather / alerts */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-6">
+                    <AttentionStrip user={user} unreadCount={unreadCount} />
+
+                    <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Weather Widget */}
+                        <div className="animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+                            <WeatherWidget />
+                        </div>
+
+                        {/* Price Alerts */}
+                        <div id="price-alerts" className="animate-fadeIn" style={{ animationDelay: '0.25s' }}>
+                            <PriceAlertsPanel user={user} />
+                        </div>
+                    </section>
+                </div>
             </div>
 
             <Footer />

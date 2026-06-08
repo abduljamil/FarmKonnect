@@ -1,4 +1,5 @@
 import React, { useEffect, memo, useState, useCallback, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import {
   LineChart,
@@ -26,10 +27,15 @@ import {
   Activity,
   Layers,
   Calendar,
+  Sparkles,
+  Info,
+  BadgeCheck,
 } from "lucide-react";
 
 // Shared commodity catalog (images, colors, family grouping, base lookup)
 import { getCommodityConfig, pickDefaultCity, DISPLAY_COMMODITIES } from "../utils/commodities";
+import { computeForecastSignal, SIGNAL_TONE } from "../utils/forecastSignal";
+import Ltr from "./Ltr";
 
 // Time period options
 const TIME_PERIODS = [
@@ -213,6 +219,143 @@ const ChartTypeButton = memo(({ active, onClick, icon: IconComponent, label }) =
 
 ChartTypeButton.displayName = "ChartTypeButton";
 
+// Friendly labels for the model-credibility line.
+const MODEL_LABELS = {
+  persistence: "Trend baseline",
+  lgbm_per_commodity: "LightGBM",
+  lgbm_quantile: "LightGBM (quantile)",
+  lgbm_quantile_median: "LightGBM (quantile)",
+};
+const friendlyModel = (m) => MODEL_LABELS[m] || (m ? m.replace(/_/g, " ") : "Model");
+
+// Horizon (weeks) → i18n key suffix for the outlook cards.
+const HORIZON_KEY = { 1: "h1", 2: "h2", 4: "h4", 12: "h12" };
+
+// Market Outlook — turns the raw forecast docs (one per horizon, latest anchor)
+// into a scannable outlook: a card per horizon (predicted price, %Δ vs the
+// model's anchor price, confidence range) plus a plain-language Buy/Hold/Sell
+// signal anchored on the 1-month forecast. All numbers wrapped in <Ltr> so they
+// stay left-to-right inside Urdu text.
+const ForecastOutlook = memo(({ docs, t }) => {
+  const sig = computeForecastSignal(docs);
+  if (!sig) return null;
+
+  const { ordered, pctOf, signalDoc, trend, mape, confKey } = sig;
+  const tone = SIGNAL_TONE[trend];
+  const TrendIcon = trend === "rise" ? TrendingUp : trend === "fall" ? TrendingDown : Minus;
+
+  return (
+    <div className="mt-4 space-y-3">
+      {/* Section header */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="p-1.5 bg-primary-100 dark:bg-primary-900/40 rounded-lg flex-shrink-0">
+            <Sparkles className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
+              {t("forecast.outlookTitle")}
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight truncate">
+              {t("forecast.outlookSubtitle")}
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/how-forecasts-work"
+          className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline"
+        >
+          <Info className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">{t("forecast.linkLabel")}</span>
+        </Link>
+      </div>
+
+      {/* Per-horizon outlook cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {ordered.map((d) => {
+          const p = pctOf(d.predicted_price);
+          const up = p > 0.5;
+          const down = p < -0.5;
+          const hasBand = d.predicted_price_low != null && d.predicted_price_high != null;
+          const moveColor = up
+            ? "text-amber-600 dark:text-amber-400"
+            : down
+            ? "text-emerald-600 dark:text-emerald-400"
+            : "text-gray-500 dark:text-gray-400";
+          return (
+            <div
+              key={d.horizon_weeks}
+              className="p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm"
+            >
+              <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                {t(`forecast.${HORIZON_KEY[d.horizon_weeks] || "h1"}`)}
+              </p>
+              <p className="text-base font-bold text-gray-900 dark:text-white mt-0.5">
+                <Ltr>₨{Math.round(d.predicted_price).toLocaleString()}</Ltr>
+              </p>
+              <div className={`mt-1 inline-flex items-center gap-0.5 text-xs font-semibold ${moveColor}`}>
+                {up ? (
+                  <TrendingUp className="w-3 h-3" />
+                ) : down ? (
+                  <TrendingDown className="w-3 h-3" />
+                ) : (
+                  <Minus className="w-3 h-3" />
+                )}
+                <Ltr>{p > 0 ? "+" : ""}{p.toFixed(1)}%</Ltr>
+              </div>
+              {hasBand && (
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 truncate">
+                  <Ltr>₨{Math.round(d.predicted_price_low).toLocaleString()}–{Math.round(d.predicted_price_high).toLocaleString()}</Ltr>
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Buy / Hold / Sell signal */}
+      <div className={`p-4 rounded-xl border flex items-start gap-3 ${tone.box}`}>
+        <div className={`p-2 rounded-lg flex-shrink-0 ${tone.iconBox}`}>
+          <TrendIcon className={`w-5 h-5 ${tone.icon}`} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className={`font-bold text-sm ${tone.title}`}>
+              {t(`forecast.signal_${trend}_title`)}
+            </p>
+            {confKey && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/70 dark:bg-gray-900/50 text-gray-600 dark:text-gray-300">
+                {t(`forecast.${confKey}`)}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-gray-600 dark:text-gray-300 mt-1.5">
+            {t(`forecast.signal_${trend}_buyer`)}
+          </p>
+          <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
+            {t(`forecast.signal_${trend}_seller`)}
+          </p>
+        </div>
+      </div>
+
+      {/* Credibility / disclaimer line */}
+      <p className="text-[11px] text-gray-400 dark:text-gray-500 flex items-start gap-1.5">
+        <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
+        <span>
+          {t("forecast.modelLine", {
+            model: friendlyModel(signalDoc.model),
+            error: mape != null ? mape.toFixed(1) : "—",
+          })}
+          {" — "}
+          {t("forecast.disclaimer")}
+        </span>
+      </p>
+    </div>
+  );
+});
+
+ForecastOutlook.displayName = "ForecastOutlook";
+
 const PriceChart = ({ user, onLoginRequired }) => {
   const { t } = useLanguage();
   const [commodities, setCommodities] = useState([]);
@@ -220,6 +363,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
   const [cities, setCities] = useState([]);
   const [data, setData] = useState([]);
   const [forecastDocs, setForecastDocs] = useState([]); // raw forecast rows
+  const [backtest, setBacktest] = useState(null); // realized accuracy of matured forecasts
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [chartType, setChartType] = useState("area");
@@ -493,6 +637,85 @@ const PriceChart = ({ user, onLoginRequired }) => {
     return () => { isMounted = false; };
   }, [selectedCommodity, selectedVariety, selectedCity]);
 
+  // Backtest / track-record: compare *matured* forecasts (forecast_date already
+  // in the past) against the price that actually materialised. We pull every
+  // forecast anchor plus a wide history window, match each matured prediction
+  // to the nearest actual (weekly cadence → ±6-day tolerance), and report the
+  // realised mean error. Hidden unless we can match a meaningful sample.
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchBacktest = async () => {
+      if (!selectedCommodity || !selectedCity) {
+        setBacktest(null);
+        return;
+      }
+      try {
+        const fParams = new URLSearchParams({ commodity: selectedCommodity, city: selectedCity });
+        const hParams = new URLSearchParams({ commodity: selectedCommodity, city: selectedCity, days: "900" });
+        if (selectedVariety) {
+          fParams.set("variety", selectedVariety);
+          hParams.set("variety", selectedVariety);
+        }
+
+        const [fRes, hRes] = await Promise.all([
+          fetch(`${API_URL}/prices/forecast?${fParams.toString()}`),
+          fetch(`${API_URL}/prices/history?${hParams.toString()}`),
+        ]);
+        const fJson = await fRes.json();
+        const hJson = await hRes.json();
+        if (!isMounted || !fRes.ok || !hRes.ok) return;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const matured = (fJson.data || []).filter((d) => new Date(d.forecast_date) < today);
+        const actuals = (hJson.data || [])
+          .filter((p) => p.price != null)
+          .map((p) => ({ t: new Date(p.date).getTime(), price: p.price }));
+
+        if (matured.length === 0 || actuals.length === 0) {
+          setBacktest(null);
+          return;
+        }
+
+        const TOL = 6 * 86400000; // ±6 days
+        const errs = [];
+        let latest = null;
+        for (const d of matured) {
+          const ft = new Date(d.forecast_date).getTime();
+          let best = null;
+          let bestGap = Infinity;
+          for (const a of actuals) {
+            const gap = Math.abs(a.t - ft);
+            if (gap < bestGap) {
+              bestGap = gap;
+              best = a;
+            }
+          }
+          if (!best || bestGap > TOL || !best.price) continue;
+          const errPct = (Math.abs(d.predicted_price - best.price) / best.price) * 100;
+          errs.push(errPct);
+          if (!latest || ft > latest.ft) {
+            latest = { ft, pred: d.predicted_price, actual: best.price, errPct };
+          }
+        }
+
+        // Need a few matched points before claiming a track record.
+        if (errs.length < 3) {
+          setBacktest(null);
+          return;
+        }
+        const mape = errs.reduce((a, b) => a + b, 0) / errs.length;
+        setBacktest({ count: errs.length, mape, latest });
+      } catch {
+        if (isMounted) setBacktest(null);
+      }
+    };
+
+    fetchBacktest();
+    return () => { isMounted = false; };
+  }, [selectedCommodity, selectedVariety, selectedCity]);
+
   const handleProtectedAction = useCallback((action) => {
     if (!user && onLoginRequired) {
       onLoginRequired();
@@ -565,10 +788,6 @@ const PriceChart = ({ user, onLoginRequired }) => {
     );
     return [...bridgedHistory, ...forecastRows];
   }, [data, forecastDocs, selectedDate, days]);
-
-  // The h=12 forecast — used in the stats area to show users a model-based
-  // outlook alongside the historical high/avg/low.
-  const longestForecast = forecastDocs.find((d) => d.horizon_weeks === 12);
 
   // Fall back to base family config when a variant has no dedicated entry.
   const currentConfig = getCommodityConfig(selectedCommodity);
@@ -983,42 +1202,57 @@ const PriceChart = ({ user, onLoginRequired }) => {
                 </ResponsiveContainer>
               )}
             </div>
-            {/* Forecast legend + summary */}
+            {/* Forecast legend */}
             {forecastDocs.length > 0 && !isEmpty && !error && (
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block w-4 h-0.5 bg-primary-600 rounded" />
+                  {t("forecast.legendActual")}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block w-4 h-0.5 border-t-2 border-dashed border-orange-500" />
+                  {t("forecast.legendForecast")}
+                </span>
+                {forecastDocs.some(
+                  (d) => d.predicted_price_low != null && d.predicted_price_high != null
+                ) && (
                   <span className="flex items-center gap-1.5">
-                    <span className="inline-block w-4 h-0.5 bg-primary-600 rounded" />
-                    Actual price
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="inline-block w-4 h-0.5 border-t-2 border-dashed border-orange-500" />
-                    Model forecast
-                  </span>
-                  {forecastDocs.some(
-                    (d) => d.predicted_price_low != null && d.predicted_price_high != null
-                  ) && (
-                    <span className="flex items-center gap-1.5">
-                      <span className="inline-block w-4 h-3 bg-orange-500/20 rounded-sm" />
-                      Confidence range
-                    </span>
-                  )}
-                </div>
-                {longestForecast && (
-                  <span className="text-gray-500 dark:text-gray-400">
-                    12-week outlook: <span className="font-semibold text-orange-600 dark:text-orange-400">
-                      ₨{Math.round(longestForecast.predicted_price).toLocaleString()}
-                    </span>
-                    {longestForecast.predicted_price_low != null && longestForecast.predicted_price_high != null ? (
-                      <> (₨{Math.round(longestForecast.predicted_price_low).toLocaleString()}–{Math.round(longestForecast.predicted_price_high).toLocaleString()})</>
-                    ) : longestForecast.expected_mape != null ? (
-                      <> ± {longestForecast.expected_mape.toFixed(1)}%</>
-                    ) : null}
+                    <span className="inline-block w-4 h-3 bg-orange-500/20 rounded-sm" />
+                    {t("forecast.legendRange")}
                   </span>
                 )}
               </div>
             )}
           </div>
+
+          {/* Market Outlook — forecast cards + Buy/Hold/Sell signal */}
+          {forecastDocs.length > 0 && !isEmpty && !error && (
+            <ForecastOutlook docs={forecastDocs} t={t} />
+          )}
+
+          {/* Track record — realised accuracy of matured forecasts */}
+          {backtest && !isEmpty && !error && (
+            <div className="mt-3 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/40">
+              <div className="flex items-center gap-1.5 mb-1">
+                <BadgeCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <h4 className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wide">
+                  {t("forecast.accuracyTitle")}
+                </h4>
+              </div>
+              <p className="text-sm text-gray-700 dark:text-gray-200">
+                {t("forecast.accuracyLine", { count: backtest.count, mape: backtest.mape.toFixed(1) })}
+              </p>
+              {backtest.latest && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t("forecast.accuracyLatest", {
+                    pred: `₨${Math.round(backtest.latest.pred).toLocaleString()}`,
+                    actual: `₨${Math.round(backtest.latest.actual).toLocaleString()}`,
+                    err: backtest.latest.errPct.toFixed(1),
+                  })}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Footer */}
           <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">

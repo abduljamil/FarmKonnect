@@ -22,7 +22,7 @@ const DashboardHero = ({ user }) => {
   const getMessage = () => t('dashboard.welcome');
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 dark:from-emerald-700 dark:via-teal-800 dark:to-cyan-900">
+    <div className="relative h-full overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-900">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -40,7 +40,7 @@ const DashboardHero = ({ user }) => {
       <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
 
       {/* Content */}
-      <div className="relative px-6 py-8 sm:px-8 sm:py-10">
+      <div className="relative h-full px-6 py-7 sm:px-8 sm:py-9 flex flex-col justify-center">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           {/* Left: Greeting */}
           <div className="flex-1">
@@ -94,28 +94,6 @@ const DashboardHero = ({ user }) => {
                 </button>
               </>
             )}
-          </div>
-        </div>
-
-        {/* Bottom Stats Bar */}
-        <div className="mt-8 pt-6 border-t border-white/20">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-            <div className="text-center sm:text-left">
-              <p className="text-2xl sm:text-3xl font-bold text-white">15+</p>
-              <p className="text-emerald-200 text-sm">{t('landing.stats.citiesCovered')}</p>
-            </div>
-            <div className="text-center sm:text-left">
-              <p className="text-2xl sm:text-3xl font-bold text-white">6</p>
-              <p className="text-emerald-200 text-sm">{t('priceChart.title')}</p>
-            </div>
-            <div className="text-center sm:text-left">
-              <p className="text-2xl sm:text-3xl font-bold text-white">{t('weather.today')}</p>
-              <p className="text-emerald-200 text-sm">{t('priceChart.updatedHourly')}</p>
-            </div>
-            <div className="text-center sm:text-left">
-              <p className="text-2xl sm:text-3xl font-bold text-white">{t('landing.cta.createFreeAccount')}</p>
-              <p className="text-emerald-200 text-sm">{t('landing.hero.noCommission')}</p>
-            </div>
           </div>
         </div>
       </div>

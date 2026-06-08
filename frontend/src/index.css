@@ -194,3 +194,31 @@ html.dark select:autofill {
   background-color: #1f2937 !important;
   color: #f9fafb !important;
 }
+
+/* ── Bidi / Urdu mixed-text handling ──────────────────────────────────────
+   The app stays LTR in Urdu mode (no layout mirroring). These rules only fix
+   the READING ORDER of mixed Urdu + English/number text, so embedded Latin
+   fragments (prices, IDs, dates) aren't reordered by the bidi algorithm. */
+
+/* Numbers, prices, IDs, codes: render left-to-right as one isolated atom. */
+.ltr-num {
+  unicode-bidi: isolate;
+  direction: ltr;
+}
+
+/* <bdi> already isolates by spec — make it explicit and consistent. */
+bdi {
+  unicode-bidi: isolate;
+}
+
+/* Free-text fields: let the browser pick each line's base direction from its
+   content (Urdu → RTL, English → LTR) without flipping any layout boxes. */
+body.font-urdu input,
+body.font-urdu textarea {
+  unicode-bidi: plaintext;
+}
+
+/* Opt-in utility for prose blocks that may contain either language. */
+.bidi-auto {
+  unicode-bidi: plaintext;
+}

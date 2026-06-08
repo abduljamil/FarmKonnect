@@ -117,6 +117,7 @@ const ContactUs = lazy(() => import("./pages/ContactUs"));
 const Support = lazy(() => import("./pages/Support"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const Methodology = lazy(() => import("./pages/Methodology"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -158,6 +159,7 @@ function App() {
                           <Route path="/contact" element={<ContactUs />} />
                           <Route path="/privacy" element={<PrivacyPolicy />} />
                           <Route path="/terms" element={<TermsOfService />} />
+                          <Route path="/how-forecasts-work" element={<Methodology />} />
 
                           {/* Email verification and password reset routes */}
                           <Route path="/verify-email/:token" element={<VerifyEmail />} />
