@@ -46,18 +46,18 @@ const StatCard = ({
   };
 
   const colorStyles = {
-    emerald: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
-    blue: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
-    purple: "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",
-    amber: "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",
+    emerald: "bg-gradient-to-br from-primary-100 to-emerald-50 dark:from-primary-900/40 dark:to-emerald-900/20 text-primary-600 dark:text-primary-400",
+    blue: "bg-gradient-to-br from-blue-100 to-sky-50 dark:from-blue-900/40 dark:to-sky-900/20 text-blue-600 dark:text-blue-400",
+    purple: "bg-gradient-to-br from-violet-100 to-purple-50 dark:from-violet-900/40 dark:to-purple-900/20 text-violet-600 dark:text-violet-400",
+    amber: "bg-gradient-to-br from-amber-100 to-orange-50 dark:from-amber-900/40 dark:to-orange-900/20 text-amber-600 dark:text-amber-400",
   };
 
   return (
     <div
       onClick={onClick}
       className={`
-        relative bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700
-        shadow-sm hover:shadow-lg transition-all duration-300 
+        relative bg-white dark:bg-gray-800 rounded-2xl p-5 dash-card
+        hover:shadow-lg transition-all duration-300
         ${onClick ? 'cursor-pointer hover:-translate-y-1' : ''}
         ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
       `}
@@ -70,7 +70,7 @@ const StatCard = ({
 
       {/* Value */}
       <div className="mb-1">
-        <span className="text-3xl font-bold text-gray-900 dark:text-white">
+        <span className="text-3xl font-extrabold tracking-tight tabular-nums text-gray-900 dark:text-white">
           {value}
         </span>
       </div>

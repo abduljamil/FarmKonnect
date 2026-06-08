@@ -139,7 +139,7 @@ const WeatherWidget = ({ defaultCity = "Lahore" }) => {
   // Loading state
   if (loading && !weather) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl dash-card overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-sky-100 dark:bg-sky-900/30 rounded-lg">
@@ -159,7 +159,7 @@ const WeatherWidget = ({ defaultCity = "Lahore" }) => {
   // Error state
   if (error && !weather) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl dash-card overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-sky-100 dark:bg-sky-900/30 rounded-lg">
@@ -184,7 +184,7 @@ const WeatherWidget = ({ defaultCity = "Lahore" }) => {
   const CurrentIcon = weather ? getWeatherIcon(weather.current?.condition) : Sun;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-3xl dash-card overflow-hidden">
       {/* Header */}
       <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <div className="flex items-center gap-2">

@@ -130,7 +130,7 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-emerald-50/30 dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
+        <div className="relative min-h-screen dash-aurora bg-[#f7f8f9] dark:bg-gray-950">
             {user ? (
                 <Navbar user={user} onLogout={handleLogout} unreadCount={unreadCount} />
             ) : (
@@ -138,7 +138,7 @@ const Dashboard = () => {
             )}
 
             {/* Spacer for fixed navbar */}
-            <div className="pt-16 sm:pt-20">
+            <div className="relative z-10 pt-16 sm:pt-20">
                 {/* Live Price Ticker - Fixed height and z-index ensures visibility */}
                 <div className="relative z-0 h-10 border-b border-primary-100 dark:border-gray-800 bg-primary-50 dark:bg-gray-950">
                     <PriceTicker />

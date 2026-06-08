@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ShoppingBag, TrendingUp, Sparkles } from "lucide-react";
+import { Plus, ShoppingBag, TrendingUp } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const DashboardHero = ({ user }) => {
@@ -22,58 +22,48 @@ const DashboardHero = ({ user }) => {
   const getMessage = () => t('dashboard.welcome');
 
   return (
-    <div className="relative h-full overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-900">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <defs>
-            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100" height="100" fill="url(#grid)" />
-        </svg>
-      </div>
-
-      {/* Decorative circles */}
-      <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-      <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
+    <div className="relative h-full overflow-hidden rounded-3xl hero-mesh text-white dash-card">
+      {/* Texture overlays */}
+      <div className="absolute inset-0 hero-grain opacity-[0.12] mix-blend-overlay pointer-events-none" />
+      <div className="absolute inset-0 hero-dotgrid opacity-50 pointer-events-none" />
+      <div className="absolute -top-24 -right-16 w-72 h-72 bg-primary-300/20 rounded-full blur-3xl pointer-events-none" />
 
       {/* Content */}
       <div className="relative h-full px-6 py-7 sm:px-8 sm:py-9 flex flex-col justify-center">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           {/* Left: Greeting */}
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
-              <span className="text-emerald-100 text-sm font-medium">
-                {t('landing.hero.badge')}
+          <div className="flex-1 min-w-0">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 mb-4 rounded-full bg-white/10 backdrop-blur ring-1 ring-white/15 text-[12px] font-medium text-emerald-50">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-300" />
               </span>
+              {t('landing.hero.badge')}
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">
-              {getGreeting()}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}! 👋
+            <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-extrabold tracking-tight leading-[1.1] text-white">
+              {getGreeting()}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
             </h1>
-            <p className="text-emerald-100 text-base sm:text-lg max-w-xl">
+            <p className="mt-2 text-emerald-100/80 text-base sm:text-lg max-w-xl">
               {getMessage()}
             </p>
           </div>
 
           {/* Right: Quick Actions */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
             {user ? (
               <>
                 <button
                   onClick={() => navigate("/listings/create")}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-white text-emerald-700 font-semibold rounded-xl hover:bg-emerald-50 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-white text-primary-800 font-semibold text-sm shadow-lg shadow-black/10 hover:bg-emerald-50 transition"
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-4 h-4" />
                   {t('footer.postListing')}
                 </button>
                 <button
                   onClick={() => navigate("/listings")}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-white/15 text-white font-semibold rounded-xl hover:bg-white/25 transition-all duration-200 border border-white/20 backdrop-blur-sm"
+                  className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-white/10 backdrop-blur text-white font-semibold text-sm ring-1 ring-white/20 hover:bg-white/20 transition"
                 >
-                  <ShoppingBag className="w-5 h-5" />
+                  <ShoppingBag className="w-4 h-4" />
                   {t('footer.browseListings')}
                 </button>
               </>
@@ -81,14 +71,14 @@ const DashboardHero = ({ user }) => {
               <>
                 <button
                   onClick={() => navigate("/signup")}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-white text-emerald-700 font-semibold rounded-xl hover:bg-emerald-50 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-white text-primary-800 font-semibold text-sm shadow-lg shadow-black/10 hover:bg-emerald-50 transition"
                 >
-                  <TrendingUp className="w-5 h-5" />
+                  <TrendingUp className="w-4 h-4" />
                   {t('landing.cta.getStarted')}
                 </button>
                 <button
                   onClick={() => navigate("/signin")}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-white/15 text-white font-semibold rounded-xl hover:bg-white/25 transition-all duration-200 border border-white/20 backdrop-blur-sm"
+                  className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-white/10 backdrop-blur text-white font-semibold text-sm ring-1 ring-white/20 hover:bg-white/20 transition"
                 >
                   {t('nav.signIn')}
                 </button>

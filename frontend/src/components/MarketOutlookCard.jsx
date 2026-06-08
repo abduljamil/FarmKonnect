@@ -87,7 +87,9 @@ const MarketOutlookCard = () => {
     document.getElementById("price-chart")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <div className="h-full bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 flex flex-col">
+    <div className="relative h-full overflow-hidden bg-white dark:bg-gray-800 rounded-3xl dash-card dash-card-hover p-5 flex flex-col">
+      {/* Amber accent bar */}
+      <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500" />
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <div className="p-1.5 bg-primary-100 dark:bg-primary-900/40 rounded-lg">
