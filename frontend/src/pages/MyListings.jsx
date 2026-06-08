@@ -7,8 +7,10 @@ import Button from "../components/Button";
 import Navbar from "../components/Navbar";
 import ConfirmModal from "../components/ConfirmModal";
 import chatAPI from "../utils/chatApi";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const MyProducts = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +91,6 @@ const MyProducts = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Remove listing from list
         setProducts((prev) => prev.filter((p) => p._id !== productId));
       } else {
         alert(data.message || "Failed to delete listing");
@@ -122,7 +123,6 @@ const MyProducts = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Update listing status in list
         setProducts((prev) =>
           prev.map((p) =>
             p._id === productId ? { ...p, status: newStatus } : p
@@ -154,7 +154,7 @@ const MyProducts = () => {
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950">
         <div className="text-gray-600 dark:text-gray-400 flex flex-col items-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500 mb-3"></div>
-          Loading your products...
+          {t("myListings.loadingProducts")}
         </div>
       </div>
     );
@@ -168,12 +168,12 @@ const MyProducts = () => {
       <div className="container mx-auto px-4 py-4 sm:py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            My Products
+            {t("myListings.title")}
           </h1>
           <Button onClick={() => navigate("/products/create")} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Create New Product</span>
-            <span className="sm:hidden">New</span>
+            <span className="hidden sm:inline">{t("myListings.addNew")}</span>
+            <span className="sm:hidden">{t("common.more")}</span>
           </Button>
         </div>
 
@@ -181,10 +181,10 @@ const MyProducts = () => {
           <Card className="text-center py-8 sm:py-12">
             <div className="text-5xl mb-4">📦</div>
             <p className="text-gray-500 dark:text-gray-400 mb-4">
-              You haven't posted any products yet
+              {t("myListings.noListings")}
             </p>
             <Button onClick={() => navigate("/products/create")}>
-              Create Your First Product
+              {t("myListings.createFirst")}
             </Button>
           </Card>
         ) : (
@@ -244,7 +244,7 @@ const MyProducts = () => {
                     {product.quantity && (
                       <div className="flex items-center gap-1.5">
                         <Package className="w-3.5 h-3.5" />
-                        <span>Qty: {product.quantity} {product.unit}</span>
+                        <span>{t("myListings.qty")} {product.quantity} {product.unit}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-1.5">
@@ -260,7 +260,7 @@ const MyProducts = () => {
                         onClick={() => handleEdit(product._id)}
                         className="flex-1 text-sm py-2"
                       >
-                        Edit
+                        {t("common.edit")}
                       </Button>
                       <Button
                         onClick={() => handleToggleStatus(product._id, product.status)}
@@ -274,8 +274,8 @@ const MyProducts = () => {
                         {toggling === product._id
                           ? "..."
                           : product.status === "active"
-                          ? "Deactivate"
-                          : "Activate"}
+                          ? t("myListings.deactivate")
+                          : t("myListings.activate")}
                       </Button>
                     </div>
                     <Button
@@ -283,7 +283,7 @@ const MyProducts = () => {
                       disabled={deleting === product._id}
                       className="w-full bg-red-600 hover:bg-red-700 text-sm py-2"
                     >
-                      {deleting === product._id ? "Deleting..." : "Delete"}
+                      {deleting === product._id ? t("common.loading") : t("common.delete")}
                     </Button>
                   </div>
                 </div>
@@ -298,17 +298,16 @@ const MyProducts = () => {
         isOpen={deleteModal.open}
         onClose={closeDeleteModal}
         onConfirm={handleDelete}
-        title="Delete Listing"
+        title={t("myListings.confirmDeleteTitle")}
         message={
           <>
-            Are you sure you want to delete{" "}
+            {t("myListings.confirmDeleteDesc")}{" "}
             <span className="font-semibold text-gray-900 dark:text-white">
               "{deleteModal.product?.title}"
             </span>
-            ? This action cannot be undone.
           </>
         }
-        confirmText="Delete"
+        confirmText={t("common.delete")}
         variant="danger"
       />
     </div>

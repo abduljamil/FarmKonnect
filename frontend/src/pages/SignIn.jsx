@@ -7,11 +7,13 @@ import Button from "../components/Button";
 import ErrorMessage from "../components/ErrorMessage";
 import GuestNavbar from "../components/GuestNavbar";
 import { authAPI } from "../utils/api";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     email: "",
@@ -195,10 +197,10 @@ const SignIn = () => {
                 <Mail className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">
-                    Email Verification Required
+                    {t('auth.verifyEmail.title')}
                   </p>
                   <p className="text-xs text-amber-700 dark:text-amber-300 mb-3">
-                    Please verify your email address to continue. Check your inbox for the verification link.
+                    {t('auth.verifyEmail.subtitle')}
                   </p>
                   <button
                     onClick={handleResendVerification}
@@ -208,12 +210,12 @@ const SignIn = () => {
                     {resendLoading ? (
                       <span className="flex items-center gap-1">
                         <Loader2 className="w-3 h-3 animate-spin" />
-                        Sending...
+                        {t('common.loading')}
                       </span>
                     ) : resendSuccess ? (
-                      "✓ Verification email sent!"
+                      `✓ ${t('common.success')}`
                     ) : (
-                      "Resend verification email"
+                      t('auth.verifyEmail.resend')
                     )}
                   </button>
                 </div>
@@ -246,7 +248,7 @@ const SignIn = () => {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            {t('auth.signIn.google')}
           </button>
 
           {/* Divider */}
@@ -256,7 +258,7 @@ const SignIn = () => {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                or continue with email
+                {t('auth.signIn.orContinueWith')}
               </span>
             </div>
           </div>
@@ -268,8 +270,8 @@ const SignIn = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="Enter your email"
-              label="Email Address"
+              placeholder={t('auth.signIn.email')}
+              label={t('auth.signIn.email')}
               required
             />
 
@@ -279,8 +281,8 @@ const SignIn = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Enter your password"
-              label="Password"
+              placeholder={t('auth.signIn.password')}
+              label={t('auth.signIn.password')}
               required
             />
 
@@ -290,29 +292,29 @@ const SignIn = () => {
                   type="checkbox"
                   className="w-4 h-4 cursor-pointer rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                 />
-                <span>Remember me</span>
+                <span>{t('auth.signIn.rememberMe')}</span>
               </label>
               <Link
                 to="/forgot-password"
                 className="text-primary-600 dark:text-primary-400 font-medium hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
               >
-                Forgot password?
+                {t('auth.signIn.forgotPassword')}
               </Link>
             </div>
 
             <Button type="submit" fullWidth loading={loading} className="mt-6">
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? t('common.loading') : t('auth.signIn.button')}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Don't have an account?{" "}
+              {t('auth.signIn.noAccount')}{" "}
               <Link
                 to="/signup"
                 className="text-primary-600 dark:text-primary-400 font-semibold hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
               >
-                Sign Up
+                {t('auth.signIn.signUpLink')}
               </Link>
             </p>
           </div>

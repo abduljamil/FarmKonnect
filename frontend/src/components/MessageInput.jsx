@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { Send, X } from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const MessageInput = ({ onSendMessage, onSendOffer, disabled }) => {
+  const { t } = useLanguage();
   const [message, setMessage] = useState("");
   const [showOfferInput, setShowOfferInput] = useState(false);
   const [offerAmount, setOfferAmount] = useState("");
@@ -37,7 +39,7 @@ const MessageInput = ({ onSendMessage, onSendOffer, disabled }) => {
         <form onSubmit={handleSendOffer} className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              Make a Price Offer
+              {t("offer.makeAPriceOffer")}
             </h3>
             <button
               type="button"
@@ -74,7 +76,7 @@ const MessageInput = ({ onSendMessage, onSendOffer, disabled }) => {
               disabled={disabled || !offerAmount || parseFloat(offerAmount) <= 0}
               className="flex-1 px-4 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 disabled:from-gray-300 disabled:to-gray-300 dark:disabled:from-gray-700 dark:disabled:to-gray-700 text-white rounded-lg font-semibold transition-all duration-200 disabled:cursor-not-allowed shadow-sm hover:shadow hover:-translate-y-0.5"
             >
-              Send Offer
+              {t("offer.sendOffer")}
             </button>
             <button
               type="button"
@@ -84,7 +86,7 @@ const MessageInput = ({ onSendMessage, onSendOffer, disabled }) => {
               }}
               className="px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold transition-colors"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </form>
@@ -96,7 +98,7 @@ const MessageInput = ({ onSendMessage, onSendOffer, disabled }) => {
             className="flex-shrink-0 px-3 py-2.5 rounded-lg border-2 border-primary-500 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 font-semibold text-sm transition-all duration-200 disabled:opacity-50"
             disabled={disabled}
           >
-            Make Offer
+            {t("offer.makeOffer")}
           </button>
 
           <div className="relative flex-1">
@@ -105,7 +107,7 @@ const MessageInput = ({ onSendMessage, onSendOffer, disabled }) => {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type a message..."
+              placeholder={t("chat.typeMessage")}
               className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
               disabled={disabled}
             />

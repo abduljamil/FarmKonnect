@@ -3,8 +3,10 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
 import { authAPI } from "../utils/api";
 import Button from "../components/Button";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const VerifyEmail = () => {
+    const { t } = useLanguage();
     const { token } = useParams();
     const navigate = useNavigate();
     const [status, setStatus] = useState("loading"); // loading, success, error
@@ -71,10 +73,10 @@ const VerifyEmail = () => {
                                 <Loader2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400 animate-spin" />
                             </div>
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                                Verifying Your Email
+                                {t("verifyEmailPage.title")}
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400">
-                                Please wait while we verify your email address...
+                                {t("verifyEmailPage.verifyingDesc")}
                             </p>
                         </>
                     )}
@@ -85,18 +87,18 @@ const VerifyEmail = () => {
                                 <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
                             </div>
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                                Email Verified! 🎉
+                                {t("verifyEmailPage.successTitle")}
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400 mb-6">
                                 {message}
                             </p>
                             {user && (
                                 <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-6">
-                                    Welcome, {user.name}! Redirecting to dashboard...
+                                    {t("verifyEmailPage.welcomeMsg", { name: user.name })}
                                 </p>
                             )}
                             <Button onClick={() => navigate("/dashboard")} className="w-full">
-                                Go to Dashboard
+                                {t("verifyEmailPage.goToDashboard")}
                             </Button>
                         </>
                     )}
@@ -107,20 +109,20 @@ const VerifyEmail = () => {
                                 <XCircle className="w-10 h-10 text-red-600 dark:text-red-400" />
                             </div>
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                                Verification Failed
+                                {t("verifyEmailPage.errorTitle")}
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400 mb-6">
                                 {message}
                             </p>
                             <div className="space-y-3">
                                 <Button onClick={() => navigate("/signin")} className="w-full">
-                                    Go to Sign In
+                                    {t("verifyEmailPage.goToSignIn")}
                                 </Button>
                                 <Link
                                     to="/signin"
                                     className="block text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
                                 >
-                                    Need to resend verification email?
+                                    {t("verifyEmailPage.resendLink")}
                                 </Link>
                             </div>
                         </>
@@ -129,9 +131,9 @@ const VerifyEmail = () => {
 
                 {/* Help text */}
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-                    Having trouble?{" "}
+                    {t("verifyEmailPage.troubleText")}{" "}
                     <a href="mailto:support@farmkonnect.com" className="text-emerald-600 hover:underline">
-                        Contact Support
+                        {t("verifyEmailPage.contactSupportLink")}
                     </a>
                 </p>
             </div>

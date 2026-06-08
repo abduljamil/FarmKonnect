@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect, useCallback } from "react"; import API_URL from "../config";
+import React, { useState, useEffect, useCallback } from "react";
+import API_URL from "../config";
 import {
   Bell,
   BellRing,
@@ -16,6 +17,7 @@ import {
 import alertsApi from "../utils/alertsApi";
 import socketService from "../utils/socket";
 import { COMMODITY_OPTIONS } from "../utils/commodities";
+import { useLanguage } from "../contexts/LanguageContext";
 
 // All commodities surfaced in the alert dropdown (sourced from the shared
 // catalog so new rice variants / Seed Cotton (Phutti) etc. show up
@@ -28,6 +30,7 @@ const COMMODITIES = COMMODITY_OPTIONS;
 const COMMODITIES_WITH_VARIETIES = ["Rice", "Cotton"];
 
 const AlertItem = ({ alert, onDelete, onReactivate }) => {
+  const { t } = useLanguage();
   const [deleting, setDeleting] = useState(false);
   const isTriggered = alert.status === "triggered";
 
@@ -59,8 +62,8 @@ const AlertItem = ({ alert, onDelete, onReactivate }) => {
               {alert.variety && <span className="text-gray-500"> ({alert.variety})</span>}
             </h4>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {alert.condition === "above" ? "Price rises above" : "Price drops below"} ₨{alert.targetPrice?.toLocaleString()}
-              {alert.city && <span> in {alert.city}</span>}
+              {alert.condition === "above" ? t("priceAlerts.conditionAbove") : t("priceAlerts.conditionBelow")} ₨{alert.targetPrice?.toLocaleString()}
+              {alert.city && <span> {t("priceAlerts.inCity")} {alert.city}</span>}
             </p>
           </div>
         </div>
@@ -71,12 +74,12 @@ const AlertItem = ({ alert, onDelete, onReactivate }) => {
               className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50 px-2 py-1 rounded-full hover:bg-green-200 dark:hover:bg-green-900/70 transition-colors"
             >
               <Check className="w-3 h-3" />
-              Triggered
+              {t("priceAlerts.triggered")}
             </button>
           ) : (
             <span className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-2 py-1 rounded-full">
               <BellRing className="w-3 h-3" />
-              Active
+              {t("priceAlerts.active")}
             </span>
           )}
           <button
@@ -98,10 +101,10 @@ const AlertItem = ({ alert, onDelete, onReactivate }) => {
         <div className="mb-2">
           <div className="flex justify-between text-xs mb-1">
             <span className="text-gray-500 dark:text-gray-400">
-              Current: ₨{alert.currentPrice?.toLocaleString()}
+              {t("priceAlerts.currentLabel")}: ₨{alert.currentPrice?.toLocaleString()}
             </span>
             <span className="text-gray-500 dark:text-gray-400">
-              Target: ₨{alert.targetPrice?.toLocaleString()}
+              {t("priceAlerts.targetLabel")}: ₨{alert.targetPrice?.toLocaleString()}
             </span>
           </div>
           <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
@@ -115,9 +118,9 @@ const AlertItem = ({ alert, onDelete, onReactivate }) => {
       )}
 
       <p className="text-xs text-gray-500 dark:text-gray-400">
-        Created {new Date(alert.createdAt).toLocaleDateString()}
+        {t("priceAlerts.createdOn")} {new Date(alert.createdAt).toLocaleDateString()}
         {isTriggered && alert.triggeredAt && (
-          <span> · Triggered {new Date(alert.triggeredAt).toLocaleDateString()}</span>
+          <span> · {t("priceAlerts.triggeredOn")} {new Date(alert.triggeredAt).toLocaleDateString()}</span>
         )}
       </p>
     </div>
@@ -125,6 +128,7 @@ const AlertItem = ({ alert, onDelete, onReactivate }) => {
 };
 
 const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     commodity: "Wheat",
     variety: "",
@@ -313,7 +317,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Create Price Alert
+            {t("priceAlerts.createModal")}
           </h3>
           <button
             onClick={onClose}
@@ -333,7 +337,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
           {/* Commodity */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Commodity *
+              {t("priceAlerts.form.commodity")} *
             </label>
             <div className="relative">
               <select
@@ -357,13 +361,13 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
           {hasVarieties && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Variety (Optional)
+                {t("priceAlerts.variety")}
               </label>
               <div className="relative">
                 {loadingVarieties ? (
                   <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
                     <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
-                    <span className="text-sm text-gray-500">Loading varieties...</span>
+                    <span className="text-sm text-gray-500">{t("priceAlerts.loadingVarieties")}</span>
                   </div>
                 ) : varieties.length > 0 ? (
                   <>
@@ -374,7 +378,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
                                text-gray-900 dark:text-white rounded-lg px-4 py-2.5 pr-10
                                focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     >
-                      <option value="">All Varieties</option>
+                      <option value="">{t("priceAlerts.allVarieties")}</option>
                       {varieties.map((v) => (
                         <option key={v} value={v}>
                           {v}
@@ -385,13 +389,13 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
                   </>
                 ) : (
                   <div className="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-500">
-                    No varieties available
+                    {t("priceAlerts.noVarieties")}
                   </div>
                 )}
               </div>
               {varieties.length > 0 && (
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Leave empty to be alerted for any variety
+                  {t("priceAlerts.varietyHint")}
                 </p>
               )}
             </div>
@@ -400,13 +404,13 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
           {/* City */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              City *
+              {t("priceAlerts.cityLabel")} *
             </label>
             <div className="relative">
               {loadingCities ? (
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
                   <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
-                  <span className="text-sm text-gray-500">Loading cities...</span>
+                  <span className="text-sm text-gray-500">{t("priceAlerts.loadingCities")}</span>
                 </div>
               ) : cities.length > 0 ? (
                 <>
@@ -417,7 +421,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
                              text-gray-900 dark:text-white rounded-lg px-4 py-2.5 pr-10
                              focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   >
-                    <option value="">Select a city to see price</option>
+                    <option value="">{t("priceAlerts.selectCity")}</option>
                     {cities.map((city) => (
                       <option key={city} value={city}>
                         {city}
@@ -428,19 +432,19 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
                 </>
               ) : (
                 <div className="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-500">
-                  No cities available for this selection
+                  {t("priceAlerts.noCities")}
                 </div>
               )}
             </div>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Select a city to see its current price
+              {t("priceAlerts.cityHint")}
             </p>
           </div>
 
           {/* Condition */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Alert when price... *
+              {t("priceAlerts.alertWhen")} *
             </label>
             <div className="flex gap-2">
               <button
@@ -451,7 +455,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
                   : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
                   }`}
               >
-                Rises Above ↑
+                {t("priceAlerts.risesAbove")}
               </button>
               <button
                 type="button"
@@ -461,7 +465,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
                   : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
                   }`}
               >
-                Drops Below ↓
+                {t("priceAlerts.dropsBelow")}
               </button>
             </div>
           </div>
@@ -474,13 +478,13 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400 mb-1">
-                  {currentPrice?.isSelectedCity ? "Current Price" : "Reference Price"}
-                  {!currentPrice?.isSelectedCity && <span className="text-gray-500 ml-1">(Sample)</span>}
+                  {currentPrice?.isSelectedCity ? t("priceAlerts.currentPrice") : t("priceAlerts.referencePrice")}
+                  {!currentPrice?.isSelectedCity && <span className="text-gray-500 ml-1">{t("priceAlerts.sample")}</span>}
                 </p>
                 {loadingPrice ? (
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
-                    <span className="text-sm text-gray-500">Loading...</span>
+                    <span className="text-sm text-gray-500">{t("common.loading")}</span>
                   </div>
                 ) : currentPrice ? (
                   <div className="flex items-baseline gap-2">
@@ -493,7 +497,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
                   </div>
                 ) : (
                   <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Price not available for this selection
+                    {t("priceAlerts.priceNotAvail")}
                   </span>
                 )}
               </div>
@@ -520,7 +524,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
             </div>
             {currentPrice?.isSelectedCity && (
               <p className="mt-3 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1.5 rounded-md">
-                ✓ Showing current price for <strong>{currentPrice.city}</strong>
+                ✓ {t("priceAlerts.showingPrice", { city: currentPrice.city })}
               </p>
             )}
           </div>
@@ -528,7 +532,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
           {/* Target Price */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Target Price (PKR) *
+              {t("priceAlerts.targetPriceLabel")} *
             </label>
             <input
               type="number"
@@ -562,12 +566,12 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
             {loading ? (
               <>
                 <RefreshCw className="w-5 h-5 animate-spin" />
-                Creating...
+                {t("priceAlerts.creating")}
               </>
             ) : (
               <>
                 <Bell className="w-5 h-5" />
-                Create Alert
+                {t("priceAlerts.create")}
               </>
             )}
           </button>
@@ -578,6 +582,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
 };
 
 const PriceAlertsPanel = ({ user }) => {
+  const { t } = useLanguage();
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -679,19 +684,19 @@ const PriceAlertsPanel = ({ user }) => {
               <Bell className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">Price Alerts</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Get notified on price changes</p>
+              <h3 className="font-semibold text-gray-900 dark:text-white">{t("priceAlerts.title")}</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t("priceAlerts.getNotified")}</p>
             </div>
           </div>
         </div>
         <div className="px-5 py-8 text-center">
           <AlertTriangle className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-600 dark:text-gray-400 mb-4">Sign in to create price alerts</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{t("priceAlerts.signInToCreate")}</p>
           <a
             href="/signin"
             className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
           >
-            Sign In
+            {t("priceAlerts.signIn")}
           </a>
         </div>
       </div>
@@ -708,9 +713,9 @@ const PriceAlertsPanel = ({ user }) => {
               <Bell className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">Price Alerts</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white">{t("priceAlerts.title")}</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {activeCount} active · {triggeredCount} triggered
+                {t("priceAlerts.statsLine", { active: activeCount, triggered: triggeredCount })}
               </p>
             </div>
           </div>
@@ -719,7 +724,7 @@ const PriceAlertsPanel = ({ user }) => {
             className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium"
           >
             <Plus className="w-4 h-4" />
-            Add Alert
+            {t("priceAlerts.addAlert")}
           </button>
         </div>
 
@@ -728,7 +733,7 @@ const PriceAlertsPanel = ({ user }) => {
           {loading ? (
             <div className="py-8 text-center">
               <RefreshCw className="w-8 h-8 text-gray-400 animate-spin mx-auto mb-2" />
-              <p className="text-gray-500 dark:text-gray-400">Loading alerts...</p>
+              <p className="text-gray-500 dark:text-gray-400">{t("priceAlerts.loadingAlerts")}</p>
             </div>
           ) : error ? (
             <div className="py-8 text-center">
@@ -738,7 +743,7 @@ const PriceAlertsPanel = ({ user }) => {
                 onClick={fetchAlerts}
                 className="mt-2 text-sm text-emerald-600 hover:text-emerald-700"
               >
-                Try again
+                {t("priceAlerts.tryAgain")}
               </button>
             </div>
           ) : alerts.length > 0 ? (
@@ -753,13 +758,13 @@ const PriceAlertsPanel = ({ user }) => {
           ) : (
             <div className="py-8 text-center">
               <Bell className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 dark:text-gray-400 mb-4">No price alerts set</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">{t("priceAlerts.noAlerts")}</p>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
               >
                 <Plus className="w-4 h-4" />
-                Create Your First Alert
+                {t("priceAlerts.createFirst")}
               </button>
             </div>
           )}

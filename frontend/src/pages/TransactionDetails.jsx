@@ -12,10 +12,12 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import useUserSync from "../hooks/useUserSync";
 import socketService from "../utils/socket";
+import { useLanguage } from "../contexts/LanguageContext";
 
 import API_URL from "../config";
 
 export default function TransactionDetails() {
+    const { t } = useLanguage();
     const { id } = useParams();
     const navigate = useNavigate();
     const { isDark } = useTheme();
@@ -123,14 +125,16 @@ export default function TransactionDetails() {
             }
         }, `transaction_${id}`);
 
-        // Polling fallback - refresh every 60 seconds to catch missed socket updates
         const pollInterval = setInterval(() => {
             silentRefresh();
-        }, 60000);
+        }, 3 * 60 * 1000);
+        const handleFocus = () => silentRefresh();
+        window.addEventListener('focus', handleFocus);
 
         return () => {
             socketService.offOrderStatusUpdate(`transaction_${id}`);
             clearInterval(pollInterval);
+            window.removeEventListener('focus', handleFocus);
         };
     }, [id, fetchTransaction, silentRefresh]);
 
@@ -328,7 +332,7 @@ export default function TransactionDetails() {
                         onClick={handleBack}
                         className="mt-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
                     >
-                        Back to Transactions
+                        {t("transactions.detail.backToTransactions")}
                     </button>
                 </div>
             </div>
@@ -370,7 +374,7 @@ export default function TransactionDetails() {
                     onClick={handleBack}
                     className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
-                    ← Back to Transactions
+                    ← {t("transactions.detail.backToTransactions")}
                 </button>
 
                 <div className={`rounded-2xl shadow-lg overflow-hidden ${isDark ? "bg-gray-800" : "bg-white"}`}>
@@ -378,7 +382,7 @@ export default function TransactionDetails() {
                     <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div>
-                                <h1 className="text-2xl font-bold">Transaction Details</h1>
+                                <h1 className="text-2xl font-bold">{t("transactions.detail.title")}</h1>
                                 <div className="flex items-center gap-2 mt-1">
                                     <p className="text-sm text-gray-500 dark:text-gray-400 font-mono text-xs">ID: {transaction._id}</p>
                                     <button
@@ -388,7 +392,7 @@ export default function TransactionDetails() {
                                             setTimeout(() => setCopied(false), 2000);
                                         }}
                                         className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 hover:text-emerald-500 transition-colors"
-                                        title="Copy Transaction ID"
+                                        title={t("transactions.detail.copyId")}
                                     >
                                         {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                                     </button>
@@ -400,7 +404,7 @@ export default function TransactionDetails() {
                                         transaction.orderStatus === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
                                             transaction.orderStatus === 'confirmed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
                                                 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>
-                                    {transaction.orderStatus}
+                                    {t(`transactions.list.status${transaction.orderStatus?.charAt(0).toUpperCase() + transaction.orderStatus?.slice(1)}`) || transaction.orderStatus}
                                 </span>
                                 <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize
                   ${transaction.paymentStatus === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
@@ -416,7 +420,7 @@ export default function TransactionDetails() {
                         {/* Left Column: Order Info */}
                         <div className="space-y-6">
                             <div>
-                                <h3 className="text-lg font-semibold mb-3">Item Details</h3>
+                                <h3 className="text-lg font-semibold mb-3">{t("transactions.detail.itemDetails")}</h3>
                                 <div className="flex gap-4">
                                     <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                                         <img
@@ -427,7 +431,7 @@ export default function TransactionDetails() {
                                     </div>
                                     <div>
                                         <h4 className="font-medium text-lg">{transaction.listing?.title}</h4>
-                                        <p className="text-gray-500 dark:text-gray-400">Quantity: {transaction.quantity}</p>
+                                        <p className="text-gray-500 dark:text-gray-400">{t("transactions.detail.quantity")}: {transaction.quantity}</p>
                                         <p className="text-primary-600 dark:text-primary-400 font-bold mt-1">
                                             Rs. {transaction.amount?.toLocaleString()}
                                         </p>
@@ -436,17 +440,17 @@ export default function TransactionDetails() {
                             </div>
 
                             <div>
-                                <h3 className="text-lg font-semibold mb-3">Parties Involved</h3>
+                                <h3 className="text-lg font-semibold mb-3">{t("transactions.detail.partiesInvolved")}</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase">Seller</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase">{t("transactions.list.seller")}</p>
                                         <p className="font-medium">{transaction.seller?.name}</p>
                                         <p className="text-sm text-gray-600 dark:text-gray-300">
                                             {transaction.sellerPhone || transaction.seller?.phone}
                                         </p>
                                     </div>
                                     <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase">Buyer</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase">{t("transactions.list.buyer")}</p>
                                         <p className="font-medium">{transaction.buyer?.name}</p>
                                         <p className="text-sm text-gray-600 dark:text-gray-300">
                                             {transaction.buyerPhone || transaction.buyer?.phone}
@@ -460,7 +464,7 @@ export default function TransactionDetails() {
                                 <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                                     <h4 className="font-semibold text-green-800 dark:text-green-300 mb-3 flex items-center gap-2">
                                         <Camera className="w-5 h-5" />
-                                        Delivery Proof Photos
+                                        {t("transactions.detail.deliveryProof")}
                                     </h4>
                                     <div className="flex gap-3 flex-wrap">
                                         {transaction.deliveryProofImages.map((img, idx) => (
@@ -477,7 +481,7 @@ export default function TransactionDetails() {
                                         ))}
                                     </div>
                                     <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-                                        Click on an image to view full size
+                                        {t("transactions.detail.proofClickView")}
                                     </p>
                                 </div>
                             )}
@@ -487,17 +491,17 @@ export default function TransactionDetails() {
                                 <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
                                     <h4 className="font-semibold text-purple-800 dark:text-purple-300 mb-3 flex items-center gap-2">
                                         <Package className="w-5 h-5" />
-                                        Mark Order as Delivered
+                                        {t("transactions.detail.markOrderDelivered")}
                                     </h4>
 
                                     {/* Delivery Proof Upload */}
                                     <div className="mb-4">
                                         <p className="text-sm font-medium text-purple-800 dark:text-purple-300 mb-2 flex items-center gap-2">
                                             <Camera className="w-4 h-4" />
-                                            Add Delivery Proof (Optional)
+                                            {t("transactions.detail.addDeliveryProofOptional")}
                                         </p>
                                         <p className="text-xs text-purple-600 dark:text-purple-400 mb-3">
-                                            Upload photos as proof of delivery to build buyer trust
+                                            {t("transactions.detail.addDeliveryProofDesc")}
                                         </p>
 
                                         {/* Preview uploaded images */}
@@ -535,7 +539,7 @@ export default function TransactionDetails() {
                                             className="w-full py-2 px-4 border-2 border-dashed border-purple-300 dark:border-purple-600 rounded-lg text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
                                         >
                                             {uploadingProof ? (
-                                                <>Uploading...</>
+                                                <>{t("transactions.detail.uploadingProof")}</>
                                             ) : (
                                                 <>
                                                     <Image className="w-4 h-4" />
@@ -553,7 +557,7 @@ export default function TransactionDetails() {
                                         className="w-full bg-purple-600 hover:bg-purple-700"
                                     >
                                         <Package className="w-4 h-4 mr-2" />
-                                        Mark as Delivered
+                                        {t("transactions.detail.markAsDeliveredBtn")}
                                     </Button>
                                 </div>
                             )}
@@ -563,7 +567,7 @@ export default function TransactionDetails() {
                                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                                     <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-3 flex items-center gap-2">
                                         <CreditCard className="w-5 h-5" />
-                                        COD Payment Flow
+                                        {t("transactions.detail.codFlow")}
                                     </h4>
 
                                     {/* Progress Steps */}
@@ -572,28 +576,28 @@ export default function TransactionDetails() {
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${transaction.orderStatus === "delivered" || transaction.buyerConfirmedDelivery ? "bg-green-100" : "bg-gray-100"}`}>
                                                 <Package className="w-4 h-4" />
                                             </div>
-                                            <span className="mt-1">Delivered</span>
+                                            <span className="mt-1">{t("transactions.detail.stepDelivered")}</span>
                                         </div>
                                         <div className={`flex-1 h-1 mx-2 ${transaction.buyerConfirmedDelivery ? "bg-green-400" : "bg-gray-200"}`} />
                                         <div className={`flex flex-col items-center ${transaction.buyerConfirmedDelivery ? "text-green-600" : "text-gray-400"}`}>
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${transaction.buyerConfirmedDelivery ? "bg-green-100" : "bg-gray-100"}`}>
                                                 <CheckCircle className="w-4 h-4" />
                                             </div>
-                                            <span className="mt-1">Received</span>
+                                            <span className="mt-1">{t("transactions.detail.stepReceived")}</span>
                                         </div>
                                         <div className={`flex-1 h-1 mx-2 ${transaction.buyerConfirmedPayment ? "bg-green-400" : "bg-gray-200"}`} />
                                         <div className={`flex flex-col items-center ${transaction.buyerConfirmedPayment ? "text-green-600" : "text-gray-400"}`}>
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${transaction.buyerConfirmedPayment ? "bg-green-100" : "bg-gray-100"}`}>
                                                 <CreditCard className="w-4 h-4" />
                                             </div>
-                                            <span className="mt-1">Paid</span>
+                                            <span className="mt-1">{t("transactions.detail.stepPaid")}</span>
                                         </div>
                                         <div className={`flex-1 h-1 mx-2 ${transaction.sellerConfirmedPayment ? "bg-green-400" : "bg-gray-200"}`} />
                                         <div className={`flex flex-col items-center ${transaction.sellerConfirmedPayment ? "text-green-600" : "text-gray-400"}`}>
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${transaction.sellerConfirmedPayment ? "bg-green-100" : "bg-gray-100"}`}>
                                                 <Check className="w-4 h-4" />
                                             </div>
-                                            <span className="mt-1">Verified</span>
+                                            <span className="mt-1">{t("transactions.detail.stepVerified")}</span>
                                         </div>
                                     </div>
 
@@ -607,7 +611,7 @@ export default function TransactionDetails() {
                                                 className="w-full"
                                             >
                                                 <Package className="w-4 h-4 mr-2" />
-                                                I Received the Delivery
+                                                {t("transactions.detail.confirmReceived")}
                                             </Button>
                                         )}
 
@@ -619,7 +623,7 @@ export default function TransactionDetails() {
                                                 className="w-full bg-green-600 hover:bg-green-700"
                                             >
                                                 <CreditCard className="w-4 h-4 mr-2" />
-                                                💵 I Made the Payment (Cash)
+                                                💵 {t("transactions.detail.confirmPaymentMade")}
                                             </Button>
                                         )}
 
@@ -627,7 +631,7 @@ export default function TransactionDetails() {
                                         {isSeller && transaction.orderStatus === "delivered" && transaction.buyerConfirmedPayment && !transaction.sellerConfirmedPayment && (
                                             <div className="space-y-2">
                                                 <p className="text-sm text-center text-blue-600 dark:text-blue-400 mb-2">
-                                                    💵 Buyer has marked this order as PAID
+                                                    💵 {t("transactions.detail.buyerMarkedPaid")}
                                                 </p>
                                                 <div className="flex gap-2">
                                                     <Button
@@ -636,7 +640,7 @@ export default function TransactionDetails() {
                                                         className="flex-1 bg-green-600 hover:bg-green-700"
                                                     >
                                                         <CheckCircle className="w-4 h-4 mr-2" />
-                                                        Payment Received
+                                                        {t("transactions.detail.paymentReceivedBtn")}
                                                     </Button>
                                                     <Button
                                                         onClick={() => {
@@ -646,7 +650,7 @@ export default function TransactionDetails() {
                                                         className="flex-1 bg-red-600 hover:bg-red-700"
                                                     >
                                                         <XCircle className="w-4 h-4 mr-2" />
-                                                        Not Received
+                                                        {t("transactions.detail.notReceivedBtn")}
                                                     </Button>
                                                 </div>
                                             </div>
@@ -654,36 +658,36 @@ export default function TransactionDetails() {
                                         {/* Status Messages */}
                                         {isBuyer && transaction.buyerConfirmedPayment && !transaction.sellerConfirmedPayment && (
                                             <p className="text-sm text-blue-600 dark:text-blue-400 text-center">
-                                                ✅ You marked as paid. Waiting for seller to confirm...
+                                                ✅ {t("transactions.detail.youMarkedPaid")}
                                             </p>
                                         )}
 
                                         {isSeller && transaction.orderStatus === "delivered" && !transaction.buyerConfirmedPayment && (
                                             <p className="text-sm text-blue-600 dark:text-blue-400 text-center">
-                                                ⏳ Waiting for buyer to mark payment as made...
+                                                ⏳ {t("transactions.detail.waitingBuyerMark")}
                                             </p>
                                         )}
 
                                         {/* Dispute Form (shown when Not Received is clicked) */}
                                         {showDisputeForm && (
                                             <div className="pt-3 border-t border-blue-200 dark:border-blue-700 space-y-3">
-                                                <p className="text-sm font-medium text-red-600">Raise a Dispute</p>
+                                                <p className="text-sm font-medium text-red-600">{t("transactions.detail.raiseDispute")}</p>
                                                 <select
                                                     value={disputeReason}
                                                     onChange={(e) => setDisputeReason(e.target.value)}
                                                     className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
                                                 >
-                                                    <option value="">Select reason...</option>
-                                                    <option value="payment_not_received">Payment not received</option>
-                                                    <option value="wrong_amount">Wrong payment amount</option>
-                                                    <option value="product_issue">Product quality issue</option>
-                                                    <option value="delivery_issue">Delivery problem</option>
-                                                    <option value="other">Other</option>
+                                                    <option value="">{t("transactions.detail.disputeSelectReason")}</option>
+                                                    <option value="payment_not_received">{t("transactions.detail.disputePaymentNotReceived")}</option>
+                                                    <option value="wrong_amount">{t("transactions.detail.disputeWrongAmount")}</option>
+                                                    <option value="product_issue">{t("transactions.detail.disputeProductIssue")}</option>
+                                                    <option value="delivery_issue">{t("transactions.detail.disputeDeliveryIssue")}</option>
+                                                    <option value="other">{t("transactions.detail.disputeOther")}</option>
                                                 </select>
                                                 <textarea
                                                     value={disputeDescription}
                                                     onChange={(e) => setDisputeDescription(e.target.value)}
-                                                    placeholder="Describe the issue..."
+                                                    placeholder={t("transactions.detail.disputeDescPlaceholder")}
                                                     rows={2}
                                                     className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 resize-none"
                                                 />
@@ -693,7 +697,7 @@ export default function TransactionDetails() {
                                                         size="sm"
                                                         onClick={() => setShowDisputeForm(false)}
                                                     >
-                                                        Cancel
+                                                        {t("common.cancel")}
                                                     </Button>
                                                     <Button
                                                         size="sm"
@@ -702,7 +706,7 @@ export default function TransactionDetails() {
                                                         className="bg-red-600 hover:bg-red-700"
                                                     >
                                                         <XCircle className="w-4 h-4 mr-1" />
-                                                        Submit Dispute
+                                                        {t("transactions.detail.submitDispute")}
                                                     </Button>
                                                 </div>
                                             </div>
@@ -712,28 +716,28 @@ export default function TransactionDetails() {
                             )}
                         </div>
 
-                        {/* Right Column: Delivery Info (Visible to Seller too) */}
+                        {/* Right Column: Delivery Info */}
                         <div className="space-y-6">
                             <div>
-                                <h3 className="text-lg font-semibold mb-3">Delivery Information</h3>
+                                <h3 className="text-lg font-semibold mb-3">{t("transactions.detail.deliveryInfo")}</h3>
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Delivery Address</p>
+                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("transactions.detail.deliveryAddress")}</p>
                                         <p className="mt-1 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                                            {transaction.deliveryAddress || "No address provided"}
+                                            {transaction.deliveryAddress || t("transactions.detail.noAddressProvided")}
                                         </p>
                                     </div>
 
                                     <div>
-                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Delivery Instructions</p>
+                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("transactions.detail.deliveryInstructions")}</p>
                                         <p className="mt-1 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg italic text-gray-600 dark:text-gray-300">
-                                            {transaction.deliveryNotes || "No specific instructions"}
+                                            {transaction.deliveryNotes || t("transactions.detail.noInstructions")}
                                         </p>
                                     </div>
 
                                     {transaction.deliveryLocation && (
                                         <div>
-                                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Pinned Location</p>
+                                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t("transactions.detail.pinnedLocation")}</p>
                                             <MapLocationPicker
                                                 initialLocation={initialMapLocation}
                                                 readonly={true}
@@ -749,20 +753,20 @@ export default function TransactionDetails() {
                                     <div className="flex items-start gap-3">
                                         <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                                         <div>
-                                            <h4 className="font-semibold text-red-800 dark:text-red-300">Need Help?</h4>
+                                            <h4 className="font-semibold text-red-800 dark:text-red-300">{t("transactions.detail.needHelp")}</h4>
                                             <p className="text-sm text-red-600 dark:text-red-400 mt-1 mb-3">
                                                 {transaction.orderStatus === "disputed"
-                                                    ? "This transaction is under dispute. Contact support for assistance."
+                                                    ? t("transactions.detail.disputeHelpText")
                                                     : transaction.paymentStatus === "failed"
-                                                        ? "There was an issue with the payment. Get help from our support team."
-                                                        : "Having issues with this transaction? We're here to help."}
+                                                        ? t("transactions.detail.paymentFailedHelp")
+                                                        : t("transactions.detail.generalIssueText")}
                                             </p>
                                             <Link
                                                 to={`/support?transaction=${transaction._id}`}
                                                 className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
                                             >
                                                 <MessageSquare className="w-4 h-4" />
-                                                Contact Support
+                                                {t("transactions.detail.contactSupportBtn")}
                                             </Link>
                                         </div>
                                     </div>
@@ -777,7 +781,7 @@ export default function TransactionDetails() {
                                         className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 inline-flex items-center gap-1"
                                     >
                                         <MessageSquare className="w-4 h-4" />
-                                        Having an issue? Contact Support
+                                        {t("transactions.detail.havingIssue")}
                                     </Link>
                                 </div>
                             )}

@@ -8,6 +8,7 @@ import Loader from "../components/Loader";
 import ErrorMessage from "../components/ErrorMessage";
 import MapLocationPicker from "../components/MapLocationPicker";
 import { useTheme } from "../contexts/ThemeContext";
+import { useLanguage } from "../contexts/LanguageContext";
 import {
   ShoppingBag,
   CreditCard,
@@ -23,6 +24,7 @@ import {
 
 export default function CreateTransaction() {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
   const { listingId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -113,30 +115,30 @@ export default function CreateTransaction() {
 
     // Validate delivery address
     if (!formData.deliveryAddress || formData.deliveryAddress.trim().length < 10) {
-      setError("Please enter a valid delivery address (minimum 10 characters)");
+      setError(t("transactions.checkout.errAddress"));
       return;
     }
 
     // Validate phone number
     if (!formData.buyerPhone || !validatePhone(formData.buyerPhone)) {
-      setError("Please enter a valid Pakistani phone number (03XXXXXXXXX)");
+      setError(t("transactions.checkout.errPhone"));
       return;
     }
 
     // Validate JazzCash mobile number if selected
     if (formData.paymentMethod === "jazzcash" && !validatePhone(formData.mobileNumber)) {
-      setError("Please enter a valid JazzCash mobile number (03XXXXXXXXX)");
+      setError(t("transactions.checkout.errJazzMobile"));
       return;
     }
 
     // Validate Quantity
     const qty = parseInt(formData.quantity);
     if (!qty || qty < 1) {
-      setError("Please enter a valid quantity (minimum 1)");
+      setError(t("transactions.checkout.errQuantity"));
       return;
     }
     if (qty > listing.quantity) {
-      setError(`Quantity cannot exceed available stock (${listing.quantity})`);
+      setError(t("transactions.checkout.errStock", { available: listing.quantity }));
       return;
     }
 
@@ -192,13 +194,13 @@ export default function CreateTransaction() {
           <div className={`p-8 rounded-3xl ${isDark ? "bg-gray-800/50 backdrop-blur-xl border border-gray-700/50" : "bg-white/70 backdrop-blur-xl border border-gray-200/50"} shadow-2xl`}>
             <Package className={`w-16 h-16 mx-auto mb-4 ${isDark ? "text-gray-500" : "text-gray-400"}`} />
             <p className={`text-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-              Listing data not found. Please go back and try again.
+              {t("transactions.checkout.listingNotFound")}
             </p>
             <button
               onClick={() => navigate(-1)}
               className="mt-6 px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-emerald-500/25"
             >
-              Go Back
+              {t("transactions.checkout.goBack")}
             </button>
           </div>
         </div>
@@ -218,13 +220,13 @@ export default function CreateTransaction() {
             className={`flex items-center gap-2 mb-4 text-sm font-medium ${isDark ? "text-gray-400 hover:text-white" : "text-gray-600 hover:text-gray-900"} transition-colors`}
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to listing
+            {t("transactions.checkout.backToListing")}
           </button>
           <h1 className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
-            Complete Your Purchase
+            {t("transactions.checkout.title")}
           </h1>
           <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-            Review your order and enter delivery details
+            {t("transactions.checkout.subtitle")}
           </p>
         </div>
 
@@ -238,7 +240,7 @@ export default function CreateTransaction() {
               <div className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <ShoppingBag className={`w-5 h-5 ${isDark ? "text-emerald-400" : "text-emerald-600"}`} />
-                  <h2 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Order Summary</h2>
+                  <h2 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{t("transactions.checkout.orderSummary")}</h2>
                 </div>
                 <div className="flex gap-5">
                   <div className="relative">
@@ -266,12 +268,12 @@ export default function CreateTransaction() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6">
               {/* Payment Method */}
               <div className={`rounded-2xl ${isDark ? "bg-gray-800/50 backdrop-blur-xl border border-gray-700/50" : "bg-white/70 backdrop-blur-xl border border-gray-200/50"} shadow-xl p-6`}>
                 <div className="flex items-center gap-2 mb-5">
                   <CreditCard className={`w-5 h-5 ${isDark ? "text-emerald-400" : "text-emerald-600"}`} />
-                  <h2 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Payment Method</h2>
+                  <h2 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{t("transactions.checkout.paymentMethod")}</h2>
                 </div>
 
                 {/* Demo Mode Notice */}
@@ -284,9 +286,9 @@ export default function CreateTransaction() {
                         </svg>
                       </div>
                       <div>
-                        <span className="font-medium text-amber-600 dark:text-amber-400">Demo Mode Active</span>
+                        <span className="font-medium text-amber-600 dark:text-amber-400">{t("transactions.checkout.demoMode")}</span>
                         <p className="text-sm text-amber-600/80 dark:text-amber-400/80">
-                          No actual payment will be processed
+                          {t("transactions.checkout.demoModeDesc")}
                         </p>
                       </div>
                     </div>
@@ -319,10 +321,10 @@ export default function CreateTransaction() {
                         </div>
                         <div className="text-left">
                           <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-                            Cash on Delivery
+                            {t("transactions.checkout.cod")}
                           </p>
                           <p className={`text-xs mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                            Pay when you receive your order
+                            {t("transactions.checkout.codDesc")}
                           </p>
                         </div>
                       </div>
@@ -354,10 +356,10 @@ export default function CreateTransaction() {
                         </div>
                         <div className="text-left">
                           <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-                            JazzCash
+                            {t("transactions.checkout.jazzcash")}
                           </p>
                           <p className={`text-xs mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                            Pay via mobile wallet
+                            {t("transactions.checkout.jazzcashDesc")}
                           </p>
                         </div>
                       </div>
@@ -370,7 +372,7 @@ export default function CreateTransaction() {
                   <div className="mt-5 space-y-4 p-5 rounded-xl bg-gradient-to-r from-emerald-500/5 to-teal-500/5 border border-emerald-500/20">
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                        JazzCash Mobile Number *
+                        {t("transactions.checkout.jazzcashMobile")} *
                       </label>
                       <input
                         type="tel"
@@ -387,12 +389,12 @@ export default function CreateTransaction() {
                           } focus:ring-4 focus:ring-emerald-500/20 outline-none`}
                       />
                       <p className={`text-xs mt-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                        Format: 03XXXXXXXXX (11 digits)
+                        {t("transactions.checkout.jazzcashMobileHelp")}
                       </p>
                     </div>
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                        CNIC (Last 6 digits) - Optional
+                        {t("transactions.checkout.cnicLabel")}
                       </label>
                       <input
                         type="text"
@@ -415,7 +417,7 @@ export default function CreateTransaction() {
               <div className={`rounded-2xl ${isDark ? "bg-gray-800/50 backdrop-blur-xl border border-gray-700/50" : "bg-white/70 backdrop-blur-xl border border-gray-200/50"} shadow-xl p-6`}>
                 <div className="flex items-center gap-2 mb-5">
                   <Truck className={`w-5 h-5 ${isDark ? "text-emerald-400" : "text-emerald-600"}`} />
-                  <h2 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Delivery Information</h2>
+                  <h2 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{t("transactions.checkout.deliveryInfo")}</h2>
                 </div>
 
                 <div className="space-y-5">
@@ -423,7 +425,7 @@ export default function CreateTransaction() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                        Quantity
+                        {t("transactions.checkout.quantity")}
                       </label>
                       <input
                         type="number"
@@ -440,7 +442,7 @@ export default function CreateTransaction() {
                     </div>
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                        Amount (Rs.)
+                        {t("transactions.checkout.amount")}
                       </label>
                       <input
                         type="number"
@@ -461,7 +463,7 @@ export default function CreateTransaction() {
                   <div>
                     <label className={`flex items-center gap-2 text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
                       <Phone className="w-4 h-4" />
-                      Phone Number *
+                      {t("transactions.checkout.phoneNumber")} *
                     </label>
                     <input
                       type="tel"
@@ -478,7 +480,7 @@ export default function CreateTransaction() {
                         } focus:ring-4 focus:ring-emerald-500/20 outline-none`}
                     />
                     <p className={`text-xs mt-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                      Format: 03XXXXXXXXX (11 digits)
+                      {t("transactions.checkout.phoneHelp")}
                     </p>
                   </div>
 
@@ -486,7 +488,7 @@ export default function CreateTransaction() {
                   <div>
                     <label className={`flex items-center gap-2 text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
                       <Truck className="w-4 h-4" />
-                      Delivery Address *
+                      {t("transactions.checkout.deliveryAddress")} *
                     </label>
                     <textarea
                       name="deliveryAddress"
@@ -495,14 +497,14 @@ export default function CreateTransaction() {
                       required
                       minLength={10}
                       rows={2}
-                      placeholder="Enter your complete delivery address (House #, Street, Area, City)"
+                      placeholder={t("transactions.checkout.deliveryAddressPlaceholder")}
                       className={`w-full px-4 py-3.5 rounded-xl border-2 transition-all duration-300 resize-none ${isDark
                         ? "bg-gray-800/50 border-gray-700 text-white focus:border-emerald-500 focus:bg-gray-800"
                         : "bg-white border-gray-200 text-gray-900 focus:border-emerald-500"
                         } focus:ring-4 focus:ring-emerald-500/20 outline-none`}
                     />
                     <p className={`text-xs mt-1 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                      Include house/shop number, street, area and city
+                      {t("transactions.checkout.deliveryAddressHelp")}
                     </p>
                   </div>
 
@@ -523,14 +525,14 @@ export default function CreateTransaction() {
                   <div>
                     <label className={`flex items-center gap-2 text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
                       <FileText className="w-4 h-4" />
-                      Delivery Notes (Optional)
+                      {t("transactions.checkout.deliveryNotes")}
                     </label>
                     <textarea
                       name="deliveryNotes"
                       value={formData.deliveryNotes}
                       onChange={handleChange}
                       rows={2}
-                      placeholder="Any special instructions for delivery"
+                      placeholder={t("transactions.checkout.deliveryNotesPlaceholder")}
                       className={`w-full px-4 py-3.5 rounded-xl border-2 transition-all duration-300 resize-none ${isDark
                         ? "bg-gray-800/50 border-gray-700 text-white focus:border-emerald-500 focus:bg-gray-800"
                         : "bg-white border-gray-200 text-gray-900 focus:border-emerald-500"
@@ -562,12 +564,12 @@ export default function CreateTransaction() {
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader size="sm" />
-                      Processing...
+                      {t("transactions.checkout.processing")}
                     </span>
                   ) : formData.paymentMethod === "cod" ? (
-                    `Place Order • Rs. ${totalAmount.toLocaleString()}`
+                    t("transactions.checkout.placeOrderWithTotal", { total: totalAmount.toLocaleString() })
                   ) : (
-                    `Pay Rs. ${totalAmount.toLocaleString()} with JazzCash`
+                    t("transactions.checkout.payJazzCashWithTotal", { total: totalAmount.toLocaleString() })
                   )}
                 </button>
               </div>
@@ -578,30 +580,30 @@ export default function CreateTransaction() {
           <div className="lg:col-span-1">
             <div className={`sticky top-24 rounded-2xl ${isDark ? "bg-gray-800/50 backdrop-blur-xl border border-gray-700/50" : "bg-white/70 backdrop-blur-xl border border-gray-200/50"} shadow-xl p-6`}>
               <h3 className={`font-semibold text-lg mb-5 ${isDark ? "text-white" : "text-gray-900"}`}>
-                Order Summary
+                {t("transactions.checkout.orderSummary")}
               </h3>
 
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <span className={isDark ? "text-gray-400" : "text-gray-600"}>Subtotal</span>
+                  <span className={isDark ? "text-gray-400" : "text-gray-600"}>{t("transactions.checkout.subtotal")}</span>
                   <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>
                     Rs. {formData.amount ? parseFloat(formData.amount).toLocaleString() : "0"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className={isDark ? "text-gray-400" : "text-gray-600"}>Quantity</span>
+                  <span className={isDark ? "text-gray-400" : "text-gray-600"}>{t("transactions.checkout.quantity")}</span>
                   <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>
                     × {formData.quantity}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className={isDark ? "text-gray-400" : "text-gray-600"}>Delivery</span>
-                  <span className="font-medium text-emerald-500">Free</span>
+                  <span className={isDark ? "text-gray-400" : "text-gray-600"}>{t("transactions.checkout.delivery")}</span>
+                  <span className="font-medium text-emerald-500">{t("transactions.checkout.free")}</span>
                 </div>
 
                 <div className={`border-t ${isDark ? "border-gray-700" : "border-gray-200"} pt-4 mt-4`}>
                   <div className="flex justify-between items-center">
-                    <span className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Total</span>
+                    <span className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{t("transactions.checkout.total")}</span>
                     <span className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
                       Rs. {totalAmount.toLocaleString()}
                     </span>
@@ -629,12 +631,12 @@ export default function CreateTransaction() {
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader size="sm" />
-                    Processing...
+                    {t("transactions.checkout.processing")}
                   </span>
                 ) : formData.paymentMethod === "cod" ? (
-                  "Place Order"
+                  t("transactions.checkout.placeOrder")
                 ) : (
-                  "Pay with JazzCash"
+                  t("transactions.checkout.payWithJazzCash")
                 )}
               </button>
 

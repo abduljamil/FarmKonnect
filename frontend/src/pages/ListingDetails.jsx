@@ -14,8 +14,10 @@ import Button from "../components/Button";
 import SEO from "../components/SEO";
 import chatAPI from "../utils/chatApi";
 import useUserSync from "../hooks/useUserSync";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const ListingDetails = () => {
+  const { t } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
@@ -177,7 +179,7 @@ const ListingDetails = () => {
             {error || "Listing not found"}
           </h1>
           <Button onClick={() => navigate("/listings")}>
-            Back to Marketplace
+            {t("common.back")}
           </Button>
         </div>
         <Footer />
@@ -211,7 +213,7 @@ const ListingDetails = () => {
           className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 mb-6 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Back</span>
+          <span>{t("common.back")}</span>
         </button>
 
         <div className="grid lg:grid-cols-2 gap-8">
@@ -230,7 +232,7 @@ const ListingDetails = () => {
             {listing.status && listing.status !== "active" && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                 <p className="text-yellow-800 dark:text-yellow-200 font-medium">
-                  {listing.status === "sold" ? "🔴 This item has been sold" : "⚠️ This listing is currently inactive"}
+                  {listing.status === "sold" ? `🔴 ${t("listingDetails.soldMessage")}` : `⚠️ ${t("listingDetails.inactiveMessage")}`}
                 </p>
               </div>
             )}
@@ -269,19 +271,19 @@ const ListingDetails = () => {
               {listing.quantity && (
                 <div className="flex items-center gap-2">
                   <Package className="w-5 h-5 text-primary-500" />
-                  <span>{listing.quantity} {listing.unit || 'units'} available</span>
+                  <span>{listing.quantity} {listing.unit || 'units'} {t("marketplace.listing.available")}</span>
                 </div>
               )}
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-primary-500" />
-                <span>Posted {new Date(listing.createdAt).toLocaleDateString()}</span>
+                <span>{t("listingDetails.posted")} {new Date(listing.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
 
             {/* Seller Info */}
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 bg-white dark:bg-gray-800">
               <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-                Seller Information
+                {t("listingDetails.sellerInfo")}
               </h3>
               <div className="flex items-start gap-4">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-xl shadow-lg flex-shrink-0">
@@ -290,7 +292,7 @@ const ListingDetails = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-3">
                     <h4 className="font-semibold text-lg text-gray-900 dark:text-white">
-                      {listing.createdBy?.name || 'Unknown Seller'}
+                      {listing.createdBy?.name || t("common.unknown")}
                     </h4>
                     {listing.createdBy?.isEmailVerified && (
                       <ShieldCheck className="w-5 h-5 text-primary-500" title="Verified User" />
@@ -309,7 +311,7 @@ const ListingDetails = () => {
                       })}
                     />
                   ) : (
-                    <p className="text-sm text-gray-400 dark:text-gray-500">No reviews yet</p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500">{t("listingDetails.noReviews")}</p>
                   )}
                 </div>
               </div>
@@ -323,14 +325,14 @@ const ListingDetails = () => {
                   className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700"
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  Buy Now
+                  {t("listingDetails.buyNow")}
                 </Button>
                 <Button
                   onClick={handleContactSeller}
                   className="flex-1 flex items-center justify-center gap-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600"
                 >
                   <MessageCircle className="w-5 h-5" />
-                  Contact Seller
+                  {t("listingDetails.contactSeller")}
                 </Button>
               </div>
             )}
@@ -340,7 +342,7 @@ const ListingDetails = () => {
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                   <p className="text-blue-800 dark:text-blue-200 font-medium flex items-center gap-2">
                     <Eye className="w-5 h-5" />
-                    This is your listing
+                    {t("marketplace.listing.yourListing")}
                   </p>
                 </div>
 
@@ -350,7 +352,7 @@ const ListingDetails = () => {
                     className="bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2"
                   >
                     <Edit2 className="w-4 h-4" />
-                    Edit
+                    {t("common.edit")}
                   </Button>
 
                   <Button
@@ -361,7 +363,7 @@ const ListingDetails = () => {
                       }`}
                   >
                     {listing.status === "active" ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    {listing.status === "active" ? "Deactivate" : "Activate"}
+                    {listing.status === "active" ? t("myListings.deactivate") : t("myListings.activate")}
                   </Button>
                 </div>
 
@@ -371,7 +373,7 @@ const ListingDetails = () => {
                   className="w-full bg-red-500 hover:bg-red-600 flex items-center justify-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  {deleting ? "Deleting..." : "Delete Listing"}
+                  {deleting ? t("common2.deleting") : t("marketplace.listing.delete")}
                 </Button>
               </div>
             )}
@@ -379,7 +381,7 @@ const ListingDetails = () => {
             {/* Description */}
             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                Description
+                {t("listingDetails.description")}
               </h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                 {listing.description}
@@ -406,17 +408,16 @@ const ListingDetails = () => {
         isOpen={deleteModal}
         onClose={() => setDeleteModal(false)}
         onConfirm={handleDeleteListing}
-        title="Delete Listing"
+        title={t("marketplace.listing.delete")}
         message={
           <>
-            Are you sure you want to delete{" "}
+            {t("marketplace.listing.confirmDelete")}{" "}
             <span className="font-semibold text-gray-900 dark:text-white">
               "{listing?.title}"
             </span>
-            ? This action cannot be undone.
           </>
         }
-        confirmText="Delete"
+        confirmText={t("common.delete")}
         variant="danger"
         loading={deleting}
       />

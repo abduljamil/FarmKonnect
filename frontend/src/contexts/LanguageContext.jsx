@@ -27,11 +27,13 @@ export const LanguageProvider = ({ children }) => {
 
     useEffect(() => {
         localStorage.setItem("language", language);
-        // Keep LTR layout even for Urdu (only change language attribute)
-        document.documentElement.dir = "ltr";
+        // Honor RTL for Urdu so the layout actually mirrors. Pair with
+        // Tailwind's `rtl:` variant on directional utilities (ml-/mr-, pl-/pr-,
+        // text-left/right) when porting components, or use logical properties
+        // (`ms-`, `me-`, `ps-`, `pe-`, `start`/`end`) for new code.
+        document.documentElement.dir = isRTL ? "rtl" : "ltr";
         document.documentElement.lang = language;
 
-        // Add/remove Urdu font class
         if (isUrdu) {
             document.body.classList.add("font-urdu");
         } else {

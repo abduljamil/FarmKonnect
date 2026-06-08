@@ -9,8 +9,10 @@ import Navbar from "../components/Navbar";
 import ImageUpload from "../components/ImageUpload";
 import { uploadAPI } from "../utils/api";
 import chatAPI from "../utils/chatApi";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const EditProduct = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
@@ -33,27 +35,27 @@ const EditProduct = () => {
   const [originalImages, setOriginalImages] = useState([]); // Track original images to detect deletions
 
   const categories = [
-    { value: "crops", label: "Crops" },
-    { value: "livestock", label: "Livestock" },
-    { value: "equipment", label: "Equipment" },
-    { value: "fertilizers", label: "Fertilizers" },
-    { value: "seeds", label: "Seeds" },
-    { value: "other", label: "Other" },
+    { value: "crops", label: t("marketplace.categories.crops") },
+    { value: "livestock", label: t("marketplace.categories.livestock") },
+    { value: "equipment", label: t("marketplace.categories.equipment") },
+    { value: "fertilizers", label: t("marketplace.categories.fertilizers") },
+    { value: "seeds", label: t("marketplace.categories.seeds") },
+    { value: "other", label: t("marketplace.categories.other") },
   ];
 
   const units = [
-    { value: "kg", label: "Kilogram (kg)" },
-    { value: "ton", label: "Ton" },
-    { value: "piece", label: "Piece" },
-    { value: "dozen", label: "Dozen" },
-    { value: "bag", label: "Bag" },
-    { value: "liter", label: "Liter" },
+    { value: "kg", label: t("createListing.units.kg") },
+    { value: "ton", label: t("createListing.units.ton") },
+    { value: "piece", label: t("createListing.units.piece") },
+    { value: "dozen", label: t("createListing.units.dozen") },
+    { value: "bag", label: t("createListing.units.bag") },
+    { value: "liter", label: t("createListing.units.liter") },
   ];
 
   const statuses = [
-    { value: "active", label: "Active" },
-    { value: "sold", label: "Sold" },
-    { value: "inactive", label: "Inactive" },
+    { value: "active", label: t("createListing.status.active") },
+    { value: "sold", label: t("createListing.status.sold") },
+    { value: "inactive", label: t("createListing.status.inactive") },
   ];
 
   const loadUnreadCount = useCallback(async () => {
@@ -280,7 +282,7 @@ const EditProduct = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950">
         <div className="text-gray-600 dark:text-gray-400">
-          Loading product...
+          {t("createListing.loadingProduct")}
         </div>
       </div>
     );
@@ -293,7 +295,7 @@ const EditProduct = () => {
       )}
       <div className="container mx-auto px-4 max-w-2xl">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-          Edit Product
+          {t("createListing.editTitle")}
         </h1>
 
         <Card>
@@ -305,23 +307,23 @@ const EditProduct = () => {
             )}
 
             <Input
-              label="Product Title"
+              label={t("createListing.form.title")}
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="e.g., Fresh Organic Wheat"
+              placeholder={t("createListing.form.titlePlaceholder")}
               required
             />
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">
-                Description
+                {t("createListing.form.description")}
               </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Describe your product..."
+                placeholder={t("createListing.form.descriptionPlaceholder")}
                 rows={4}
                 required
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-900 dark:text-white dark:border-gray-600 dark:placeholder-gray-500"
@@ -330,19 +332,19 @@ const EditProduct = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Price"
+                label={t("createListing.form.price")}
                 name="price"
                 type="number"
                 value={formData.price}
                 onChange={handleChange}
-                placeholder="0.00"
+                placeholder={t("createListing.form.pricePlaceholder")}
                 required
                 min="0"
                 step="0.01"
               />
 
               <Select
-                label="Category"
+                label={t("createListing.form.category")}
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
@@ -353,18 +355,18 @@ const EditProduct = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Quantity"
+                label={t("createListing.form.quantity")}
                 name="quantity"
                 type="number"
                 value={formData.quantity}
                 onChange={handleChange}
-                placeholder="0"
+                placeholder={t("createListing.form.quantityPlaceholder")}
                 required
                 min="0"
               />
 
               <Select
-                label="Unit"
+                label={t("createListing.form.unit")}
                 name="unit"
                 value={formData.unit}
                 onChange={handleChange}
@@ -374,16 +376,16 @@ const EditProduct = () => {
             </div>
 
             <Input
-              label="Location"
+              label={t("createListing.form.location")}
               name="location"
               value={formData.location}
               onChange={handleChange}
-              placeholder="e.g., Lahore, Pakistan"
+              placeholder={t("createListing.form.locationPlaceholder")}
               required
             />
 
             <Select
-              label="Status"
+              label={t("createListing.form.status")}
               name="status"
               value={formData.status}
               onChange={handleChange}
@@ -393,7 +395,7 @@ const EditProduct = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">
-                Product Images
+                {t("createListing.form.images")}
               </label>
               <ImageUpload
                 images={imagePreviews}
@@ -408,7 +410,7 @@ const EditProduct = () => {
 
             <div className="flex gap-4">
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? (imageFiles.some(f => f !== null) ? "Uploading images..." : "Updating...") : "Update Product"}
+                {loading ? (imageFiles.some(f => f !== null) ? t("common2.uploading") : t("createListing.updating")) : t("createListing.update")}
               </Button>
               <Button
                 type="button"
@@ -416,7 +418,7 @@ const EditProduct = () => {
                 onClick={() => navigate("/my-listings")}
                 disabled={loading}
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
             </div>
           </form>

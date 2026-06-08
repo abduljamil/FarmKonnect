@@ -10,6 +10,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import useUserSync from "../hooks/useUserSync";
 import socketService from "../utils/socket";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
@@ -30,6 +31,7 @@ const paymentStatusColors = {
 };
 
 export default function Transactions() {
+  const { t } = useLanguage();
   const { isDark } = useTheme();
   const { addNotification } = useNotifications();
   const navigate = useNavigate();
@@ -120,15 +122,17 @@ export default function Transactions() {
     socketService.onOrderStatusUpdate(handleStatusUpdate, "transactions_list");
     socketService.onNewOrder(handleNewOrder);
 
-    // Polling fallback - refresh every 10 seconds to catch missed socket updates
     const pollInterval = setInterval(() => {
       fetchTransactions(false);
-    }, 10000);
+    }, 2 * 60 * 1000);
+    const handleFocus = () => fetchTransactions(false);
+    window.addEventListener('focus', handleFocus);
 
     return () => {
       socketService.offOrderStatusUpdate("transactions_list");
       socketService.offNewOrder();
       clearInterval(pollInterval);
+      window.removeEventListener('focus', handleFocus);
     };
   }, [fetchTransactions]);
 
@@ -138,7 +142,7 @@ export default function Transactions() {
     try {
       setActionLoading(transactionId);
       await paymentsAPI.confirmOrder(transactionId);
-      await fetchTransactions(false); // Don't show loading to prevent UI flicker
+      await fetchTransactions(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -150,7 +154,7 @@ export default function Transactions() {
     try {
       setActionLoading(transactionId);
       await paymentsAPI.completeTransaction(transactionId);
-      await fetchTransactions(false); // Don't show loading to prevent UI flicker
+      await fetchTransactions(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -175,7 +179,7 @@ export default function Transactions() {
     try {
       setActionLoading(transactionId);
       await paymentsAPI.cancelTransaction(transactionId, "Cancelled by user");
-      await fetchTransactions(false); // Don't show loading to prevent UI flicker
+      await fetchTransactions(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -237,7 +241,7 @@ export default function Transactions() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
-            My Transactions
+            {t("transactions.list.title")}
           </h1>
 
           <div className="flex gap-3">
@@ -253,9 +257,9 @@ export default function Transactions() {
                 }`}
               style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundSize: '1.25rem', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat' }}
             >
-              <option value="all" className="bg-white dark:bg-gray-800">All Roles</option>
-              <option value="buyer" className="bg-white dark:bg-gray-800">As Buyer</option>
-              <option value="seller" className="bg-white dark:bg-gray-800">As Seller</option>
+              <option value="all" className="bg-white dark:bg-gray-800">{t("transactions.list.filterAllRoles")}</option>
+              <option value="buyer" className="bg-white dark:bg-gray-800">{t("transactions.list.roleBuying")}</option>
+              <option value="seller" className="bg-white dark:bg-gray-800">{t("transactions.list.roleSelling")}</option>
             </select>
 
             <select
@@ -270,12 +274,12 @@ export default function Transactions() {
                 }`}
               style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundSize: '1.25rem', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat' }}
             >
-              <option value="all" className="bg-white dark:bg-gray-800">All Status</option>
-              <option value="pending" className="bg-white dark:bg-gray-800">Pending</option>
-              <option value="confirmed" className="bg-white dark:bg-gray-800">Confirmed</option>
-              <option value="delivered" className="bg-white dark:bg-gray-800">Delivered</option>
-              <option value="completed" className="bg-white dark:bg-gray-800">Completed</option>
-              <option value="cancelled" className="bg-white dark:bg-gray-800">Cancelled</option>
+              <option value="all" className="bg-white dark:bg-gray-800">{t("transactions.list.filterAll")}</option>
+              <option value="pending" className="bg-white dark:bg-gray-800">{t("transactions.list.statusPending")}</option>
+              <option value="confirmed" className="bg-white dark:bg-gray-800">{t("transactions.list.statusConfirmed")}</option>
+              <option value="delivered" className="bg-white dark:bg-gray-800">{t("transactions.list.statusDelivered")}</option>
+              <option value="completed" className="bg-white dark:bg-gray-800">{t("transactions.list.statusCompleted")}</option>
+              <option value="cancelled" className="bg-white dark:bg-gray-800">{t("transactions.list.statusCancelled")}</option>
             </select>
           </div>
         </div>
@@ -288,13 +292,13 @@ export default function Transactions() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <p className={`${isDark ? "text-gray-400" : "text-gray-600"}`}>
-              No transactions found
+              {t("transactions.list.noTransactions")}
             </p>
             <Link
               to="/listings"
               className="inline-block mt-4 text-green-600 hover:text-green-700 font-medium"
             >
-              Browse Marketplace →
+              {t("transactions.list.browseMarketplace")} →
             </Link>
           </div>
         ) : (
@@ -325,9 +329,9 @@ export default function Transactions() {
                           </h3>
                           <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                             {isBuyer(transaction) ? (
-                              <>Seller: <span className="font-medium">{transaction.seller?.name || "Unknown"}</span></>
+                              <>{t("transactions.list.seller")}: <span className="font-medium">{transaction.seller?.name || t("common.unknown")}</span></>
                             ) : (
-                              <>Buyer: <span className="font-medium">{transaction.buyer?.name || "Unknown"}</span></>
+                              <>{t("transactions.list.buyer")}: <span className="font-medium">{transaction.buyer?.name || t("common.unknown")}</span></>
                             )}
                           </p>
                         </div>
@@ -336,14 +340,14 @@ export default function Transactions() {
                             Rs. {transaction.amount?.toLocaleString() || 0}
                           </p>
                           <p className={`text-sm capitalize ${paymentStatusColors[transaction.paymentStatus] || "text-gray-500"}`}>
-                            {transaction.paymentMethod === "cod" ? "Cash on Delivery" : (transaction.paymentMethod || "N/A")}
+                            {transaction.paymentMethod === "cod" ? t("transactions.list.cod") : (transaction.paymentMethod || "N/A")}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2 mt-3">
                         <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${statusColors[transaction.orderStatus] || "bg-gray-100 text-gray-800"}`}>
-                          {transaction.orderStatus || "unknown"}
+                          {t(`transactions.list.status${transaction.orderStatus?.charAt(0).toUpperCase() + transaction.orderStatus?.slice(1)}`) || transaction.orderStatus || "unknown"}
                         </span>
                         {transaction.createdAt && (
                           <span className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>
@@ -352,12 +356,12 @@ export default function Transactions() {
                         )}
                         {isBuyer(transaction) && (
                           <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-400">
-                            Buying
+                            {t("transactions.list.roleBuying")}
                           </span>
                         )}
                         {isSeller(transaction) && (
                           <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-xs dark:bg-purple-900/30 dark:text-purple-400">
-                            Selling
+                            {t("transactions.list.roleSelling")}
                           </span>
                         )}
                       </div>
@@ -375,7 +379,7 @@ export default function Transactions() {
                             disabled={actionLoading === transaction._id}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
                           >
-                            {actionLoading === transaction._id ? "Loading..." : "Confirm Order"}
+                            {actionLoading === transaction._id ? t("common.loading") : t("transactions.list.confirmOrder")}
                           </button>
                         )}
                         {/* Seller: Mark as Delivered - redirect to details page for proof upload */}
@@ -385,25 +389,23 @@ export default function Transactions() {
                             className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 inline-block"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            📦 Mark Delivered →
+                            📦 {t("transactions.detail.markAsDeliveredBtn")} →
                           </Link>
                         )}
 
                         {/* Seller: COD Payment Confirmation */}
                         {isSeller(transaction) && transaction.paymentMethod === "cod" && transaction.orderStatus === "delivered" && (
                           transaction.buyerConfirmedPayment && !transaction.sellerConfirmedPayment ? (
-                            // Buyer confirmed payment, seller needs to confirm
                             <Link
                               to={`/transactions/${transaction._id}`}
                               className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 inline-block"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              💵 Confirm Payment Received →
+                              💵 {t("transactions.list.confirmPaymentReceived")}
                             </Link>
                           ) : !transaction.buyerConfirmedPayment && (
-                            // Waiting for buyer
                             <span className="px-3 py-2 text-sm text-blue-600 dark:text-blue-400">
-                              ⏳ Waiting for buyer to pay
+                              ⏳ {t("transactions.list.waitingBuyerPay")}
                             </span>
                           )
                         )}
@@ -411,22 +413,20 @@ export default function Transactions() {
                         {/* Buyer: Confirm Delivery */}
                         {isBuyer(transaction) && transaction.orderStatus === "delivered" && (
                           transaction.paymentMethod === "cod" ? (
-                            // COD transactions: redirect to details page for multi-step flow
                             <Link
                               to={`/transactions/${transaction._id}`}
                               className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 inline-block"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              Complete COD Payment →
+                              {t("transactions.list.completeCOD")}
                             </Link>
                           ) : (
-                            // Non-COD transactions: direct complete
                             <button
                               onClick={() => handleComplete(transaction._id)}
                               disabled={actionLoading === transaction._id}
                               className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
                             >
-                              {actionLoading === transaction._id ? "Loading..." : "Confirm Received"}
+                              {actionLoading === transaction._id ? t("common.loading") : t("transactions.list.confirmReceived")}
                             </button>
                           )
                         )}
@@ -437,7 +437,7 @@ export default function Transactions() {
                             onClick={() => openReviewModal(transaction)}
                             className="px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm font-medium hover:bg-yellow-600"
                           >
-                            ⭐ Rate {isBuyer(transaction) ? "Seller" : "Buyer"}
+                            ⭐ {isBuyer(transaction) ? t("transactions.list.rateSeller") : t("transactions.list.rateBuyer")}
                           </button>
                         )}
 
@@ -451,7 +451,7 @@ export default function Transactions() {
                               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                               } disabled:opacity-50`}
                           >
-                            Cancel
+                            {t("transactions.list.cancel")}
                           </button>
                         )}
 
@@ -463,7 +463,7 @@ export default function Transactions() {
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                             }`}
                         >
-                          View Details
+                          {t("transactions.list.viewDetails")}
                         </Link>
                       </div>
                     </div>
@@ -483,10 +483,10 @@ export default function Transactions() {
               className={`px-4 py-2 rounded-lg ${isDark ? "bg-gray-800 text-gray-300" : "bg-white text-gray-700"
                 } disabled:opacity-50`}
             >
-              Previous
+              {t("common.previous")}
             </button>
             <span className={`px-4 py-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-              Page {pagination.current} of {pagination.pages}
+              {t("transactions.list.pageOf", { current: pagination.current, total: pagination.pages })}
             </span>
             <button
               onClick={() => setPagination(prev => ({ ...prev, current: prev.current + 1 }))}
@@ -494,7 +494,7 @@ export default function Transactions() {
               className={`px-4 py-2 rounded-lg ${isDark ? "bg-gray-800 text-gray-300" : "bg-white text-gray-700"
                 } disabled:opacity-50`}
             >
-              Next
+              {t("common.next")}
             </button>
           </div>
         )}
@@ -514,9 +514,9 @@ export default function Transactions() {
         isOpen={cancelModal.open}
         onClose={closeCancelModal}
         onConfirm={handleCancel}
-        title="Cancel Transaction"
-        message="Are you sure you want to cancel this transaction? This action cannot be undone."
-        confirmText="Cancel Transaction"
+        title={t("transactions.list.confirmCancelTitle")}
+        message={t("transactions.list.confirmCancelDesc")}
+        confirmText={t("transactions.list.cancel")}
         variant="warning"
       />
     </div>

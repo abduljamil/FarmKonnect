@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 
 export default function ReviewModal({ isOpen, onClose, onSubmit, transaction }) {
+  const { t } = useLanguage();
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -11,6 +13,14 @@ export default function ReviewModal({ isOpen, onClose, onSubmit, transaction }) 
   const currentUserId = sessionUser?._id || sessionUser?.id;
   const isBuyer = transaction?.buyer?._id?.toString() === currentUserId?.toString();
   const otherUser = isBuyer ? transaction?.seller : transaction?.buyer;
+
+  const ratingLabels = {
+    1: t("review.ratingPoor"),
+    2: t("review.ratingFair"),
+    3: t("review.ratingGood"),
+    4: t("review.ratingVeryGood"),
+    5: t("review.ratingExcellent"),
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,7 +46,7 @@ export default function ReviewModal({ isOpen, onClose, onSubmit, transaction }) 
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Rate Your Experience
+              {t("review.rateYourExperience")}
             </h2>
             <button
               onClick={onClose}
@@ -68,7 +78,7 @@ export default function ReviewModal({ isOpen, onClose, onSubmit, transaction }) 
                 {otherUser?.name || "User"}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {isBuyer ? "Seller" : "Buyer"}
+                {isBuyer ? t("review.seller") : t("review.buyer")}
               </p>
             </div>
           </div>
@@ -77,7 +87,7 @@ export default function ReviewModal({ isOpen, onClose, onSubmit, transaction }) 
             {/* Star Rating */}
             <div className="mb-6">
               <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                Rating
+                {t("review.rating")}
               </label>
               <div className="flex justify-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -103,25 +113,21 @@ export default function ReviewModal({ isOpen, onClose, onSubmit, transaction }) 
                 ))}
               </div>
               <p className="text-center mt-2 text-sm text-gray-500 dark:text-gray-400">
-                {rating === 1 && "Poor"}
-                {rating === 2 && "Fair"}
-                {rating === 3 && "Good"}
-                {rating === 4 && "Very Good"}
-                {rating === 5 && "Excellent"}
+                {ratingLabels[rating]}
               </p>
             </div>
 
             {/* Comment */}
             <div className="mb-6">
               <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                Comment (Optional)
+                {t("review.commentOptional")}
               </label>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 maxLength={500}
                 rows={3}
-                placeholder="Share your experience..."
+                placeholder={t("review.commentPlaceholder")}
                 className="w-full px-4 py-3 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
               <p className="text-right text-xs mt-1 text-gray-400 dark:text-gray-500">
@@ -142,14 +148,14 @@ export default function ReviewModal({ isOpen, onClose, onSubmit, transaction }) 
                 onClick={onClose}
                 className="flex-1 py-3 rounded-lg font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 className="flex-1 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
               >
-                {loading ? "Submitting..." : "Submit Review"}
+                {loading ? t("common.loading") : t("review.submitReview")}
               </button>
             </div>
           </form>

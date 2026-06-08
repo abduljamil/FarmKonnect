@@ -1,6 +1,7 @@
 import React from "react";
 import { Check, CheckCheck, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const MessageBubble = ({
   message,
@@ -11,6 +12,7 @@ const MessageBubble = ({
   isBuyer,
   listing,
 }) => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const formatTime = (date) => {
     return new Date(date).toLocaleTimeString("en-US", {
@@ -62,7 +64,7 @@ const MessageBubble = ({
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className={`text-xs uppercase tracking-wide mb-1 ${isOwnMessage ? "text-white/60" : "text-gray-500 dark:text-gray-400"}`}>
-              Price Offer
+              {t("offer.priceOffer")}
             </p>
             <p className={`text-xl font-bold ${styles.text}`}>
               Rs. {message.offerAmount?.toLocaleString()}
@@ -79,13 +81,13 @@ const MessageBubble = ({
               onClick={() => onAcceptOffer(message._id)}
               className="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow"
             >
-              Accept Offer
+              {t("offer.acceptOffer")}
             </button>
             <button
               onClick={() => onRejectOffer(message._id)}
               className="flex-1 px-4 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-semibold transition-all duration-200"
             >
-              Decline
+              {t("offer.decline")}
             </button>
           </div>
         )}
@@ -103,7 +105,7 @@ const MessageBubble = ({
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow"
             >
               <ShoppingBag className="w-4 h-4" />
-              Place Order Now
+              {t("offer.placeOrderNow")}
             </button>
           </div>
         )}

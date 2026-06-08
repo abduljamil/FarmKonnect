@@ -6,8 +6,10 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const Support = () => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const transactionId = searchParams.get("transaction");
@@ -153,10 +155,10 @@ const Support = () => {
             closed: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400",
         };
         const labels = {
-            open: "Open",
-            in_progress: "In Progress",
-            resolved: "Resolved",
-            closed: "Closed",
+            open: t("support.statusOpen"),
+            in_progress: t("support.statusInProgress"),
+            resolved: t("support.statusResolved"),
+            closed: t("support.statusClosed"),
         };
         return (
             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${styles[status]}`}>
@@ -193,11 +195,11 @@ const Support = () => {
                         >
                             <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                         </button>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Support</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("support.title")}</h1>
                     </div>
                     <Button onClick={() => setShowNewTicket(true)}>
                         <Plus className="w-4 h-4 mr-2" />
-                        New Ticket
+                        {t("support.newTicket")}
                     </Button>
                 </div>
 
@@ -205,20 +207,20 @@ const Support = () => {
                     {/* Tickets List */}
                     <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
                         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                            <h2 className="font-semibold text-gray-900 dark:text-white">My Tickets</h2>
+                            <h2 className="font-semibold text-gray-900 dark:text-white">{t("support.myTickets")}</h2>
                         </div>
                         <div className="flex-1 overflow-y-auto">
                             {tickets.length === 0 ? (
                                 <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                                     <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                    <p>No support tickets yet</p>
+                                    <p>{t("support.noTickets")}</p>
                                     <Button
                                         size="sm"
                                         variant="secondary"
                                         className="mt-4"
                                         onClick={() => setShowNewTicket(true)}
                                     >
-                                        Create your first ticket
+                                        {t("support.createFirst")}
                                     </Button>
                                 </div>
                             ) : (
@@ -249,33 +251,33 @@ const Support = () => {
                     <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
                         {showNewTicket ? (
                             <div className="flex-1 p-6 overflow-y-auto">
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Create New Ticket</h2>
+                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">{t("support.createTicket")}</h2>
                                 <form onSubmit={handleCreateTicket} className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("support.subject")}</label>
                                         <input
                                             type="text"
                                             value={newTicketForm.subject}
                                             onChange={(e) => setNewTicketForm(prev => ({ ...prev, subject: e.target.value }))}
                                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                            placeholder="Brief description of your issue"
+                                            placeholder={t("support.subjectPlaceholder")}
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("support.category")}</label>
                                         <select
                                             value={newTicketForm.category}
                                             onChange={(e) => setNewTicketForm(prev => ({ ...prev, category: e.target.value }))}
                                             className="w-full min-w-[150px] px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer shadow-sm"
                                             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundSize: '1.25rem', backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat' }}
                                         >
-                                            <option value="other" className="bg-white dark:bg-gray-700">General</option>
-                                            <option value="dispute" className="bg-white dark:bg-gray-700">Transaction Dispute</option>
-                                            <option value="payment" className="bg-white dark:bg-gray-700">Payment Issue</option>
-                                            <option value="delivery" className="bg-white dark:bg-gray-700">Delivery Issue</option>
-                                            <option value="technical" className="bg-white dark:bg-gray-700">Technical Problem</option>
-                                            <option value="account" className="bg-white dark:bg-gray-700">Account Issue</option>
+                                            <option value="other" className="bg-white dark:bg-gray-700">{t("support.categoryGeneral")}</option>
+                                            <option value="dispute" className="bg-white dark:bg-gray-700">{t("support.categoryDispute")}</option>
+                                            <option value="payment" className="bg-white dark:bg-gray-700">{t("support.categoryPayment")}</option>
+                                            <option value="delivery" className="bg-white dark:bg-gray-700">{t("support.categoryDelivery")}</option>
+                                            <option value="technical" className="bg-white dark:bg-gray-700">{t("support.categoryTechnical")}</option>
+                                            <option value="account" className="bg-white dark:bg-gray-700">{t("support.categoryAccountIssue")}</option>
                                         </select>
                                     </div>
                                     {transactionId && (
@@ -284,22 +286,22 @@ const Support = () => {
                                         </div>
                                     )}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("support.description")}</label>
                                         <textarea
                                             value={newTicketForm.message}
                                             onChange={(e) => setNewTicketForm(prev => ({ ...prev, message: e.target.value }))}
                                             rows={6}
                                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
-                                            placeholder="Describe your issue in detail..."
+                                            placeholder={t("support.descriptionPlaceholder")}
                                             required
                                         />
                                     </div>
                                     <div className="flex gap-3">
                                         <Button type="button" variant="secondary" onClick={() => setShowNewTicket(false)}>
-                                            Cancel
+                                            {t("common.cancel")}
                                         </Button>
                                         <Button type="submit" loading={sending}>
-                                            Create Ticket
+                                            {t("support.submit")}
                                         </Button>
                                     </div>
                                 </form>
@@ -358,7 +360,7 @@ const Support = () => {
                                                 type="text"
                                                 value={newMessage}
                                                 onChange={(e) => setNewMessage(e.target.value)}
-                                                placeholder="Type your message..."
+                                                placeholder={t("support.replyPlaceholder")}
                                                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             />
                                             <Button type="submit" loading={sending} disabled={!newMessage.trim()}>
@@ -372,7 +374,7 @@ const Support = () => {
                             <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
                                 <div className="text-center">
                                     <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                                    <p>Select a ticket to view the conversation</p>
+                                    <p>{t("support.selectTicket")}</p>
                                 </div>
                             </div>
                         )}

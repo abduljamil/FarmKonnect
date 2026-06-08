@@ -1,5 +1,6 @@
 import React from "react";
 import { Trash2, MessageSquare } from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const ConversationItem = ({
   conversation,
@@ -9,6 +10,7 @@ const ConversationItem = ({
   hasUnread = false,
   onDelete,
 }) => {
+  const { t } = useLanguage();
   // Safety checks
   if (!conversation || !conversation.seller?._id || !conversation.buyer?._id || !currentUserId) {
     return null;
@@ -32,7 +34,7 @@ const ConversationItem = ({
         minute: "2-digit",
       });
     } else if (messageDate.toDateString() === yesterday.toDateString()) {
-      return "Yesterday";
+      return t("chat.yesterday");
     } else {
       return messageDate.toLocaleDateString("en-US", {
         month: "short",
@@ -146,7 +148,7 @@ const ConversationItem = ({
           }`}>
           <MessageSquare className="w-3 h-3 flex-shrink-0" />
           <p className="text-[13px] truncate">
-            {conversation.lastMessage || "No messages yet"}
+            {conversation.lastMessage || t("chat.noMessagesYet")}
           </p>
         </div>
       </div>

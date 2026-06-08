@@ -4,8 +4,10 @@ import { X, Star, ExternalLink } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import { reviewsAPI } from "../utils/api";
 import Loader from "./Loader";
+import { useLanguage } from "../contexts/LanguageContext";
 
 export default function ReviewsModal({ isOpen, onClose, userId, userName }) {
+  const { t } = useLanguage();
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [reviews, setReviews] = useState([]);
@@ -78,6 +80,8 @@ export default function ReviewsModal({ isOpen, onClose, userId, userName }) {
 
   if (!isOpen) return null;
 
+  const reviewCount = userInfo?.rating?.count || 0;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div
@@ -89,7 +93,7 @@ export default function ReviewsModal({ isOpen, onClose, userId, userName }) {
           <div className="flex items-center justify-between">
             <div>
               <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
-                Reviews for {userInfo?.name || userName}
+                {t("review.reviewFor", { name: userInfo?.name || userName })}
               </h2>
               {userInfo && (
                 <div className="flex items-center gap-2 mt-2">
@@ -100,7 +104,7 @@ export default function ReviewsModal({ isOpen, onClose, userId, userName }) {
                     {userInfo.rating?.average?.toFixed(1) || "0.0"}
                   </span>
                   <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                    ({userInfo.rating?.count || 0} {userInfo.rating?.count === 1 ? "review" : "reviews"})
+                    ({reviewCount} {reviewCount === 1 ? t("review.reviewSingular") : t("review.reviewPlural")})
                   </span>
                 </div>
               )}
@@ -150,7 +154,7 @@ export default function ReviewsModal({ isOpen, onClose, userId, userName }) {
           ) : reviews.length === 0 ? (
             <div className="text-center py-12">
               <p className={`${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                No reviews yet
+                {t("review.noReviews")}
               </p>
             </div>
           ) : (
@@ -234,10 +238,10 @@ export default function ReviewsModal({ isOpen, onClose, userId, userName }) {
                 {loadingMore ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Loading...</span>
+                    <span>{t("common.loading")}</span>
                   </div>
                 ) : (
-                  "Load More Reviews"
+                  t("review.loadMore")
                 )}
               </button>
             </div>

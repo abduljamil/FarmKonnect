@@ -7,9 +7,11 @@ import Button from "../components/Button";
 import ErrorMessage from "../components/ErrorMessage";
 import GuestNavbar from "../components/GuestNavbar";
 import { authAPI } from "../utils/api";
+import { useLanguage } from "../contexts/LanguageContext";
 // import { useAuth } from "../contexts/AuthContext"; // Unused
 
 const SignUp = () => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -29,24 +31,23 @@ const SignUp = () => {
 
     // Validation
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError("Please fill in all fields");
+      setError(t('errors.requiredField'));
       return;
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address");
+      setError(t('errors.invalidEmail'));
       return;
     }
 
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError(t('errors.weakPassword'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setError(t('errors.passwordMismatch'));
       return;
     }
 
@@ -141,7 +142,7 @@ const SignUp = () => {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            {t('auth.signIn.google')}
           </button>
 
           {/* Divider */}
@@ -151,7 +152,7 @@ const SignUp = () => {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                or continue with email
+                {t('auth.signIn.orContinueWith')}
               </span>
             </div>
           </div>
@@ -163,8 +164,8 @@ const SignUp = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Enter your full name"
-              label="Full Name"
+              placeholder={t('auth.signUp.name')}
+              label={t('auth.signUp.name')}
               required
             />
 
@@ -174,8 +175,8 @@ const SignUp = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="Enter your email"
-              label="Email Address"
+              placeholder={t('auth.signUp.email')}
+              label={t('auth.signUp.email')}
               required
             />
 
@@ -185,12 +186,12 @@ const SignUp = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Enter your password"
-              label="Password"
+              placeholder={t('auth.signUp.password')}
+              label={t('auth.signUp.password')}
               required
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 -mt-3">
-              Minimum 6 characters
+              {t('errors.weakPassword')}
             </p>
 
             <Input
@@ -199,24 +200,24 @@ const SignUp = () => {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="Confirm your password"
-              label="Confirm Password"
+              placeholder={t('auth.signUp.confirmPassword')}
+              label={t('auth.signUp.confirmPassword')}
               required
             />
 
             <Button type="submit" fullWidth loading={loading} className="mt-6">
-              {loading ? "Creating Account..." : "Sign Up"}
+              {loading ? t('common.loading') : t('auth.signUp.button')}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Already have an account?{" "}
+              {t('auth.signUp.haveAccount')}{" "}
               <Link
                 to="/signin"
                 className="text-primary-600 dark:text-primary-400 font-semibold hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
               >
-                Sign In
+                {t('auth.signUp.signInLink')}
               </Link>
             </p>
           </div>

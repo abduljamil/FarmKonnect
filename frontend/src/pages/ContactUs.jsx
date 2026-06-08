@@ -6,8 +6,10 @@ import GuestNavbar from "../components/GuestNavbar";
 import Footer from "../components/Footer";
 import API_URL from "../config";
 import Button from "../components/Button";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const ContactUs = () => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const userData = sessionStorage.getItem("user");
     const user = userData ? JSON.parse(userData) : null;
@@ -74,37 +76,37 @@ const ContactUs = () => {
     const contactInfo = [
         {
             icon: Mail,
-            title: "Email Us",
-            details: "support@farmkonnect.pk",
-            subtext: "We'll respond within 24 hours",
+            title: t("staticPages.contact.emailLabel"),
+            details: t("staticPages.contact.emailDetail"),
+            subtext: t("staticPages.contact.emailSubtext"),
         },
         {
             icon: Phone,
-            title: "Call Us",
-            details: "+92 300 123 4567",
-            subtext: "Mon-Sat, 9AM-6PM PKT",
+            title: t("staticPages.contact.phoneLabel"),
+            details: t("staticPages.contact.phoneDetail"),
+            subtext: t("staticPages.contact.phoneSubtext"),
         },
         {
             icon: MapPin,
-            title: "Visit Us",
-            details: "Lahore, Punjab, Pakistan",
-            subtext: "Head Office",
+            title: t("staticPages.contact.addressLabel"),
+            details: t("staticPages.contact.addressDetail"),
+            subtext: t("staticPages.contact.addressSubtext"),
         },
         {
             icon: Clock,
-            title: "Working Hours",
-            details: "Mon - Sat: 9AM - 6PM",
-            subtext: "Sunday: Closed",
+            title: t("staticPages.contact.hoursLabel"),
+            details: t("staticPages.contact.hoursDetail"),
+            subtext: t("staticPages.contact.hoursSubtext"),
         },
     ];
 
     const categories = [
-        { value: "other", label: "General Inquiry" },
-        { value: "technical", label: "Technical Support" },
-        { value: "account", label: "Account Issues" },
-        { value: "payment", label: "Payment & Billing" },
-        { value: "dispute", label: "Dispute Resolution" },
-        { value: "delivery", label: "Delivery Issues" },
+        { value: "other", label: t("staticPages.contact.catGeneral") },
+        { value: "technical", label: t("staticPages.contact.catTechnical") },
+        { value: "account", label: t("staticPages.contact.catAccount") },
+        { value: "payment", label: t("staticPages.contact.catPayment") },
+        { value: "dispute", label: t("staticPages.contact.catDispute") },
+        { value: "delivery", label: t("staticPages.contact.catDelivery") },
     ];
 
     return (
@@ -115,10 +117,10 @@ const ContactUs = () => {
             <div className="bg-gradient-to-br from-primary-600 to-emerald-600 dark:from-primary-800 dark:to-emerald-800 text-white pt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
                     <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                        Get in Touch
+                        {t("staticPages.contact.heroTitle")}
                     </h1>
                     <p className="text-xl text-white/90 max-w-2xl mx-auto">
-                        Have questions? We're here to help. Send us a message and we'll respond as soon as possible.
+                        {t("staticPages.contact.heroDesc")}
                     </p>
                 </div>
             </div>
@@ -127,7 +129,7 @@ const ContactUs = () => {
                 <div className="grid lg:grid-cols-3 gap-12">
                     {/* Contact Info */}
                     <div className="lg:col-span-1">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Contact Information</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t("staticPages.contact.contactInfo")}</h2>
                         <div className="space-y-6">
                             {contactInfo.map((info, index) => (
                                 <div key={index} className="flex items-start gap-4">
@@ -145,7 +147,7 @@ const ContactUs = () => {
 
                         {/* Quick Links */}
                         <div className="mt-10 p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h3>
+                            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t("staticPages.contact.quickLinks")}</h3>
                             <div className="space-y-3">
                                 {user && (
                                     <Link
@@ -153,20 +155,20 @@ const ContactUs = () => {
                                         className="flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:underline"
                                     >
                                         <MessageSquare className="w-4 h-4" />
-                                        View My Support Tickets
+                                        {t("staticPages.contact.viewTickets")}
                                     </Link>
                                 )}
                                 <Link
                                     to="/about"
                                     className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
                                 >
-                                    About FarmKonnect
+                                    {t("staticPages.contact.aboutLink")}
                                 </Link>
                                 <Link
                                     to="/listings"
                                     className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
                                 >
-                                    Browse Marketplace
+                                    {t("staticPages.contact.marketplaceLink")}
                                 </Link>
                             </div>
                         </div>
@@ -180,22 +182,22 @@ const ContactUs = () => {
                                     <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                                         <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
                                     </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Message Sent!</h3>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t("staticPages.contact.successTitle")}</h3>
                                     <p className="text-gray-600 dark:text-gray-400 mb-6">
-                                        Thank you for contacting us. We'll get back to you within 24 hours.
+                                        {t("staticPages.contact.successDesc")}
                                     </p>
                                     <div className="flex gap-4 justify-center">
-                                        <Button onClick={() => setSuccess(false)}>Send Another Message</Button>
+                                        <Button onClick={() => setSuccess(false)}>{t("staticPages.contact.sendAnother")}</Button>
                                         {user && (
                                             <Button variant="secondary" onClick={() => navigate("/support")}>
-                                                View My Tickets
+                                                {t("staticPages.contact.viewMyTickets")}
                                             </Button>
                                         )}
                                     </div>
                                 </div>
                             ) : (
                                 <>
-                                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Send us a Message</h2>
+                                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t("staticPages.contact.formTitle")}</h2>
 
                                     {error && (
                                         <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400">
@@ -207,7 +209,7 @@ const ContactUs = () => {
                                         <div className="grid md:grid-cols-2 gap-6">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                    Your Name <span className="text-red-500">*</span>
+                                                    {t("staticPages.contact.nameField")} <span className="text-red-500">*</span>
                                                 </label>
                                                 <input
                                                     type="text"
@@ -216,12 +218,12 @@ const ContactUs = () => {
                                                     onChange={handleChange}
                                                     required
                                                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                                    placeholder="Enter your name"
+                                                    placeholder={t("staticPages.contact.nameFieldPlaceholder")}
                                                 />
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                    Email Address <span className="text-red-500">*</span>
+                                                    {t("staticPages.contact.emailField")} <span className="text-red-500">*</span>
                                                 </label>
                                                 <input
                                                     type="email"
@@ -230,7 +232,7 @@ const ContactUs = () => {
                                                     onChange={handleChange}
                                                     required
                                                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                                    placeholder="Enter your email"
+                                                    placeholder={t("staticPages.contact.emailFieldPlaceholder")}
                                                 />
                                             </div>
                                         </div>
@@ -238,7 +240,7 @@ const ContactUs = () => {
                                         <div className="grid md:grid-cols-2 gap-6">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                    Subject <span className="text-red-500">*</span>
+                                                    {t("staticPages.contact.subjectField")} <span className="text-red-500">*</span>
                                                 </label>
                                                 <input
                                                     type="text"
@@ -247,12 +249,12 @@ const ContactUs = () => {
                                                     onChange={handleChange}
                                                     required
                                                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                                    placeholder="What's this about?"
+                                                    placeholder={t("staticPages.contact.subjectFieldPlaceholder")}
                                                 />
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                    Category
+                                                    {t("staticPages.contact.categoryField")}
                                                 </label>
                                                 <select
                                                     name="category"
@@ -270,7 +272,7 @@ const ContactUs = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                Message <span className="text-red-500">*</span>
+                                                {t("staticPages.contact.messageField")} <span className="text-red-500">*</span>
                                             </label>
                                             <textarea
                                                 name="message"
@@ -279,13 +281,13 @@ const ContactUs = () => {
                                                 required
                                                 rows={6}
                                                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                                                placeholder="Tell us how we can help..."
+                                                placeholder={t("staticPages.contact.messageFieldPlaceholder")}
                                             />
                                         </div>
 
                                         <Button type="submit" loading={loading} className="w-full md:w-auto">
                                             <Send className="w-4 h-4 mr-2" />
-                                            Send Message
+                                            {t("staticPages.contact.sendButton")}
                                         </Button>
                                     </form>
                                 </>

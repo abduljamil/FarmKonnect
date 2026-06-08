@@ -12,8 +12,10 @@ import socketService from "../utils/socket";
 import chatAPI from "../utils/chatApi";
 import useUserSync from "../hooks/useUserSync";
 import { useSocket } from "../contexts/SocketContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const Chat = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const { resetMessageCount, initializeSocket, unreadConversations: globalUnread, markConversationRead } = useSocket();
@@ -708,11 +710,11 @@ const Chat = () => {
           <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Messages
+                {t("chat.title")}
               </h1>
               {unreadConversations.size > 0 && (
                 <span className="px-2.5 py-0.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-xs font-semibold rounded-full shadow-sm">
-                  {unreadConversations.size} new
+                  {t("chat.newBadge", { count: unreadConversations.size })}
                 </span>
               )}
             </div>
@@ -724,8 +726,8 @@ const Chat = () => {
                 <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
                   <MessageCircle className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                 </div>
-                <p className="font-medium text-gray-700 dark:text-gray-300">No conversations yet</p>
-                <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">Start a conversation from the Marketplace</p>
+                <p className="font-medium text-gray-700 dark:text-gray-300">{t("chat.noConversations")}</p>
+                <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">{t("chat.noConversationsDesc")}</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -826,9 +828,9 @@ const Chat = () => {
                     yesterday.setDate(yesterday.getDate() - 1);
 
                     if (date.toDateString() === today.toDateString()) {
-                      return "Today";
+                      return t("chat.today");
                     } else if (date.toDateString() === yesterday.toDateString()) {
-                      return "Yesterday";
+                      return t("chat.yesterday");
                     } else {
                       return date.toLocaleDateString("en-US", {
                         weekday: "long",
@@ -881,8 +883,8 @@ const Chat = () => {
               <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-5">
                 <MessageCircle className="w-10 h-10 text-gray-300 dark:text-gray-600" />
               </div>
-              <p className="text-lg font-medium text-gray-700 dark:text-gray-300">Select a conversation</p>
-              <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">Choose a conversation to start chatting</p>
+              <p className="text-lg font-medium text-gray-700 dark:text-gray-300">{t("chat.selectConversation")}</p>
+              <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">{t("chat.selectConversationDesc")}</p>
             </div>
           )}
         </div>
@@ -893,17 +895,9 @@ const Chat = () => {
         isOpen={deleteModal.open}
         onClose={closeDeleteModal}
         onConfirm={handleDeleteConversation}
-        title="Delete Conversation"
-        message={
-          <>
-            Are you sure you want to delete your conversation with{" "}
-            <span className="font-semibold text-gray-900 dark:text-white">
-              {deleteModal.userName}
-            </span>
-            ? This will only remove it from your view.
-          </>
-        }
-        confirmText="Delete"
+        title={t("chat.deleteConversation")}
+        message={t("chat.deleteMsg", { name: deleteModal.userName })}
+        confirmText={t("chat.deleteConfirmText")}
         variant="danger"
       />
     </div>

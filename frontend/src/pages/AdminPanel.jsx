@@ -939,15 +939,10 @@ const AdminPanel = () => {
               </span>
             )}
           </button>
-          <button
-            onClick={() => setActiveTab("ml")}
-            className={`px-4 sm:px-6 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap text-sm sm:text-base ${activeTab === "ml"
-              ? "bg-indigo-600 text-white"
-              : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700"
-              }`}
-          >
-            ML
-          </button>
+          {/* "ML" tab was a placeholder for a Phase 12 monitoring panel that
+              was never implemented — the prediction service writes drift
+              stats to `prediction_monitoring` in Atlas, but there's no
+              backend endpoint or admin UI yet. Re-add once that's built. */}
         </div>
 
         {/* Listings Management */}

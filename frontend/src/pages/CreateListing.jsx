@@ -9,8 +9,10 @@ import Navbar from "../components/Navbar";
 import ImageUpload from "../components/ImageUpload";
 import { uploadAPI } from "../utils/api";
 import chatAPI from "../utils/chatApi";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const CreateProduct = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,21 +31,21 @@ const CreateProduct = () => {
   const [imageFiles, setImageFiles] = useState([]); // Actual File objects to upload
 
   const categories = [
-    { value: "crops", label: "Crops" },
-    { value: "livestock", label: "Livestock" },
-    { value: "equipment", label: "Equipment" },
-    { value: "fertilizers", label: "Fertilizers" },
-    { value: "seeds", label: "Seeds" },
-    { value: "other", label: "Other" },
+    { value: "crops", label: t("marketplace.categories.crops") },
+    { value: "livestock", label: t("marketplace.categories.livestock") },
+    { value: "equipment", label: t("marketplace.categories.equipment") },
+    { value: "fertilizers", label: t("marketplace.categories.fertilizers") },
+    { value: "seeds", label: t("marketplace.categories.seeds") },
+    { value: "other", label: t("marketplace.categories.other") },
   ];
 
   const units = [
-    { value: "kg", label: "Kilogram (kg)" },
-    { value: "ton", label: "Ton" },
-    { value: "piece", label: "Piece" },
-    { value: "dozen", label: "Dozen" },
-    { value: "bag", label: "Bag" },
-    { value: "liter", label: "Liter" },
+    { value: "kg", label: t("createListing.units.kg") },
+    { value: "ton", label: t("createListing.units.ton") },
+    { value: "piece", label: t("createListing.units.piece") },
+    { value: "dozen", label: t("createListing.units.dozen") },
+    { value: "bag", label: t("createListing.units.bag") },
+    { value: "liter", label: t("createListing.units.liter") },
   ];
 
   const loadUnreadCount = useCallback(async () => {
@@ -183,7 +185,7 @@ const CreateProduct = () => {
       )}
       <div className="container mx-auto px-4 max-w-2xl">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
-          Create Product Listing
+          {t("createListing.title")}
         </h1>
 
         <Card className="p-4 sm:p-6">
@@ -195,23 +197,23 @@ const CreateProduct = () => {
             )}
 
             <Input
-              label="Product Title"
+              label={t("createListing.form.title")}
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="e.g., Fresh Organic Wheat"
+              placeholder={t("createListing.form.titlePlaceholder")}
               required
             />
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">
-                Description
+                {t("createListing.form.description")}
               </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Describe your product..."
+                placeholder={t("createListing.form.descriptionPlaceholder")}
                 rows={4}
                 required
                 className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-900 dark:text-white dark:border-gray-600 dark:placeholder-gray-500"
@@ -220,19 +222,19 @@ const CreateProduct = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <Input
-                label="Price (Rs.)"
+                label={t("createListing.form.price")}
                 name="price"
                 type="number"
                 value={formData.price}
                 onChange={handleChange}
-                placeholder="0.00"
+                placeholder={t("createListing.form.pricePlaceholder")}
                 required
                 min="0"
                 step="0.01"
               />
 
               <Select
-                label="Category"
+                label={t("createListing.form.category")}
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
@@ -243,18 +245,18 @@ const CreateProduct = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <Input
-                label="Quantity"
+                label={t("createListing.form.quantity")}
                 name="quantity"
                 type="number"
                 value={formData.quantity}
                 onChange={handleChange}
-                placeholder="0"
+                placeholder={t("createListing.form.quantityPlaceholder")}
                 required
                 min="0"
               />
 
               <Select
-                label="Unit"
+                label={t("createListing.form.unit")}
                 name="unit"
                 value={formData.unit}
                 onChange={handleChange}
@@ -264,17 +266,17 @@ const CreateProduct = () => {
             </div>
 
             <Input
-              label="Location"
+              label={t("createListing.form.location")}
               name="location"
               value={formData.location}
               onChange={handleChange}
-              placeholder="e.g., Lahore, Pakistan"
+              placeholder={t("createListing.form.locationPlaceholder")}
               required
             />
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">
-                Product Images
+                {t("createListing.form.images")}
               </label>
               <ImageUpload
                 images={imagePreviews}
@@ -295,10 +297,10 @@ const CreateProduct = () => {
                 disabled={loading}
                 className="sm:flex-none"
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? (imageFiles.length > 0 ? "Uploading images..." : "Creating...") : "Create Product"}
+                {loading ? (imageFiles.length > 0 ? t("common2.uploading") : t("createListing.creating")) : t("createListing.submit")}
               </Button>
             </div>
           </form>

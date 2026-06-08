@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { Mail, ArrowLeft } from "lucide-react";
 import Button from "../components/Button";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const EmailSent = () => {
+    const { t } = useLanguage();
     // Get email from URL params or sessionStorage
     const urlParams = new URLSearchParams(window.location.search);
     const email = urlParams.get("email") || sessionStorage.getItem("pendingVerificationEmail") || "your email";
@@ -29,10 +31,10 @@ const EmailSent = () => {
 
                     {/* Content */}
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                        Check Your Email
+                        {t("emailSent.title")}
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 mb-2">
-                        We've sent a {isReset ? "password reset link" : "verification link"} to:
+                        {isReset ? t("emailSent.sentReset") : t("emailSent.sentVerification")}
                     </p>
                     <p className="text-emerald-600 dark:text-emerald-400 font-semibold mb-6">
                         {email}
@@ -41,27 +43,26 @@ const EmailSent = () => {
                     {/* Instructions */}
                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 mb-6 text-left">
                         <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                            What to do next:
+                            {t("emailSent.nextSteps")}
                         </h3>
                         <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-2 list-decimal list-inside">
-                            <li>Open your email inbox</li>
-                            <li>Look for an email from FarmKonnect</li>
-                            <li>Click the {isReset ? "reset password" : "verification"} button</li>
-                            {!isReset && <li>You'll be automatically signed in</li>}
+                            <li>{t("emailSent.step1")}</li>
+                            <li>{t("emailSent.step2")}</li>
+                            <li>{isReset ? t("emailSent.step3Reset") : t("emailSent.step3Verify")}</li>
+                            {!isReset && <li>{t("emailSent.step4AutoSignIn")}</li>}
                         </ol>
                     </div>
 
                     {/* Didn't receive email */}
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                        Didn't receive the email? Check your spam folder or{" "}
+                        {t("emailSent.spamNote")}{" "}
                         <button
                             onClick={() => {
-                                // This will be wired up when we update SignIn
                                 window.location.href = `/signin?resend=${email}`;
                             }}
                             className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium"
                         >
-                            resend it
+                            {t("emailSent.resendIt")}
                         </button>
                     </p>
 
@@ -69,14 +70,14 @@ const EmailSent = () => {
                     <Link to="/signin">
                         <Button variant="secondary" className="w-full">
                             <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back to Sign In
+                            {t("auth.forgotPassword.backToSignIn")}
                         </Button>
                     </Link>
                 </div>
 
                 {/* Help text */}
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-                    Email links expire in {isReset ? "1 hour" : "24 hours"}
+                    {isReset ? t("emailSent.expiryReset") : t("emailSent.expiryVerification")}
                 </p>
             </div>
         </div>

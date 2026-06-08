@@ -1,13 +1,14 @@
 import React from "react";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  AlertCircle, 
+import {
+  TrendingUp,
+  TrendingDown,
+  AlertCircle,
   Newspaper,
   Clock,
   ArrowRight,
   Bell
 } from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
 
 // Mock news data
 const mockNews = [
@@ -114,6 +115,7 @@ const NewsItem = ({ item }) => {
 };
 
 const MarketNewsFeed = ({ maxItems = 5 }) => {
+  const { t } = useLanguage();
   const news = mockNews.slice(0, maxItems);
 
   return (
@@ -125,12 +127,12 @@ const MarketNewsFeed = ({ maxItems = 5 }) => {
             <Newspaper className="w-5 h-5 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">Market News</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Latest updates & alerts</p>
+            <h3 className="font-semibold text-gray-900 dark:text-white">{t("marketNews.title")}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t("marketNews.subtitle")}</p>
           </div>
         </div>
         <button className="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium">
-          View All
+          {t("marketNews.viewAll")}
         </button>
       </div>
 
@@ -145,7 +147,7 @@ const MarketNewsFeed = ({ maxItems = 5 }) => {
       {news.length === 0 && (
         <div className="px-5 py-12 text-center">
           <AlertCircle className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-400">No market news available</p>
+          <p className="text-gray-500 dark:text-gray-400">{t("marketNews.noNews")}</p>
         </div>
       )}
     </div>

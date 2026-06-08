@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../contexts/NotificationContext";
 import { alertsAPI } from "../utils/api";
 import axios from "axios";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const StatCard = ({
   title,
@@ -103,6 +104,7 @@ const StatCard = ({
 };
 
 const QuickStatsGrid = ({ user, unreadCount = 0 }) => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { triggeredAlerts } = useNotifications();
   const [stats, setStats] = useState({
@@ -227,34 +229,34 @@ const QuickStatsGrid = ({ user, unreadCount = 0 }) => {
 
   const cards = [
     {
-      title: "Active Listings",
+      title: t("quickStats.activeListings"),
       value: user ? (stats.loading ? "..." : stats.activeListings) : "--",
-      subtitle: user ? "View your listings" : "Sign in to view",
+      subtitle: user ? t("quickStats.viewListings") : t("quickStats.signInToView"),
       icon: Package,
       color: "emerald",
       onClick: () => navigate("/my-listings"),
     },
     {
-      title: "Unread Messages",
+      title: t("quickStats.unreadMessages"),
       value: user ? stats.messages : "--",
-      subtitle: user ? (stats.messages > 0 ? "New messages waiting" : "All caught up!") : "Sign in to chat",
+      subtitle: user ? (stats.messages > 0 ? t("quickStats.newMessagesWaiting") : t("quickStats.allCaughtUp")) : t("quickStats.signInToChat"),
       icon: MessageCircle,
       color: "blue",
       onClick: () => navigate("/chat"),
     },
     {
-      title: "Market Trend",
-      value: stats.loading ? "..." : (stats.marketTrend === 0 ? "Stable" : `${stats.marketTrend > 0 ? '+' : ''}${stats.marketTrend}%`),
+      title: t("quickStats.marketTrend"),
+      value: stats.loading ? "..." : (stats.marketTrend === 0 ? t("quickStats.stable") : `${stats.marketTrend > 0 ? '+' : ''}${stats.marketTrend}%`),
       trend: stats.marketTrend,
-      trendLabel: stats.marketTrend === 0 ? "no change" : "this month",
+      trendLabel: stats.marketTrend === 0 ? t("quickStats.noChange") : t("quickStats.thisMonth"),
       icon: TrendingUp,
       color: "purple",
       onClick: null,
     },
     {
-      title: "Price Alerts",
+      title: t("quickStats.priceAlerts"),
       value: user ? (stats.loading ? "..." : stats.alerts) : "--",
-      subtitle: user ? "Active alerts" : "Sign in to set alerts",
+      subtitle: user ? t("quickStats.activeAlerts") : t("quickStats.signInForAlerts"),
       icon: Bell,
       color: "amber",
       onClick: user ? null : () => navigate("/signin"),

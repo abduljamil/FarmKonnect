@@ -1,6 +1,7 @@
 import React from "react";
 import { X, AlertTriangle, Trash2, AlertCircle, HelpCircle } from "lucide-react";
 import Button from "./Button";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const ConfirmModal = ({
   isOpen,
@@ -13,6 +14,7 @@ const ConfirmModal = ({
   variant = "danger", // danger, warning, info
   loading = false,
 }) => {
+  const { t } = useLanguage();
   if (!isOpen) return null;
 
   const variants = {
@@ -89,7 +91,7 @@ const ConfirmModal = ({
             className={`flex-1 ${currentVariant.buttonClass}`}
             disabled={loading}
           >
-            {loading ? "Please wait..." : confirmText}
+            {loading ? t("common.loading") : confirmText}
           </Button>
         </div>
       </div>

@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import GuestNavbar from "../components/GuestNavbar";
 import Footer from "../components/Footer";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const TermsOfService = () => {
+    const { t } = useLanguage();
     const userData = sessionStorage.getItem("user");
     const user = userData ? JSON.parse(userData) : null;
 
@@ -15,9 +17,9 @@ const TermsOfService = () => {
             {/* Header */}
             <div className="bg-gradient-to-br from-primary-600 to-emerald-600 dark:from-primary-800 dark:to-emerald-800 text-white pt-20">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-4">Terms of Service</h1>
+                    <h1 className="text-4xl md:text-5xl font-bold mb-4">{t("staticPages.terms.title")}</h1>
                     <p className="text-xl text-white/90">
-                        Last updated: January 2026
+                        {t("staticPages.terms.lastUpdated")}: January 2026
                     </p>
                 </div>
             </div>

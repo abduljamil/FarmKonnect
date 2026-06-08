@@ -4,8 +4,10 @@ import { Lock, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { authAPI } from "../utils/api";
 import Button from "../components/Button";
 import Input from "../components/Input";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const ResetPassword = () => {
+    const { t } = useLanguage();
     const { token } = useParams();
     const navigate = useNavigate();
     const [password, setPassword] = useState("");
@@ -21,12 +23,12 @@ const ResetPassword = () => {
 
         // Validate passwords
         if (password.length < 6) {
-            setError("Password must be at least 6 characters");
+            setError(t("resetPassword.errMinChars"));
             return;
         }
 
         if (password !== confirmPassword) {
-            setError("Passwords do not match");
+            setError(t("resetPassword.errMismatch"));
             return;
         }
 
@@ -69,14 +71,14 @@ const ResetPassword = () => {
                         </div>
 
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                            Password Reset Successful!
+                            {t("resetPassword.successTitle")}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400 mb-6">
-                            Your password has been updated. Redirecting to sign in...
+                            {t("resetPassword.successMsg")}
                         </p>
 
                         <Button onClick={() => navigate("/signin")} className="w-full">
-                            Sign In Now
+                            {t("resetPassword.signInNow")}
                         </Button>
                     </div>
                 </div>
@@ -104,10 +106,10 @@ const ResetPassword = () => {
                     </div>
 
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
-                        Reset Your Password
+                        {t("resetPassword.title")}
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
-                        Enter your new password below.
+                        {t("resetPassword.subtitle")}
                     </p>
 
                     {/* Error */}
@@ -123,8 +125,8 @@ const ResetPassword = () => {
                             <div className="relative">
                                 <Input
                                     type={showPassword ? "text" : "password"}
-                                    label="New Password"
-                                    placeholder="Enter new password"
+                                    label={t("resetPassword.newPassword")}
+                                    placeholder={t("resetPassword.newPasswordPlaceholder")}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -141,8 +143,8 @@ const ResetPassword = () => {
 
                             <Input
                                 type={showPassword ? "text" : "password"}
-                                label="Confirm Password"
-                                placeholder="Confirm new password"
+                                label={t("resetPassword.confirmPassword")}
+                                placeholder={t("resetPassword.confirmPasswordPlaceholder")}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
@@ -153,10 +155,10 @@ const ResetPassword = () => {
                             {loading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Resetting...
+                                    {t("resetPassword.resetting")}
                                 </>
                             ) : (
-                                "Reset Password"
+                                t("resetPassword.button")
                             )}
                         </Button>
                     </form>
@@ -167,7 +169,7 @@ const ResetPassword = () => {
                             to="/signin"
                             className="text-sm text-gray-600 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400"
                         >
-                            Back to Sign In
+                            {t("resetPassword.backToSignIn")}
                         </Link>
                     </div>
                 </div>

@@ -4,8 +4,10 @@ import { Mail, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
 import { authAPI } from "../utils/api";
 import Button from "../components/Button";
 import Input from "../components/Input";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const ForgotPassword = () => {
+    const { t } = useLanguage();
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -49,28 +51,28 @@ const ForgotPassword = () => {
                         </div>
 
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                            Check Your Email
+                            {t("auth.forgotPassword.successTitle")}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400 mb-2">
-                            If an account exists with the email:
+                            {t("auth.forgotPassword.successIfAccount")}
                         </p>
                         <p className="text-emerald-600 dark:text-emerald-400 font-semibold mb-6">
                             {email}
                         </p>
                         <p className="text-gray-600 dark:text-gray-400 mb-6">
-                            You'll receive a password reset link shortly.
+                            {t("auth.forgotPassword.successLinkSent")}
                         </p>
 
                         <Link to="/signin">
                             <Button variant="secondary" className="w-full">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to Sign In
+                                {t("auth.forgotPassword.backToSignIn")}
                             </Button>
                         </Link>
                     </div>
 
                     <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-                        Reset link expires in 1 hour
+                        {t("auth.forgotPassword.expiresNote")}
                     </p>
                 </div>
             </div>
@@ -97,10 +99,10 @@ const ForgotPassword = () => {
                     </div>
 
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
-                        Forgot Password?
+                        {t("auth.forgotPassword.title")}
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
-                        No worries! Enter your email and we'll send you a reset link.
+                        {t("auth.forgotPassword.subtitle")}
                     </p>
 
                     {/* Error */}
@@ -115,8 +117,8 @@ const ForgotPassword = () => {
                         <div className="mb-6">
                             <Input
                                 type="email"
-                                label="Email Address"
-                                placeholder="Enter your email"
+                                label={t("auth.emailAddress")}
+                                placeholder={t("auth.emailPlaceholder")}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -127,10 +129,10 @@ const ForgotPassword = () => {
                             {loading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Sending...
+                                    {t("auth.forgotPassword.sending")}
                                 </>
                             ) : (
-                                "Send Reset Link"
+                                t("auth.forgotPassword.button")
                             )}
                         </Button>
                     </form>
@@ -142,7 +144,7 @@ const ForgotPassword = () => {
                             className="inline-flex items-center text-sm text-gray-600 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400"
                         >
                             <ArrowLeft className="w-4 h-4 mr-1" />
-                            Back to Sign In
+                            {t("auth.forgotPassword.backToSignIn")}
                         </Link>
                     </div>
                 </div>
