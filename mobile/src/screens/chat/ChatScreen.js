@@ -11,7 +11,7 @@ export default function ChatScreen({ navigation, route }) {
   const { user } = useAuth();
   const socket = useContext(SocketContext);
   
-  const { conversationId, name = 'User', avatar = 'https://ui-avatars.com/api/?name=User' } = route?.params || {};
+  const { conversationId, name = 'User', avatar = null } = route?.params || {};
   
   const [message, setMessage] = useState('');
   const [chatLog, setChatLog] = useState([]);
@@ -38,48 +38,58 @@ export default function ChatScreen({ navigation, route }) {
     };
     fetchLogs();
 
+    // Store handler refs so cleanup can `socket.off(event, handler)` instead
+    // of `socket.off(event)` — the latter removes ALL listeners for that
+    // event across the whole app, including ones from other screens sharing
+    // the SocketContext singleton.
+    const handleNewMessage = (newMsg) => {
+      setChatLog((prev) => {
+        const exists = prev.find(m => m._id === newMsg._id || (m.tempId && m.tempId === newMsg.tempId));
+        if (exists) return prev;
+        return [...prev, newMsg];
+      });
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+    };
+
+    const handleMessagesRead = (data) => {
+      if (data.conversationId === conversationId) {
+        setChatLog(prev => prev.map(m => ({ ...m, read: true })));
+      }
+    };
+
+    const handleOnlineStatus = (data) => {
+      if (data.userId === route?.params?.otherUserId) {
+        setIsOnline(data.isOnline);
+      }
+    };
+
+    const handleOfferUpdated = (updatedMsg) => {
+      setChatLog(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m));
+    };
+
     if (socket) {
       socket.emit('join_conversation', conversationId);
       socket.emit('mark_read', { conversationId });
-      socket.emit('check_online', { userId: route?.params?.otherUserId }); // Assuming ID is passed
+      if (route?.params?.otherUserId) {
+        socket.emit('check_online', { userId: route.params.otherUserId });
+      }
 
-      socket.on('new_message', (newMsg) => {
-        // Prevent duplicates for the sender who already addedoptimistically
-        setChatLog((prev) => {
-          const exists = prev.find(m => m._id === newMsg._id || (m.tempId && m.tempId === newMsg.tempId));
-          if (exists) return prev;
-          return [...prev, newMsg];
-        });
-        setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
-      });
-
-      socket.on('messages_read', (data) => {
-        if (data.conversationId === conversationId) {
-          setChatLog(prev => prev.map(m => ({ ...m, read: true })));
-        }
-      });
-
-      socket.on('online_status', (data) => {
-        if (data.userId === route?.params?.otherUserId) {
-          setIsOnline(data.isOnline);
-        }
-      });
-
-      socket.on('offer_updated', (updatedMsg) => {
-        setChatLog(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m));
-      });
+      socket.on('new_message', handleNewMessage);
+      socket.on('messages_read', handleMessagesRead);
+      socket.on('online_status', handleOnlineStatus);
+      socket.on('offer_updated', handleOfferUpdated);
     }
 
     return () => {
       if (socket) {
         socket.emit('leave_conversation', conversationId);
-        socket.off('new_message');
-        socket.off('messages_read');
-        socket.off('online_status');
-        socket.off('offer_updated');
+        socket.off('new_message', handleNewMessage);
+        socket.off('messages_read', handleMessagesRead);
+        socket.off('online_status', handleOnlineStatus);
+        socket.off('offer_updated', handleOfferUpdated);
       }
     };
-  }, [conversationId, socket]);
+  }, [conversationId, socket, route?.params?.otherUserId]);
 
   const handleSend = async () => {
     if (!message.trim() || !conversationId) return;
@@ -143,7 +153,7 @@ export default function ChatScreen({ navigation, route }) {
           <ArrowLeft color="#fff" size={24} />
         </TouchableOpacity>
         <View style={styles.headerUserInfo}>
-          <Image source={{ uri: avatar }} style={styles.headerAvatar} />
+          <Image source={avatar ? { uri: avatar } : require('../../../assets/icon.png')} style={styles.headerAvatar} />
           <View>
             <Text style={styles.headerName}>{name}</Text>
             <Text style={[styles.headerStatus, !isOnline && styles.headerOffline]}>
@@ -180,7 +190,7 @@ export default function ChatScreen({ navigation, route }) {
               
               return (
                 <View key={msg._id} style={[styles.bubbleWrapper, isMe ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft]}>
-                  {!isMe && <Image source={{ uri: avatar }} style={styles.bubbleAvatar} />}
+                  {!isMe && <Image source={avatar ? { uri: avatar } : require('../../../assets/icon.png')} style={styles.bubbleAvatar} />}
                   <View style={[styles.bubble, isMe ? styles.bubbleRight : styles.bubbleLeft]}>
                     <Text style={[styles.bubbleText, isMe ? styles.bubbleTextRight : styles.bubbleTextLeft]}>{msg.content}</Text>
                     

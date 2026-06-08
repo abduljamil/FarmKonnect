@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import socketService from "../utils/socket";
+import { useNotifications } from "./NotificationContext";
 
 const SocketContext = createContext(null);
 
@@ -22,6 +23,14 @@ export const SocketProvider = ({ children }) => {
   const currentUserRef = useRef(null);
   const unreadConversationsRef = useRef(new Set());
   const processedMessageIds = useRef(new Set()); // Track processed messages to avoid duplicates
+
+  // Ref to addNotification so initializeSocket's useCallback doesn't re-fire
+  // (and re-attach socket listeners) every time NotificationContext re-renders.
+  const { addNotification } = useNotifications();
+  const addNotificationRef = useRef(addNotification);
+  useEffect(() => {
+    addNotificationRef.current = addNotification;
+  }, [addNotification]);
 
   // Request notification permission
   const requestNotificationPermission = useCallback(async () => {
@@ -142,15 +151,22 @@ export const SocketProvider = ({ children }) => {
             });
           }
 
-          // Show browser notification
+          // Notify the user — browser notification if the tab is in the
+          // background, in-app toast if it's focused. showNotification
+          // self-suppresses when document.hasFocus() is true, so the two
+          // branches don't overlap.
           const senderName = message.sender?.name || "Someone";
           const messagePreview = message.content?.substring(0, 50) + (message.content?.length > 50 ? "..." : "");
 
-          showNotification(`New message from ${senderName}`, {
-            body: messagePreview,
-            tag: `message-${message?.conversation?._id || message?.conversation || message?._id}`,
-            url: "/chat",
-          });
+          if (document.hasFocus()) {
+            addNotificationRef.current?.(`💬 ${senderName}: ${messagePreview}`, "info");
+          } else {
+            showNotification(`New message from ${senderName}`, {
+              body: messagePreview,
+              tag: `message-${message?.conversation?._id || message?.conversation || message?._id}`,
+              url: "/chat",
+            });
+          }
 
           // Increment unread count if not on chat page
           if (!window.location.pathname.includes("/chat")) {

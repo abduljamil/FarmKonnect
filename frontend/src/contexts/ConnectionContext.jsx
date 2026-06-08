@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { healthAPI } from '../utils/api';
 
 const ConnectionContext = createContext();
@@ -19,9 +19,15 @@ export const ConnectionProvider = ({ children }) => {
   const [lastChecked, setLastChecked] = useState(null);
   const [isChecking, setIsChecking] = useState(false);
 
-  const checkConnection = useCallback(async () => {
-    if (isChecking) return;
+  // Use a ref for the in-flight flag so checkConnection doesn't need to be
+  // recreated each time it changes. Previously, every state flip caused the
+  // useEffect to tear down + restart the 30s interval — useless thrash.
+  const inFlightRef = useRef(false);
 
+  const checkConnection = useCallback(async () => {
+    if (inFlightRef.current) return;
+
+    inFlightRef.current = true;
     setIsChecking(true);
     try {
       const health = await healthAPI.check();
@@ -33,21 +39,20 @@ export const ConnectionProvider = ({ children }) => {
       setIsDBConnected(false);
     } finally {
       setIsChecking(false);
+      inFlightRef.current = false;
     }
-  }, [isChecking]);
+  }, []);
 
-  // Check connection on mount and periodically
+  // Check connection on mount and periodically. `checkConnection` is stable
+  // (empty deps) so this effect now runs ONCE on mount, not on every state
+  // change.
   useEffect(() => {
     checkConnection();
+    const interval = setInterval(checkConnection, 60000); // 60s, was 30s
 
-    // Check every 30 seconds
-    const interval = setInterval(checkConnection, 30000);
-
-    // Also check when window regains focus
     const handleFocus = () => checkConnection();
     window.addEventListener('focus', handleFocus);
 
-    // Check when coming back online
     const handleOnline = () => checkConnection();
     window.addEventListener('online', handleOnline);
 

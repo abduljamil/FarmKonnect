@@ -1,15 +1,149 @@
-﻿import React, { useState } from 'react';
-import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, Image, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Camera, Check } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
+import { getProfile, updateProfile, uploadAvatar } from '../../services/userService';
+import { AuthContext } from '../../contexts/AuthContext';
 
+// Real profile editor — previously this screen was hardcoded to display
+// "Javeria Zahid" with no API calls. Now it loads the signed-in user from
+// /api/user/profile, lets them edit + save via /api/user/profile, and
+// uploads avatar images through /api/upload/avatar.
 export default function EditProfileScreen({ navigation }) {
-  const [name, setName] = useState('Javeria Zahid');
-  const [email, setEmail] = useState('javeriazahid550@gmail.com');
-  const [phone, setPhone] = useState('+92 300 1234567');
-  const [jazzCash, setJazzCash] = useState('03001234567');
-  const [location, setLocation] = useState('Lahore, Punjab');
-  const [bio, setBio] = useState('Experienced wheat and corn farmer.');
+  const { t } = useTranslation();
+  const { user, setUser } = useContext(AuthContext);
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [jazzcashNumber, setJazzcashNumber] = useState('');
+  const [location, setLocation] = useState('');
+  const [bio, setBio] = useState('');
+  const [avatar, setAvatar] = useState(null);
+
+  // Load from /api/user/profile so the screen always shows what the backend
+  // has, not whatever stale snapshot AuthContext is holding.
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await getProfile();
+        const p = res.data?.data || res.data?.user || {};
+        if (cancelled) return;
+        setName(p.name || '');
+        setEmail(p.email || '');
+        setPhone(p.phone || '');
+        setJazzcashNumber(p.jazzcashNumber || '');
+        setLocation(p.location || '');
+        setBio(p.bio || '');
+        setAvatar(p.avatar || null);
+      } catch (err) {
+        // Fall back to cached AuthContext user — better than blank inputs.
+        if (user) {
+          setName(user.name || '');
+          setEmail(user.email || '');
+          setPhone(user.phone || '');
+          setJazzcashNumber(user.jazzcashNumber || '');
+          setLocation(user.location || '');
+          setBio(user.bio || '');
+          setAvatar(user.avatar || null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handlePickAvatar = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert(t('common.error'), 'Permission to access photos is required.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+
+    const asset = result.assets[0];
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', {
+        uri: asset.uri,
+        type: 'image/jpeg',
+        name: `avatar_${Date.now()}.jpg`,
+      });
+      const res = await uploadAvatar(formData);
+      const url = res.data?.data?.avatar;
+      if (url) {
+        setAvatar(url);
+      }
+    } catch (err) {
+      Alert.alert(t('common.error'), err.response?.data?.message || 'Avatar upload failed');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      Alert.alert(t('common.error'), t('errors.requiredField'));
+      return;
+    }
+    // JazzCash number is optional but must be a valid Pakistani mobile if set.
+    if (jazzcashNumber && !/^03[0-9]{9}$/.test(jazzcashNumber)) {
+      Alert.alert(t('common.error'), 'JazzCash number must be 03XXXXXXXXX');
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        name: name.trim(),
+        phone: phone.trim() || undefined,
+        jazzcashNumber: jazzcashNumber.trim() || undefined,
+        location: location.trim() || undefined,
+        bio: bio.trim() || undefined,
+      };
+      const res = await updateProfile(payload);
+      const updated = res.data?.data || res.data?.user;
+      if (updated && setUser) {
+        setUser((prev) => ({ ...(prev || {}), ...updated }));
+        // Keep the AsyncStorage snapshot in sync too so the next cold boot
+        // doesn't flash the stale profile.
+        try { await AsyncStorage.setItem('user', JSON.stringify({ ...(user || {}), ...updated })); } catch {}
+      }
+      Alert.alert(t('common.success'), t('success.profileUpdated'), [
+        { text: t('common.ok'), onPress: () => navigation.goBack() }
+      ]);
+    } catch (err) {
+      Alert.alert(t('common.error'), err.response?.data?.message || t('errors.somethingWrong'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.root, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#16a34a" />
+      </SafeAreaView>
+    );
+  }
+
+  const initial = (name || email || 'U').charAt(0).toUpperCase();
 
   return (
     <SafeAreaView style={styles.root}>
@@ -18,7 +152,7 @@ export default function EditProfileScreen({ navigation }) {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <ArrowLeft color="#fff" size={24} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
+        <Text style={styles.headerTitle}>{t('profile.editProfile')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -26,46 +160,85 @@ export default function EditProfileScreen({ navigation }) {
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.avatarSection}>
             <View style={styles.avatarContainer}>
-              <View style={styles.avatarPlaceholder}><Text style={styles.avatarText}>J</Text></View>
-              <TouchableOpacity style={styles.cameraBtn}>
-                <Camera color="#fff" size={16} />
+              {avatar ? (
+                <Image source={{ uri: avatar }} style={styles.avatarImage} />
+              ) : (
+                <View style={styles.avatarPlaceholder}><Text style={styles.avatarText}>{initial}</Text></View>
+              )}
+              <TouchableOpacity style={styles.cameraBtn} onPress={handlePickAvatar} disabled={uploadingAvatar}>
+                {uploadingAvatar ? <ActivityIndicator color="#fff" size="small" /> : <Camera color="#fff" size={16} />}
               </TouchableOpacity>
             </View>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Full Name</Text>
+            <Text style={styles.label}>{t('profile.name')}</Text>
             <TextInput style={styles.input} value={name} onChangeText={setName} placeholderTextColor="#6b7280" />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput style={[styles.input, styles.inputDisabled]} value={email} editable={false} placeholderTextColor="#6b7280" />
+            <Text style={styles.label}>{t('profile.email')}</Text>
+            <TextInput
+              style={[styles.input, styles.inputDisabled]}
+              value={email}
+              editable={false}
+              placeholderTextColor="#6b7280"
+            />
+            <Text style={styles.helperText}>Email cannot be changed.</Text>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Phone Number</Text>
-            <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholderTextColor="#6b7280" />
+            <Text style={styles.label}>{t('profile.phone')}</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+              placeholder="03XXXXXXXXX"
+              placeholderTextColor="#6b7280"
+            />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>JazzCash Number (For Payments)</Text>
-            <TextInput style={styles.input} value={jazzCash} onChangeText={setJazzCash} keyboardType="phone-pad" placeholderTextColor="#6b7280" />
+            <Text style={styles.label}>{t('profile.jazzcash')}</Text>
+            <TextInput
+              style={styles.input}
+              value={jazzcashNumber}
+              onChangeText={setJazzcashNumber}
+              keyboardType="phone-pad"
+              placeholder={t('profile.jazzcashPlaceholder')}
+              placeholderTextColor="#6b7280"
+            />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Location</Text>
-            <TextInput style={styles.input} value={location} onChangeText={setLocation} placeholderTextColor="#6b7280" />
+            <Text style={styles.label}>{t('profile.location')}</Text>
+            <TextInput
+              style={styles.input}
+              value={location}
+              onChangeText={setLocation}
+              placeholder="e.g. Lahore, Punjab"
+              placeholderTextColor="#6b7280"
+            />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Bio</Text>
-            <TextInput style={[styles.input, styles.textArea]} value={bio} onChangeText={setBio} multiline numberOfLines={4} placeholderTextColor="#6b7280" />
+            <Text style={styles.label}>{t('profile.bio')}</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={bio}
+              onChangeText={setBio}
+              placeholder={t('profile.bioPlaceholder')}
+              placeholderTextColor="#6b7280"
+              multiline
+              numberOfLines={4}
+            />
           </View>
 
-          <TouchableOpacity style={styles.saveBtn} onPress={() => navigation.goBack()}>
-            <Check color="#fff" size={20} />
-            <Text style={styles.saveBtnText}>Save Changes</Text>
+          <TouchableOpacity style={[styles.saveBtn, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
+            {saving
+              ? <ActivityIndicator color="#fff" />
+              : (<><Check color="#fff" size={20} /><Text style={styles.saveBtnText}>{t('settings.saveChanges')}</Text></>)}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -82,12 +255,14 @@ const styles = StyleSheet.create({
   avatarSection: { alignItems: 'center', marginBottom: 32, marginTop: 10 },
   avatarContainer: { position: 'relative' },
   avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#16a34a', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
+  avatarImage: { width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: '#fff' },
   avatarText: { color: '#fff', fontSize: 40, fontWeight: 'bold' },
   cameraBtn: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#3b82f6', width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#0f1a12' },
   formGroup: { marginBottom: 20 },
   label: { color: '#a3a3a3', fontSize: 14, fontWeight: '600', marginBottom: 8 },
   input: { backgroundColor: 'rgba(26, 46, 29, 0.8)', borderWidth: 1, borderColor: '#224026', borderRadius: 12, paddingHorizontal: 16, height: 50, color: '#fff', fontSize: 15 },
   inputDisabled: { backgroundColor: 'rgba(0,0,0,0.3)', color: '#6b7280' },
+  helperText: { color: '#6b7280', fontSize: 12, marginTop: 6 },
   textArea: { height: 100, textAlignVertical: 'top', paddingTop: 16 },
   saveBtn: { flexDirection: 'row', backgroundColor: '#16a34a', height: 56, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 12, marginBottom: 40, gap: 8 },
   saveBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' }

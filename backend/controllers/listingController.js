@@ -56,10 +56,13 @@ exports.getAllListings = async (req, res) => {
     else if (!status) query.status = "active"; // Default to active listings only if no status specified
 
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
+      // Use the title+description text index (added in Listing.js) instead of
+      // an unindexed regex scan. Falls back to regex if the text index isn't
+      // present in Atlas yet — keeps the route functional during migration.
+      const trimmed = String(search).trim();
+      if (trimmed) {
+        query.$text = { $search: trimmed };
+      }
     }
 
     if (minPrice || maxPrice) {

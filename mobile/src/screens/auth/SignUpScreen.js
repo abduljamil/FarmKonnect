@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView, Platform, ScrollView, Alert, StyleSheet, Dimensions, StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -14,6 +15,7 @@ const { width, height } = Dimensions.get('window');
 
 const SignUpScreen = ({ navigation }) => {
   const { signUp } = useContext(AuthContext);
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -24,11 +26,13 @@ const SignUpScreen = ({ navigation }) => {
 
   const validate = () => {
     const newErrors = {};
-    if (!name.trim()) newErrors.name = 'Name is required';
-    if (!email.trim()) newErrors.email = 'Email is required';
-    if (!password) newErrors.password = 'Password is required';
-    if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
-    if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    if (!name.trim()) newErrors.name = t('errors.requiredField');
+    if (!email.trim()) newErrors.email = t('errors.requiredField');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email.trim() && !emailRegex.test(email)) newErrors.email = t('errors.invalidEmail');
+    if (!password) newErrors.password = t('errors.requiredField');
+    else if (password.length < 6) newErrors.password = t('errors.weakPassword');
+    if (password !== confirmPassword) newErrors.confirmPassword = t('errors.passwordMismatch');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -40,13 +44,17 @@ const SignUpScreen = ({ navigation }) => {
     setLoading(false);
 
     if (result.success) {
+      // Web flow redirects to /email-sent after signup so users know to check
+      // their inbox. On mobile we drop them on SignIn with a clear instruction
+      // and replace() so back button doesn't return them to the half-filled
+      // signup form.
       Alert.alert(
-        'Account Created! 🎉',
-        'Please check your email to verify your account.',
-        [{ text: 'OK' }]
+        t('auth.verifyEmail.title'),
+        t('auth.verifyEmail.subtitle'),
+        [{ text: t('common.ok'), onPress: () => navigation.replace('SignIn') }]
       );
     } else {
-      Alert.alert('Sign Up Failed', result.message || 'Something went wrong');
+      Alert.alert(t('common.error'), result.message || t('errors.somethingWrong'));
     }
   };
 
@@ -72,31 +80,32 @@ const SignUpScreen = ({ navigation }) => {
                 <View style={styles.logoBox}>
                   <Text style={styles.logoEmoji}>🌾</Text>
                 </View>
-                <Text style={styles.title}>Create Account</Text>
-                <Text style={styles.subtitle}>Join FarmKonnect today</Text>
+                <Text style={styles.title}>{t('auth.signUp.title')}</Text>
+                <Text style={styles.subtitle}>{t('auth.signUp.subtitle')}</Text>
               </View>
 
               {/* Form */}
               <View style={styles.formContainer}>
                 <Input
-                  label="Full Name"
+                  label={t('auth.signUp.name')}
                   value={name}
                   onChangeText={setName}
-                  placeholder="Enter your full name"
+                  placeholder={t('auth.signUp.name')}
                   error={errors.name}
                   leftIcon={<User color="#a3a3a3" size={18} />}
                 />
                 <Input
-                  label="Email Address"
+                  label={t('auth.signUp.email')}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Enter your email"
+                  placeholder={t('auth.signUp.email')}
                   keyboardType="email-address"
+                  autoCapitalize="none"
                   error={errors.email}
                   leftIcon={<Mail color="#a3a3a3" size={18} />}
                 />
                 <Input
-                  label="Phone (Optional)"
+                  label={`${t('auth.signUp.phone')} (${t('common.optional')})`}
                   value={phone}
                   onChangeText={setPhone}
                   placeholder="03XX-XXXXXXX"
@@ -104,26 +113,26 @@ const SignUpScreen = ({ navigation }) => {
                   leftIcon={<Phone color="#a3a3a3" size={18} />}
                 />
                 <Input
-                  label="Password"
+                  label={t('auth.signUp.password')}
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="Minimum 6 characters"
+                  placeholder={t('errors.weakPassword')}
                   secureTextEntry
                   error={errors.password}
                   leftIcon={<Lock color="#a3a3a3" size={18} />}
                 />
                 <Input
-                  label="Confirm Password"
+                  label={t('auth.signUp.confirmPassword')}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  placeholder="Re-enter your password"
+                  placeholder={t('auth.signUp.confirmPassword')}
                   secureTextEntry
                   error={errors.confirmPassword}
                   leftIcon={<Lock color="#a3a3a3" size={18} />}
                 />
 
                 <Button
-                  title="Create Account"
+                  title={t('auth.signUp.button')}
                   onPress={handleSignUp}
                   loading={loading}
                 />
@@ -131,9 +140,9 @@ const SignUpScreen = ({ navigation }) => {
 
               {/* Footer */}
               <View style={styles.footer}>
-                <Text style={styles.footerText}>Already have an account? </Text>
+                <Text style={styles.footerText}>{t('auth.signUp.haveAccount')} </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
-                  <Text style={styles.signInLink}>Sign In</Text>
+                  <Text style={styles.signInLink}>{t('auth.signUp.signInLink')}</Text>
                 </TouchableOpacity>
               </View>
 

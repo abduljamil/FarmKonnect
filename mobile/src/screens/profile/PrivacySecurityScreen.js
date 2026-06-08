@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, Switch, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Lock, Eye, EyeOff, Shield, Smartphone, FileText, X } from 'lucide-react-native';
+import { ArrowLeft, Lock, Shield, FileText, X } from 'lucide-react-native';
 import { AuthContext } from '../../contexts/AuthContext';
-import axios from 'axios';
+import api from '../../services/api';
 
 export default function PrivacySecurityScreen({ navigation }) {
-  const { user, token } = useContext(AuthContext);
-  
+  const { user } = useContext(AuthContext);
+
   // State for modals
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showLoginHistory, setShowLoginHistory] = useState(false);
 
   // Form states
   const [passwordForm, setPasswordForm] = useState({
@@ -21,40 +20,16 @@ export default function PrivacySecurityScreen({ navigation }) {
   });
   const [deletePassword, setDeletePassword] = useState('');
 
-  // Privacy settings
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [profilePrivate, setProfilePrivate] = useState(false);
-  const [showOnlineStatus, setShowOnlineStatus] = useState(true);
-  const [loginHistory, setLoginHistory] = useState([]);
-  
   // Loading states
-  const [loadingPrivacy, setLoadingPrivacy] = useState(false);
   const [loadingPassword, setLoadingPassword] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
-  const [loadingHistory, setLoadingHistory] = useState(false);
 
-  const API_BASE_URL = 'https://farmkonnect.app/api';
-
-  // Load privacy settings on mount
-  useEffect(() => {
-    loadPrivacySettings();
-  }, []);
-
-  const loadPrivacySettings = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/user/privacy-settings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.data.success) {
-        setTwoFactorEnabled(response.data.data.twoFactorEnabled);
-        setProfilePrivate(response.data.data.isProfilePrivate);
-        setShowOnlineStatus(response.data.data.showOnlineStatus);
-      }
-    } catch (error) {
-      console.log('Error loading privacy settings:', error.message);
-    }
-  };
+  // PREVIOUSLY this screen called four backend endpoints that don't exist:
+  //   GET  /user/privacy-settings, PUT /user/privacy-settings,
+  //   GET  /user/login-history,    plus a 2FA toggle with no backend handler.
+  // All silently 404'd — the UI looked like it worked but nothing persisted.
+  // Removed until the backend gains those routes; the only real features here
+  // are change-password and delete-account, both of which work.
 
   const handleChangePassword = async () => {
     const { currentPassword, newPassword, confirmPassword } = passwordForm;
@@ -76,12 +51,7 @@ export default function PrivacySecurityScreen({ navigation }) {
 
     setLoadingPassword(true);
     try {
-      const response = await axios.put(
-        `${API_BASE_URL}/user/password`,
-        { currentPassword, newPassword },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
+      const response = await api.put('/user/password', { currentPassword, newPassword });
       if (response.data.success) {
         Alert.alert('Success', 'Password changed successfully');
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -102,23 +72,12 @@ export default function PrivacySecurityScreen({ navigation }) {
 
     setLoadingDelete(true);
     try {
-      const response = await axios.delete(
-        `${API_BASE_URL}/user/account`,
-        {
-          data: { password: deletePassword },
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
+      const response = await api.delete('/user/account', { data: { password: deletePassword } });
       if (response.data.success) {
         Alert.alert('Success', 'Account deleted successfully');
         setShowDeleteModal(false);
-        // Navigate to login screen after a delay
         setTimeout(() => {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Welcome' }],
-          });
+          navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
         }, 1000);
       }
     } catch (error) {
@@ -126,63 +85,6 @@ export default function PrivacySecurityScreen({ navigation }) {
     } finally {
       setLoadingDelete(false);
     }
-  };
-
-  const handlePrivacyToggle = async (key, value) => {
-    setLoadingPrivacy(true);
-    try {
-      const updateData = {
-        isProfilePrivate: key === 'profilePrivate' ? value : profilePrivate,
-        showOnlineStatus: key === 'showOnlineStatus' ? value : showOnlineStatus,
-        twoFactorEnabled: key === 'twoFactorEnabled' ? value : twoFactorEnabled,
-      };
-
-      const response = await axios.put(
-        `${API_BASE_URL}/user/privacy-settings`,
-        updateData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.data.success) {
-        if (key === 'profilePrivate') setProfilePrivate(value);
-        else if (key === 'showOnlineStatus') setShowOnlineStatus(value);
-        else if (key === 'twoFactorEnabled') setTwoFactorEnabled(value);
-
-        if (key === 'twoFactorEnabled') {
-          Alert.alert('Success', value ? '2FA enabled successfully' : '2FA disabled successfully');
-        }
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update privacy settings');
-      // Reset the toggle
-      if (key === 'profilePrivate') setProfilePrivate(!profilePrivate);
-      else if (key === 'showOnlineStatus') setShowOnlineStatus(!showOnlineStatus);
-      else if (key === 'twoFactorEnabled') setTwoFactorEnabled(!twoFactorEnabled);
-    } finally {
-      setLoadingPrivacy(false);
-    }
-  };
-
-  const loadLoginHistory = async () => {
-    setLoadingHistory(true);
-    try {
-      const response = await axios.get(`${API_BASE_URL}/user/login-history`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.data.success) {
-        setLoginHistory(response.data.data);
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load login history');
-    } finally {
-      setLoadingHistory(false);
-    }
-  };
-
-  const handleShowLoginHistory = () => {
-    setShowLoginHistory(true);
-    loadLoginHistory();
   };
 
   return (
@@ -209,89 +111,13 @@ export default function PrivacySecurityScreen({ navigation }) {
               </View>
             </View>
           </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <View style={styles.menuItem}>
-            <View style={styles.menuLeft}>
-              <Smartphone color="#16a34a" size={22} />
-              <View style={styles.menuContent}>
-                <Text style={styles.menuText}>Two-Factor Authentication</Text>
-                <Text style={styles.menuDesc}>Add extra security to your account</Text>
-              </View>
-            </View>
-            <Switch
-              value={twoFactorEnabled}
-              onValueChange={(value) => handlePrivacyToggle('twoFactorEnabled', value)}
-              trackColor={{ false: '#374151', true: '#16a34a' }}
-              thumbColor={'#ffffff'}
-              disabled={loadingPrivacy}
-            />
-          </View>
-        </View>
-
-        {/* Privacy Section */}
-        <Text style={styles.sectionTitle}>👁️ Privacy</Text>
-        <View style={styles.section}>
-          <View style={styles.menuItem}>
-            <View style={styles.menuLeft}>
-              {profilePrivate ? 
-                <EyeOff color="#16a34a" size={22} /> : 
-                <Eye color="#16a34a" size={22} />
-              }
-              <View style={styles.menuContent}>
-                <Text style={styles.menuText}>Private Profile</Text>
-                <Text style={styles.menuDesc}>Hide your profile from other users</Text>
-              </View>
-            </View>
-            <Switch
-              value={profilePrivate}
-              onValueChange={(value) => handlePrivacyToggle('profilePrivate', value)}
-              trackColor={{ false: '#374151', true: '#16a34a' }}
-              thumbColor={'#ffffff'}
-              disabled={loadingPrivacy}
-            />
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.menuItem}>
-            <View style={styles.menuLeft}>
-              <View style={styles.statusIcon}>
-                {showOnlineStatus && <View style={styles.onlineDot} />}
-              </View>
-              <View style={styles.menuContent}>
-                <Text style={styles.menuText}>Show Online Status</Text>
-                <Text style={styles.menuDesc}>Let others see when you're online</Text>
-              </View>
-            </View>
-            <Switch
-              value={showOnlineStatus}
-              onValueChange={(value) => handlePrivacyToggle('showOnlineStatus', value)}
-              trackColor={{ false: '#374151', true: '#16a34a' }}
-              thumbColor={'#ffffff'}
-              disabled={loadingPrivacy}
-            />
-          </View>
         </View>
 
         {/* Data & Privacy Section */}
         <Text style={styles.sectionTitle}>📋 Data & Privacy</Text>
         <View style={styles.section}>
-          <TouchableOpacity style={styles.menuItem} onPress={handleShowLoginHistory}>
-            <View style={styles.menuLeft}>
-              <FileText color="#16a34a" size={22} />
-              <View style={styles.menuContent}>
-                <Text style={styles.menuText}>Login History</Text>
-                <Text style={styles.menuDesc}>View your login activity</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
-
           <TouchableOpacity style={styles.menuItem} onPress={() => {
-            Alert.alert('Privacy Policy', 'For full privacy policy, please visit our website at farmkonnect.com', [
+            Alert.alert('Privacy Policy', 'For full privacy policy, please visit our website at farmkonnect.app/privacy', [
               { text: 'OK' }
             ]);
           }}>
@@ -463,53 +289,6 @@ export default function PrivacySecurityScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* Login History Modal */}
-      <Modal visible={showLoginHistory} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Login History</Text>
-              <TouchableOpacity onPress={() => setShowLoginHistory(false)}>
-                <X color="#fff" size={24} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalBody}>
-              {loadingHistory ? (
-                <ActivityIndicator color="#16a34a" size="large" />
-              ) : loginHistory.length > 0 ? (
-                <ScrollView style={styles.historyList}>
-                  {loginHistory.reverse().map((login, index) => (
-                    <View key={index} style={styles.historyItem}>
-                      <View style={styles.historyContent}>
-                        <Text style={styles.historyDate}>
-                          {new Date(login.timestamp).toLocaleDateString()} {new Date(login.timestamp).toLocaleTimeString()}
-                        </Text>
-                        <Text style={styles.historyDevice}>{login.device || 'Unknown Device'}</Text>
-                        <Text style={styles.historyIP}>{login.ipAddress || 'Unknown IP'}</Text>
-                        <View style={[styles.statusBadge, login.status === 'success' ? styles.successBadge : styles.failedBadge]}>
-                          <Text style={styles.statusText}>{login.status.toUpperCase()}</Text>
-                        </View>
-                      </View>
-                    </View>
-                  ))}
-                </ScrollView>
-              ) : (
-                <Text style={styles.emptyText}>No login history available</Text>
-              )}
-            </View>
-
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={[styles.button, styles.submitBtn]}
-                onPress={() => setShowLoginHistory(false)}
-              >
-                <Text style={styles.submitBtnText}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }

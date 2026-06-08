@@ -2,6 +2,7 @@ const Transaction = require("../models/Transaction");
 const Listing = require("../models/Listing");
 const User = require("../models/User");
 const paymentService = require("../services/paymentService");
+const pushService = require("../services/pushService");
 const crypto = require("crypto");
 
 // Constants
@@ -210,6 +211,14 @@ exports.createTransaction = async (req, res) => {
         message: "Your order has been placed successfully!",
         createdAt: new Date(),
       });
+
+      // Native push for the seller — fires alongside the socket so the
+      // notification lands even if the seller's app is in background.
+      pushService.sendToUser(listing.createdBy._id, {
+        title: 'New order',
+        body: `${req.user.name} ordered ${transaction.quantity} × "${listing.title}" for ₨${transaction.amount.toLocaleString()}`,
+        data: { type: 'order', transactionId: String(transaction._id) },
+      });
     }
 
     res.status(201).json({
@@ -281,14 +290,31 @@ exports.processPayment = async (req, res) => {
     if (transaction.paymentMethod === "cod") {
       await transaction.save();
 
-      // Update listing quantity and status for COD
-      const listing = await Listing.findById(transaction.listing);
-      if (listing) {
-        listing.quantity = Math.max(0, listing.quantity - transaction.quantity);
-        if (listing.quantity === 0) {
-          listing.status = "sold";
-        }
-        await listing.save();
+      // Atomic decrement: prevents two concurrent COD orders from overselling.
+      // The previous code did `listing.quantity -= qty; listing.save()` with
+      // no concurrency guard. If the qty would go negative, the conditional
+      // match fails and we roll the transaction back so the buyer sees a
+      // clear "out of stock" error instead of a phantom successful order.
+      const qty = transaction.quantity || 1;
+      const decremented = await Listing.findOneAndUpdate(
+        { _id: transaction.listing, quantity: { $gte: qty }, status: "active" },
+        [
+          { $set: { quantity: { $subtract: ["$quantity", qty] } } },
+          { $set: { status: { $cond: [{ $lte: ["$quantity", 0] }, "sold", "$status"] } } },
+        ],
+        { new: true }
+      );
+
+      if (!decremented) {
+        // Compensate: cancel the transaction since the listing ran out.
+        transaction.orderStatus = "cancelled";
+        transaction.paymentStatus = "cancelled";
+        transaction.cancelledAt = new Date();
+        await transaction.save();
+        return res.status(409).json({
+          success: false,
+          message: "Listing is no longer available in the requested quantity.",
+        });
       }
 
       const populatedTx = await Transaction.findById(transaction._id)

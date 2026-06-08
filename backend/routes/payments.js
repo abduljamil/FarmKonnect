@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { protect } = require("../middleware/auth");
+const { protect, isAdmin } = require("../middleware/auth");
 const {
   createTransaction,
   processPayment,
@@ -44,11 +44,15 @@ router.put("/transactions/:id/dispute", raiseDispute);
 // Buyer rejection route
 router.put("/transactions/:id/reject-delivery", rejectDelivery);
 
-// Refund route (admin only - add admin middleware in controller)
-router.post("/transactions/:id/refund", processRefund);
+// Refund route — admin only (would otherwise let any logged-in buyer refund
+// arbitrary transactions).
+router.post("/transactions/:id/refund", isAdmin, processRefund);
 
-// Escrow auto-release route (for cron jobs or admin)
-router.post("/escrow/auto-release", autoReleaseEscrow);
+// Escrow auto-release route — admin only. Previously gated only by `protect`,
+// which meant any authenticated user could trigger payouts for every expired
+// transaction in the system. The internal cron (see services/escrowService)
+// calls the controller directly and bypasses the HTTP layer.
+router.post("/escrow/auto-release", isAdmin, autoReleaseEscrow);
 
 module.exports = router;
 

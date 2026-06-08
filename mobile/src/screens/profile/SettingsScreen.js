@@ -1,82 +1,81 @@
 ﻿import React, { useContext, useState, useEffect } from 'react';
-import { View, Text, Switch, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
+import { View, Text, Switch, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
-import { Moon, Sun, Bell, Shield, ChevronLeft } from 'lucide-react-native';
+import { Bell, ChevronLeft, Globe, ExternalLink } from 'lucide-react-native';
 import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
+
+// Settings screen — previously had three fake toggles (dark mode, push
+// notifications, location services) that maintained local React state but
+// had no real effect anywhere. The dark-mode toggle made *this one screen*
+// look light, while every other screen stayed dark. Push and location
+// switches did nothing at all.
+//
+// We've removed the cosmetic dark-mode toggle (the rest of the app is hard-
+// styled dark right now) and replaced the fake notification/location
+// switches with a single "Open device settings" link that takes the user to
+// the OS settings page — which is where iOS/Android actually expose the
+// real per-app permissions.
 
 export default function SettingsScreen({ navigation }) {
   const { logout } = useContext(AuthContext);
-  const { i18n, t } = useTranslation(); // Also get the t function to trigger re-renders
+  const { i18n, t } = useTranslation();
   const [isUrdu, setIsUrdu] = useState(i18n.language === 'ur');
 
-  // Local settings states
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [locationEnabled, setLocationEnabled] = useState(true);
+  // Hard-styled dark palette — the rest of the app uses these colors too.
+  const theme = {
+    bg: '#0f1a12',
+    cardBg: 'rgba(26, 46, 31, 0.8)',
+    text: '#ffffff',
+    textMuted: '#a3a3a3',
+    border: '#224026',
+    iconColor: '#16a34a',
+  };
 
-  // Sync state with i18n language changes
   useEffect(() => {
-    console.log('Language changed to:', i18n.language);
     setIsUrdu(i18n.language === 'ur');
   }, [i18n.language]);
 
-  // Dynamic theme colors (Local simulated theme)
-  const theme = {
-    bg: isDarkMode ? '#0f1a12' : '#f8fafc',
-    cardBg: isDarkMode ? 'rgba(26, 46, 31, 0.8)' : '#ffffff',
-    text: isDarkMode ? '#ffffff' : '#111827',
-    textMuted: isDarkMode ? '#a3a3a3' : '#6b7280',
-    border: isDarkMode ? '#224026' : '#e5e7eb',
-    iconColor: isDarkMode ? '#16a34a' : '#059669',
+  const toggleLanguage = (value) => {
+    i18n.changeLanguage(value ? 'ur' : 'en');
   };
 
-  const toggleLanguage = (value) => {
-    const newLanguage = value ? 'ur' : 'en';
-    console.log('Changing language to:', newLanguage);
-    i18n.changeLanguage(newLanguage);
+  const openSystemSettings = async () => {
+    try {
+      if (Platform.OS === 'ios') {
+        await Linking.openURL('app-settings:');
+      } else {
+        await Linking.openSettings();
+      }
+    } catch {
+      // Best-effort — some Android OEMs reject openSettings()
+    }
   };
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]}>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={theme.bg} />
-      {/* Background Blobs for Dark Mode */}
-      {isDarkMode && <AnimatedBlobs />}
+      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      <AnimatedBlobs />
 
       <View style={[styles.navHeader, { backgroundColor: theme.bg }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ChevronLeft color={theme.text} size={28} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>{t('settings')}</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>{t('nav.settings')}</Text>
         <View style={{ width: 28 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>{t('preferences')}</Text>
-        
-        <View style={[styles.section, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-          {/* Dark Mode Toggle */}
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              {isDarkMode ? <Moon color={theme.iconColor} size={22} /> : <Sun color={theme.iconColor} size={22} />}
-              <Text style={[styles.label, { color: theme.text }]}>{t('dark_mode')}</Text>
-            </View>
-            <Switch
-              value={isDarkMode}
-              onValueChange={setIsDarkMode}
-              trackColor={{ false: '#d1d5db', true: '#16a34a' }}
-              thumbColor={'#ffffff'}
-            />
-          </View>
-          <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-          {/* Language Toggle */}
+        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>{t('mobile.settings.preferences')}</Text>
+
+        <View style={[styles.section, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+          {/* Language Toggle — the one preference that genuinely works. */}
           <View style={styles.row}>
             <View style={styles.rowLeft}>
-              <Text style={{ fontSize: 18, marginRight: 12 }}>🌏</Text>
-              <Text style={[styles.label, { color: theme.text }]}>{t('language')}</Text>
+              <Globe color={theme.iconColor} size={22} />
+              <Text style={[styles.label, { color: theme.text }]}>{t('mobile.settings.language')}</Text>
             </View>
             <View style={styles.languageToggle}>
               <Text style={[styles.langText, !isUrdu && styles.langActive, { color: !isUrdu ? theme.iconColor : theme.textMuted }]}>EN</Text>
@@ -91,47 +90,37 @@ export default function SettingsScreen({ navigation }) {
           </View>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>{t('app_permissions')}</Text>
-        
+        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>{t('mobile.settings.appPermissions')}</Text>
+
         <View style={[styles.section, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-          {/* Notifications */}
-          <View style={styles.row}>
+          {/* Notifications + location are OS-managed. We can't toggle them
+              from here without an expo-notifications integration, so we
+              link out to the OS settings page where they actually live. */}
+          <TouchableOpacity style={styles.row} onPress={openSystemSettings}>
             <View style={styles.rowLeft}>
               <Bell color={theme.iconColor} size={22} />
-              <Text style={[styles.label, { color: theme.text }]}>{t('push_notifications')}</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('mobile.settings.pushNotifications')}</Text>
             </View>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
-              trackColor={{ false: '#d1d5db', true: '#16a34a' }}
-              thumbColor={'#ffffff'}
-            />
-          </View>
+            <ExternalLink color={theme.textMuted} size={18} />
+          </TouchableOpacity>
           <View style={[styles.divider, { backgroundColor: theme.border }]} />
-
-          {/* Location */}
-          <View style={styles.row}>
+          <TouchableOpacity style={styles.row} onPress={openSystemSettings}>
             <View style={styles.rowLeft}>
-              <Shield color={theme.iconColor} size={22} />
-              <Text style={[styles.label, { color: theme.text }]}>{t('location_services')}</Text>
+              <Text style={{ fontSize: 18, marginRight: 12 }}>📍</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('mobile.settings.locationServices')}</Text>
             </View>
-            <Switch
-              value={locationEnabled}
-              onValueChange={setLocationEnabled}
-              trackColor={{ false: '#d1d5db', true: '#16a34a' }}
-              thumbColor={'#ffffff'}
-            />
-          </View>
+            <ExternalLink color={theme.textMuted} size={18} />
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity 
-          style={[styles.logoutButton, { backgroundColor: isDarkMode ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2', borderColor: isDarkMode ? 'rgba(239, 68, 68, 0.3)' : '#fca5a5' }]} 
+        <TouchableOpacity
+          style={[styles.logoutButton, { backgroundColor: 'rgba(239, 68, 68, 0.15)', borderColor: 'rgba(239, 68, 68, 0.3)' }]}
           onPress={logout}
         >
-          <Text style={styles.logoutText}>{t('log_out')}</Text>
+          <Text style={styles.logoutText}>{t('mobile.settings.logOut')}</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.versionText, { color: theme.textMuted }]}>{t('version')}</Text>
+        <Text style={[styles.versionText, { color: theme.textMuted }]}>{t('mobile.settings.version')}</Text>
       </ScrollView>
     </SafeAreaView>
   );

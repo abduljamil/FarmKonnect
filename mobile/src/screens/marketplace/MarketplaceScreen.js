@@ -1,23 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, StatusBar, TextInput, ActivityIndicator, RefreshControl, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, Filter, MapPin, Heart } from 'lucide-react-native';
+import { Search, Filter, MapPin } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { getListings } from '../../services/listingService';
 import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
 
 const { width } = Dimensions.get('window');
 
-const categoriesList = [
-  { label: 'All Items', value: '' },
-  { label: 'Crops', value: 'crops' },
-  { label: 'Livestock', value: 'livestock' },
-  { label: 'Equipment', value: 'equipment' },
-  { label: 'Fertilizers', value: 'fertilizers' },
-  { label: 'Seeds', value: 'seeds' },
-  { label: 'Other', value: 'other' }
-];
+// Category values match the backend Listing.category enum. Labels come from
+// translations at render time so the strip switches with language.
+const CATEGORY_VALUES = ['', 'crops', 'livestock', 'equipment', 'fertilizers', 'seeds', 'other'];
 
 export default function MarketplaceScreen({ navigation }) {
+  const { t } = useTranslation();
+
+  // Resolve a translated label for each category. The `'' = all` slot uses
+  // common.all so it stays in sync with the rest of the UI.
+  const categoryLabel = (v) => {
+    if (v === '') return t('common.all');
+    const key = `marketplace.categories.${v}`;
+    const translated = t(key);
+    return translated === key ? v : translated;
+  };
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -28,6 +33,9 @@ export default function MarketplaceScreen({ navigation }) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  // Whether the category strip is visible. Filter button in the header toggles it.
+  const [showCategories, setShowCategories] = useState(true);
 
   const fetchListings = async (pageNum = 1, shouldAppend = false) => {
     try {
@@ -83,13 +91,16 @@ export default function MarketplaceScreen({ navigation }) {
       onPress={() => navigation.navigate('ListingDetail', { id: item._id })}
     >
       <View style={styles.imageContainer}>
-        <Image 
-          source={{ uri: item.images && item.images.length > 0 ? item.images[0] : 'https://via.placeholder.com/150' }} 
-          style={styles.image} 
+        <Image
+          source={
+            item.images && item.images.length > 0
+              ? { uri: item.images[0] }
+              : require('../../../assets/icon.png')
+          }
+          style={styles.image}
         />
-        <TouchableOpacity style={styles.favoriteBtn}>
-          <Heart color={'#fff'} fill={'none'} size={18} />
-        </TouchableOpacity>
+        {/* Favorites are a future feature — hidden until the backend
+            supports a user.favorites array. Don't ship dead UI. */}
       </View>
       <View style={styles.cardBody}>
         <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
@@ -108,39 +119,42 @@ export default function MarketplaceScreen({ navigation }) {
       <AnimatedBlobs />
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Marketplace</Text>
+        <Text style={styles.headerTitle}>{t('marketplace.title')}</Text>
         <View style={styles.searchRow}>
           <View style={styles.searchBar}>
             <Search color="#a3a3a3" size={20} />
-            <TextInput 
-              placeholder="Search crops, seeds, tools..." 
-              placeholderTextColor="#a3a3a3" 
+            <TextInput
+              placeholder={t('common.search')}
+              placeholderTextColor="#a3a3a3"
               style={styles.searchInput}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
           </View>
-          <TouchableOpacity style={styles.filterBtn}>
+          <TouchableOpacity
+            style={[styles.filterBtn, !showCategories && { backgroundColor: '#1a2e1d', borderWidth: 1, borderColor: '#224026' }]}
+            onPress={() => setShowCategories((v) => !v)}
+          >
             <Filter color="#fff" size={20} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <View style={{ marginBottom: 12 }}>
+      {showCategories && (<View style={{ marginBottom: 12 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, paddingHorizontal: 20 }}>
           <View style={styles.categoriesRow}>
-            {categoriesList.map((cat, idx) => (
-              <TouchableOpacity 
-                key={idx} 
-                style={[styles.categoryBtn, selectedCategory === cat.value && styles.categoryActive]}
-                onPress={() => setSelectedCategory(cat.value)}
+            {CATEGORY_VALUES.map((v) => (
+              <TouchableOpacity
+                key={v || 'all'}
+                style={[styles.categoryBtn, selectedCategory === v && styles.categoryActive]}
+                onPress={() => setSelectedCategory(v)}
               >
-                <Text style={[styles.categoryText, selectedCategory === cat.value && styles.categoryTextActive]}>{cat.label}</Text>
+                <Text style={[styles.categoryText, selectedCategory === v && styles.categoryTextActive]}>{categoryLabel(v)}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </ScrollView>
-      </View>
+      </View>)}
 
       {loading ? (
         <ActivityIndicator size="large" color="#16a34a" style={{ marginTop: 20 }} />
@@ -148,7 +162,7 @@ export default function MarketplaceScreen({ navigation }) {
         <FlatList
           data={listings}
           renderItem={renderListing}
-          keyExtractor={(item) => item?._id || Math.random().toString()}
+          keyExtractor={(item, index) => item?._id || `listing-${index}`}
           numColumns={2}
           contentContainerStyle={styles.container}
           columnWrapperStyle={styles.columnWrapper}
@@ -158,7 +172,7 @@ export default function MarketplaceScreen({ navigation }) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />}
           ListEmptyComponent={
             <View style={{ padding: 40, alignItems: 'center' }}>
-              <Text style={{ color: '#a3a3a3' }}>No listings found.</Text>
+              <Text style={{ color: '#a3a3a3' }}>{t('marketplace.noListings')}</Text>
             </View>
           }
           ListFooterComponent={loadingMore ? <ActivityIndicator color="#16a34a" style={{ marginVertical: 16 }} /> : null}

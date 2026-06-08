@@ -3,7 +3,33 @@ const Listing = require('../models/Listing');
 const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
 const PriceAlert = require('../models/PriceAlert');
+const pushService = require('../services/pushService');
 const { deleteImage, getPublicIdFromUrl } = require('../config/cloudinary');
+
+// Register an Expo push token for this user (called by the mobile app on
+// login + whenever the token rotates). Dedupes + caps at 5 per user.
+exports.registerPushToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'Push token required' });
+    }
+    const tokens = await pushService.registerToken(req.user._id, token);
+    res.json({ success: true, data: { tokens } });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+exports.unregisterPushToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (token) await pushService.unregisterToken(req.user._id, token);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 
 // Get current user profile
 exports.getProfile = async (req, res) => {

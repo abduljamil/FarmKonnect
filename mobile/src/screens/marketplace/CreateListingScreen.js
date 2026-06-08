@@ -3,11 +3,15 @@ import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Camera, MapPin, Tag, Plus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 import { createListing } from '../../services/listingService';
+import api from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
+import LocationPicker from '../../components/ui/LocationPicker';
 
 export default function CreateListingScreen({ navigation }) {
   const { user, token } = useContext(AuthContext);
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     title: '',
     category: 'crops',
@@ -89,7 +93,7 @@ export default function CreateListingScreen({ navigation }) {
 
   const handleCreate = async () => {
     if (!formData.title || !formData.price || !formData.category || !formData.location || !formData.description) {
-      Alert.alert('Error', 'Please fill all required fields');
+      Alert.alert(t('common.error'), t('errors.requiredField'));
       return;
     }
 
@@ -97,10 +101,12 @@ export default function CreateListingScreen({ navigation }) {
     try {
       let images = [];
 
-      // Upload images if any
+      // Upload images if any. We use the `api` axios instance (so the request
+      // carries the cached auth token and respects the configured API_URL)
+      // instead of raw fetch with a hardcoded production URL like before.
       if (formData.images.length > 0) {
         const uploadFormData = new FormData();
-        formData.images.forEach((image, index) => {
+        formData.images.forEach((image) => {
           uploadFormData.append('images', {
             uri: image.uri,
             type: image.type,
@@ -108,37 +114,29 @@ export default function CreateListingScreen({ navigation }) {
           });
         });
 
-        const uploadResponse = await fetch('https://farmkonnect.app/api/upload/listings', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: uploadFormData,
+        const uploadResponse = await api.post('/upload/listings', uploadFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
-
-        if (!uploadResponse.ok) {
-          throw new Error('Failed to upload images');
-        }
-
-        const uploadData = await uploadResponse.json();
-        images = uploadData.data.images;
+        images = uploadResponse.data?.data?.images || [];
       }
 
-      // Create listing with image URLs
+      // Create listing with image URLs. Note: backend reads ONLY whitelisted
+      // fields (title/description/price/category/images/location/quantity/unit)
+      // so dropping in `formData` extras like `images` previews is harmless.
       const payload = {
         ...formData,
         images,
         price: Number(formData.price),
-        quantity: Number(formData.quantity)
+        quantity: Number(formData.quantity),
       };
 
       await createListing(payload);
-      Alert.alert('Success', 'Listing created successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() }
+      Alert.alert(t('common.success'), t('success.listingCreated'), [
+        { text: t('common.ok'), onPress: () => navigation.goBack() }
       ]);
     } catch (error) {
       console.error('Failed to create listing', error);
-      Alert.alert('Error', error?.response?.data?.message || error.message || 'Failed to create listing');
+      Alert.alert(t('common.error'), error?.response?.data?.message || error.message || t('errors.somethingWrong'));
     } finally {
       setLoading(false);
     }
@@ -151,7 +149,7 @@ export default function CreateListingScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <ArrowLeft color="#fff" size={24} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Create Listing</Text>
+        <Text style={styles.headerTitle}>{t('createListing.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -219,7 +217,7 @@ export default function CreateListingScreen({ navigation }) {
 
         <View style={styles.row}>
           <View style={[styles.formGroup, { flex: 1, marginRight: 12 }]}>
-            <Text style={styles.label}>Price (?) *</Text>
+            <Text style={styles.label}>{t('createListing.form.price')} *</Text>
             <TextInput 
               style={styles.input} 
               placeholder="4800" 
@@ -253,17 +251,18 @@ export default function CreateListingScreen({ navigation }) {
               onChangeText={(text) => setFormData({ ...formData, quantity: text })}
             />
           </View>
-          <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={styles.label}>Location *</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder="e.g. Multan, Punjab" 
-              placeholderTextColor="#6b7280"
-              value={formData.location}
-              onChangeText={(text) => setFormData({ ...formData, location: text })}
-            />
-          </View>
         </View>
+
+        {/* Location picker with "Use current location" — replaces the plain
+            text field. Stores a string in `formData.location` to match the
+            existing backend `Listing.location: String` schema, and also a
+            structured object internally so we can persist the lat/lng if
+            the backend schema gains coordinates later. */}
+        <LocationPicker
+          label="Location *"
+          value={{ address: formData.location }}
+          onChange={(loc) => setFormData({ ...formData, location: loc.address || '' })}
+        />
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>Description *</Text>
@@ -279,7 +278,7 @@ export default function CreateListingScreen({ navigation }) {
         </View>
 
         <TouchableOpacity style={styles.submitBtn} onPress={handleCreate} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Post Listing</Text>}
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>{t('createListing.submit')}</Text>}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

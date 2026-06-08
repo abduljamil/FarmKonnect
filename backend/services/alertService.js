@@ -5,6 +5,7 @@
 
 const PriceAlert = require("../models/PriceAlert");
 const priceRepository = require("../dal/repositories/prices");
+const pushService = require("./pushService");
 
 // Store io instance for notifications
 let ioInstance = null;
@@ -78,6 +79,11 @@ const checkAndTriggerAlerts = async () => {
     let triggeredCount = 0;
     let notificationCount = 0;
     const triggeredAlerts = [];
+
+    // Collect per-alert price updates here and flush them as a single
+    // bulkWrite at the end of the cron tick instead of issuing N independent
+    // findByIdAndUpdate calls (one per non-triggered alert, every 5 min).
+    const priceTrackingOps = [];
 
     // Check each alert against current prices
     for (const alert of activeAlerts) {
@@ -174,12 +180,33 @@ const checkAndTriggerAlerts = async () => {
 
           const sent = sendNotification(alert.user._id.toString(), notification);
           if (sent) notificationCount++;
+
+          // Best-effort native push — fires alongside the socket emit so
+          // users still get a notification when the app is backgrounded.
+          // Errors are swallowed in pushService itself.
+          pushService.sendToUser(alert.user._id, {
+            title: `${alert.commodity} price alert`,
+            body: `Now ₨${currentPrice.toLocaleString()} — ${alert.condition === 'above' ? 'above' : 'below'} ₨${alert.targetPrice.toLocaleString()}`,
+            data: { type: 'price_alert', alertId: String(alert._id) },
+          });
         }
-      } else {
-        // Update current price for tracking (optional)
-        await PriceAlert.findByIdAndUpdate(alert._id, {
-          currentPrice: currentPrice,
+      } else if (alert.currentPrice !== currentPrice) {
+        // Only enqueue a write if the cached price actually changed.
+        priceTrackingOps.push({
+          updateOne: {
+            filter: { _id: alert._id },
+            update: { $set: { currentPrice } },
+          },
         });
+      }
+    }
+
+    // Flush all the non-trigger price refreshes in one round-trip.
+    if (priceTrackingOps.length > 0) {
+      try {
+        await PriceAlert.bulkWrite(priceTrackingOps, { ordered: false });
+      } catch (err) {
+        console.error("[Alert Service] bulkWrite of price tracking failed:", err.message);
       }
     }
 

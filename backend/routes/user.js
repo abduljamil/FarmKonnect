@@ -13,4 +13,8 @@ router.patch('/avatar', userController.updateAvatar);
 router.put('/password', userController.changePassword);
 router.delete('/account', userController.deleteAccount);
 
+// Expo push token registration (mobile only — web has no native push yet).
+router.post('/push-token',   userController.registerPushToken);
+router.delete('/push-token', userController.unregisterPushToken);
+
 module.exports = router;

@@ -1,29 +1,78 @@
-﻿import React from 'react';
-import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, Linking, Alert } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, Linking, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Send, MessageSquare, PhoneCall, Mail } from 'lucide-react-native';
+import { ArrowLeft, Send, MessageSquare, PhoneCall, Mail, List } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
+import { createTicket } from '../../services/supportService';
+import { AuthContext } from '../../contexts/AuthContext';
 
+// Real support ticket flow. Previously this screen had uncontrolled inputs
+// and a "Send Message" button that just navigated back — the backend
+// endpoint /api/support/tickets exists and works, but nothing was calling it.
 export default function SupportScreen({ navigation }) {
+  const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
+
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
   const handleEmailPress = async () => {
-    const email = 'support@farmkonnect.com';
-    const subject = 'FarmKonnect Support Request';
-    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
-    
+    const email = 'support@farmkonnect.app';
+    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent('FarmKonnect Support Request')}`;
     try {
       await Linking.openURL(mailtoLink);
-    } catch (error) {
-      Alert.alert('Error', 'Could not open email app. Please try again.');
+    } catch {
+      Alert.alert(t('common.error'), 'Could not open email app.');
     }
   };
 
   const handlePhonePress = async () => {
-    const phoneNumber = '+923001234567'; // Replace with actual support number
-    const tellLink = `tel:${phoneNumber}`;
-    
+    // TODO: replace with the real support line once you have one.
+    const phoneNumber = '+923001234567';
     try {
-      await Linking.openURL(tellLink);
-    } catch (error) {
-      Alert.alert('Error', 'Could not open phone app. Please try again.');
+      await Linking.openURL(`tel:${phoneNumber}`);
+    } catch {
+      Alert.alert(t('common.error'), 'Could not open phone app.');
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!subject.trim() || subject.trim().length < 3) {
+      Alert.alert(t('common.error'), 'Please enter a subject (at least 3 characters).');
+      return;
+    }
+    if (!message.trim() || message.trim().length < 10) {
+      Alert.alert(t('common.error'), 'Please describe your issue (at least 10 characters).');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const payload = {
+        subject: subject.trim(),
+        message: message.trim(),
+        category: 'other',
+      };
+      // The backend accepts guest tickets but requires guestEmail when not
+      // authenticated. Mobile only renders this screen for signed-in users
+      // (it's behind the protected stack), so we don't need to set those.
+      if (!user) {
+        Alert.alert(t('common.error'), 'You must be signed in to submit a support ticket.');
+        return;
+      }
+      await createTicket(payload);
+      setSubject('');
+      setMessage('');
+      Alert.alert(
+        t('common.success'),
+        'Your ticket has been submitted. Our team will reply via email.',
+        [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
+      );
+    } catch (err) {
+      Alert.alert(t('common.error'), err.response?.data?.message || t('errors.somethingWrong'));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -34,13 +83,15 @@ export default function SupportScreen({ navigation }) {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <ArrowLeft color="#fff" size={24} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Help & Support</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>{t('footer.support')}</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('MyTickets')}>
+          <List color="#16a34a" size={24} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>How can we help you today?</Text>
-        
+
         <View style={styles.contactMethods}>
           <TouchableOpacity style={styles.methodCard} onPress={handlePhonePress}>
             <View style={styles.methodIcon}><PhoneCall color="#16a34a" size={24} /></View>
@@ -50,7 +101,7 @@ export default function SupportScreen({ navigation }) {
           <TouchableOpacity style={styles.methodCard} onPress={handleEmailPress}>
             <View style={styles.methodIcon}><Mail color="#16a34a" size={24} /></View>
             <Text style={styles.methodTitle}>Email</Text>
-            <Text style={styles.methodDesc}>support@farmkonnect.com</Text>
+            <Text style={styles.methodDesc}>support@farmkonnect.app</Text>
           </TouchableOpacity>
         </View>
 
@@ -59,12 +110,35 @@ export default function SupportScreen({ navigation }) {
             <MessageSquare color="#16a34a" size={20} />
             <Text style={styles.cardTitle}>Submit a Ticket</Text>
           </View>
-          <TextInput style={styles.input} placeholder="Subject (e.g. Escrow Issue)" placeholderTextColor="#6b7280" />
-          <TextInput style={[styles.input, styles.textArea]} placeholder="Describe your issue in detail..." placeholderTextColor="#6b7280" multiline numberOfLines={5} />
-          
-          <TouchableOpacity style={styles.submitBtn} onPress={() => navigation.goBack()}>
-            <Send color="#fff" size={18} />
-            <Text style={styles.submitText}>Send Message</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Subject (e.g. Escrow Issue)"
+            placeholderTextColor="#6b7280"
+            value={subject}
+            onChangeText={setSubject}
+            maxLength={120}
+            editable={!submitting}
+          />
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Describe your issue in detail..."
+            placeholderTextColor="#6b7280"
+            multiline
+            numberOfLines={5}
+            value={message}
+            onChangeText={setMessage}
+            maxLength={2000}
+            editable={!submitting}
+          />
+
+          <TouchableOpacity
+            style={[styles.submitBtn, submitting && { opacity: 0.6 }]}
+            onPress={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting
+              ? <ActivityIndicator color="#fff" />
+              : (<><Send color="#fff" size={18} /><Text style={styles.submitText}>Send Message</Text></>)}
           </TouchableOpacity>
         </View>
       </ScrollView>

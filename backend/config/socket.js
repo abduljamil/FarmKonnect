@@ -2,6 +2,7 @@ const socketIO = require("socket.io");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const chatService = require("../services/chatService");
+const pushService = require("../services/pushService");
 
 // Store active users
 const activeUsers = new Map(); // userId -> socketId
@@ -50,9 +51,13 @@ const initializeSocket = (server) => {
         return next(new Error("Authentication error: No token provided"));
       }
 
+      // JWT_SECRET hardening lives in services/authService.js — that module
+      // hard-exits at startup if the secret is missing in production. Keep
+      // the same dev fallback here so dev sockets keep working without
+      // .env.
       const decoded = jwt.verify(
         token,
-        process.env.JWT_SECRET || "your-secret-key-here"
+        process.env.JWT_SECRET || 'dev-only-fallback-do-not-use-in-production'
       );
       const user = await User.findById(decoded.id).select("-password");
 
@@ -189,6 +194,20 @@ const initializeSocket = (server) => {
 
           if (sellerNotInConvRoom) {
             io.to(`user:${sellerId}`).emit("new_message", message);
+          }
+
+          // Native push fanout — fire to whichever participant is NOT the
+          // sender. This wakes the recipient's device even when the app is
+          // backgrounded or fully closed. Best-effort; pushService swallows
+          // errors so a missing token never blocks the chat.
+          const senderId = (socket.user?._id || '').toString();
+          const recipientId = String(buyerId) === senderId ? String(sellerId) : String(buyerId);
+          if (recipientId && recipientId !== senderId) {
+            pushService.sendToUser(recipientId, {
+              title: socket.user?.name || 'New message',
+              body: (message?.content || '').slice(0, 100),
+              data: { type: 'chat', conversationId: String(conversationId) },
+            });
           }
         }
 

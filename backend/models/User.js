@@ -67,6 +67,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  // Expo push tokens (one per device the user signs in on). We dedupe + cap
+  // at 5 so the document doesn't grow unbounded if a user reinstalls often.
+  // Push notifications use these via services/pushService.js → Expo Push API.
+  expoPushTokens: {
+    type: [String],
+    default: [],
+  },
   createdAt: {
     type: Date,
     default: Date.now,

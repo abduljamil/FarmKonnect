@@ -55,12 +55,28 @@ class ChatService {
         return conversation;
       }
 
-      // If not, create a new one
-      conversation = await Conversation.create({
-        product: productId,
-        buyer: buyerId,
-        seller: sellerId,
-      });
+      // If not, create a new one. The (product, buyer, seller) compound
+      // index is unique, so a parallel request (double-click, StrictMode
+      // double-mount) racing against this create throws E11000. Catch it
+      // and re-fetch — the other request already created the conversation.
+      try {
+        conversation = await Conversation.create({
+          product: productId,
+          buyer: buyerId,
+          seller: sellerId,
+        });
+      } catch (err) {
+        if (err && err.code === 11000) {
+          conversation = await Conversation.findOne({
+            product: productId,
+            buyer: buyerId,
+            seller: sellerId,
+          });
+          if (!conversation) throw err;
+        } else {
+          throw err;
+        }
+      }
 
       conversation = await Conversation.findById(conversation._id)
         .populate("product", "title price images")

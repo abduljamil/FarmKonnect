@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, StatusBar, TextInput, ActivityIndicator, RefreshControl, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, StatusBar, TextInput, ActivityIndicator, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, Trash2 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { getConversations, deleteConversation } from '../../services/chatService';
 import { useAuth } from '../../contexts/AuthContext';
+import { SocketContext } from '../../contexts/SocketContext';
 import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
 
 export default function ConversationsScreen({ navigation }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const socket = useContext(SocketContext);
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -31,6 +35,21 @@ export default function ConversationsScreen({ navigation }) {
     fetchConversations();
   }, []);
 
+  // Real-time refresh — was missing. Web subscribes to new_message + new_conversation;
+  // mobile previously only polled when the screen was re-focused. Hooking the
+  // shared SocketContext means new chats show up instantly.
+  useEffect(() => {
+    if (!socket) return;
+    const onNewMessage = () => fetchConversations();
+    const onNewConversation = () => fetchConversations();
+    socket.on('new_message', onNewMessage);
+    socket.on('new_conversation', onNewConversation);
+    return () => {
+      socket.off('new_message', onNewMessage);
+      socket.off('new_conversation', onNewConversation);
+    };
+  }, [socket]);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchConversations();
@@ -38,12 +57,12 @@ export default function ConversationsScreen({ navigation }) {
 
   const handleDelete = (chatId, name) => {
     Alert.alert(
-      'Delete Conversation',
-      `Are you sure you want to delete your conversation with ${name}?`,
+      t('common.delete'),
+      `${t('common.delete')}: ${name}?`,
       [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -51,7 +70,7 @@ export default function ConversationsScreen({ navigation }) {
               setConversations(prev => prev.filter(c => c._id !== chatId));
             } catch (err) {
               console.error('Failed to delete conversation', err);
-              Alert.alert('Error', 'Failed to delete conversation');
+              Alert.alert(t('common.error'), t('errors.somethingWrong'));
             }
           }
         }
@@ -60,22 +79,22 @@ export default function ConversationsScreen({ navigation }) {
   };
 
   const getOtherParticipant = (chat) => {
-    if (!user || !chat) return { name: 'User', avatar: 'https://ui-avatars.com/api/?name=User' };
-    
+    if (!user || !chat) return { name: 'User', avatar: null, otherUserId: null };
+
     // Support both object comparison and ID string comparison
     const buyerId = chat.buyer?._id?.toString() || chat.buyer?.toString();
-    const sellerId = chat.seller?._id?.toString() || chat.seller?.toString();
     const currentUserId = user._id?.toString() || user.id?.toString();
 
     const other = buyerId === currentUserId ? chat.seller : chat.buyer;
-    
+
     if (!other || typeof other !== 'object') {
-      return { name: 'Participant', avatar: 'https://ui-avatars.com/api/?name=P' };
+      return { name: 'Participant', avatar: null, otherUserId: null };
     }
-    
+
     return {
       name: other.name || 'User',
-      avatar: other.avatar || `https://ui-avatars.com/api/?name=${other.name || 'User'}`
+      avatar: other.avatar || null,
+      otherUserId: other._id?.toString() || null,
     };
   };
 
@@ -92,11 +111,11 @@ export default function ConversationsScreen({ navigation }) {
       <AnimatedBlobs />
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
+        <Text style={styles.headerTitle}>{t('chat.title')}</Text>
         <View style={styles.searchBar}>
           <Search color="#a3a3a3" size={20} />
           <TextInput
-            placeholder="Search conversations..."
+            placeholder={t('common.search')}
             placeholderTextColor="#a3a3a3"
             style={styles.searchInput}
             value={searchQuery}
@@ -108,22 +127,23 @@ export default function ConversationsScreen({ navigation }) {
       {loading ? (
         <ActivityIndicator size="large" color="#16a34a" style={{ marginTop: 50 }} />
       ) : (
-        <ScrollView 
-          contentContainerStyle={styles.container} 
+        <FlatList
+          data={filteredConversations}
+          keyExtractor={(c, idx) => c?._id || `conv-${idx}`}
+          contentContainerStyle={styles.container}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />
           }
-        >
-          {filteredConversations.length === 0 && (
-            <Text style={{ textAlign: 'center', color: '#a3a3a3', marginTop: 20 }}>No conversations found.</Text>
-          )}
-          {filteredConversations.map((chat) => {
+          ListEmptyComponent={
+            <Text style={{ textAlign: 'center', color: '#a3a3a3', marginTop: 20 }}>{t('chat.noConversations')}</Text>
+          }
+          renderItem={({ item: chat }) => {
             const otherUser = getOtherParticipant(chat);
-            const lastMsg = chat.lastMessage || 'Click to start chatting';
+            const lastMsg = chat.lastMessage || t('chat.noConversationsDesc');
             const unreadCount = chat.unreadCount || 0;
             const dateVal = chat.lastMessageAt || chat.updatedAt || chat.createdAt;
-            
+
             let timeStr = '';
             if (dateVal) {
               try {
@@ -135,18 +155,18 @@ export default function ConversationsScreen({ navigation }) {
                 console.error('Date parsing error:', e);
               }
             }
-            
+
             return (
-              <TouchableOpacity 
-                key={chat._id} 
+              <TouchableOpacity
                 style={styles.chatCard}
-                onPress={() => navigation.navigate('ChatScreen', { 
-                  conversationId: chat._id, 
-                  name: otherUser.name, 
-                  avatar: otherUser.avatar 
+                onPress={() => navigation.navigate('ChatScreen', {
+                  conversationId: chat._id,
+                  name: otherUser.name,
+                  avatar: otherUser.avatar,
+                  otherUserId: otherUser.otherUserId,
                 })}
               >
-                <Image source={{ uri: otherUser.avatar }} style={styles.avatar} />
+                <Image source={otherUser.avatar ? { uri: otherUser.avatar } : require('../../../assets/icon.png')} style={styles.avatar} />
                 <View style={styles.chatInfo}>
                   <View style={styles.topRow}>
                     <Text style={styles.chatName}>{otherUser.name}</Text>
@@ -162,8 +182,8 @@ export default function ConversationsScreen({ navigation }) {
                           <Text style={styles.unreadText}>{unreadCount}</Text>
                         </View>
                       )}
-                      <TouchableOpacity 
-                        style={styles.deleteBtn} 
+                      <TouchableOpacity
+                        style={styles.deleteBtn}
                         onPress={() => handleDelete(chat._id, otherUser.name)}
                       >
                         <Trash2 color="#ef4444" size={18} />
@@ -173,8 +193,8 @@ export default function ConversationsScreen({ navigation }) {
                 </View>
               </TouchableOpacity>
             );
-          })}
-        </ScrollView>
+          }}
+        />
       )}
     </SafeAreaView>
   );

@@ -143,6 +143,103 @@ exports.googleCallback = async (req, res) => {
   }
 };
 
+// @desc    Mobile Google sign-in — accepts a Google ID token from the
+//         expo-auth-session flow on the device, verifies it directly with
+//         Google's tokeninfo endpoint, then upserts the FarmKonnect user
+//         and returns our own session JWT. This is the native equivalent of
+//         the browser-redirect flow in googleCallback above.
+// @route   POST /api/auth/google
+// @access  Public
+exports.googleSignIn = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) {
+      return res.status(400).json({ success: false, message: 'idToken is required' });
+    }
+
+    // Verify the ID token directly with Google. Pulling in google-auth-library
+    // is heavier; the public tokeninfo endpoint is fine for low-volume mobile
+    // sign-ins and avoids a new dependency. If you swap to google-auth-library
+    // later, replace this block with `new OAuth2Client().verifyIdToken({...})`.
+    const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
+    if (!verifyRes.ok) {
+      return res.status(401).json({ success: false, message: 'Invalid Google token' });
+    }
+    const payload = await verifyRes.json();
+
+    // Validate audience — must match one of our configured Google client IDs.
+    // We accept any of the iOS / Android / web variants since expo-auth-session
+    // uses different aud values per platform.
+    const allowedAuds = [
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_ID_IOS,
+      process.env.GOOGLE_CLIENT_ID_ANDROID,
+      process.env.GOOGLE_CLIENT_ID_WEB,
+      process.env.GOOGLE_CLIENT_ID_EXPO,
+    ].filter(Boolean);
+    if (allowedAuds.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'Google sign-in is not configured on the server',
+      });
+    }
+    if (!allowedAuds.includes(payload.aud)) {
+      return res.status(401).json({ success: false, message: 'Token audience mismatch' });
+    }
+
+    if (!payload.email_verified) {
+      return res.status(401).json({ success: false, message: 'Google email not verified' });
+    }
+
+    const email = (payload.email || '').toLowerCase();
+    if (!email) {
+      return res.status(401).json({ success: false, message: 'Google token missing email' });
+    }
+
+    // Upsert the user — by email first (so Google sign-in works for existing
+    // password accounts), then by googleId.
+    let user = await User.findOne({ $or: [{ email }, { googleId: payload.sub }] });
+    if (!user) {
+      user = await User.create({
+        name: payload.name || email.split('@')[0],
+        email,
+        googleId: payload.sub,
+        authProvider: 'google',
+        isEmailVerified: true,
+        avatar: payload.picture,
+      });
+    } else {
+      // Backfill googleId / avatar if missing
+      let dirty = false;
+      if (!user.googleId)        { user.googleId = payload.sub; dirty = true; }
+      if (!user.isEmailVerified) { user.isEmailVerified = true; dirty = true; }
+      if (!user.avatar && payload.picture) { user.avatar = payload.picture; dirty = true; }
+      if (dirty) await user.save();
+    }
+
+    const result = authService.generateTokenForUser(user);
+
+    // Also set the cookie so the same session works on web if the user opens
+    // the website in the device's browser later.
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('token', result.token, {
+      httpOnly: true,
+      secure: isProduction && process.env.COOKIE_SECURE !== 'false',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      success: true,
+      token: result.token,
+      user: result.user,
+    });
+  } catch (error) {
+    console.error('Google sign-in error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Google sign-in failed' });
+  }
+};
+
 // @desc    Logout user
 // @route   POST /api/auth/logout
 // @access  Private

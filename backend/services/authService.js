@@ -1,7 +1,21 @@
 const { users } = require('../dal');
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+// In production, refuse to start without a real secret. A hardcoded fallback
+// lets an attacker who knows this file forge JWTs for any user (including
+// admins). In development we still allow a dev fallback but emit a loud
+// warning so it doesn't slip into a prod-like environment unnoticed.
+const ENV_SECRET = process.env.JWT_SECRET;
+if (process.env.NODE_ENV === 'production' && (!ENV_SECRET || ENV_SECRET.length < 16)) {
+  // eslint-disable-next-line no-console
+  console.error('FATAL: JWT_SECRET must be set to a value ≥16 chars in production.');
+  process.exit(1);
+}
+if (!ENV_SECRET) {
+  // eslint-disable-next-line no-console
+  console.warn('⚠️  JWT_SECRET is not set — using a dev fallback. Set JWT_SECRET in your .env before deploying.');
+}
+const JWT_SECRET = ENV_SECRET || 'dev-only-fallback-do-not-use-in-production';
 const JWT_EXPIRE = '7d';
 
 class AuthService {

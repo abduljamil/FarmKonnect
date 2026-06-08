@@ -1,17 +1,19 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, Bell, Settings, LogOut, ChevronRight, User, Mail, Lock, Package } from 'lucide-react-native';
+import { Search, Bell, Settings, LogOut, ChevronRight, User, Mail, Lock, Package, Info, FileText, Shield } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
 
 export default function ProfileScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerTitle}>{t('mobile.tabs.profile')}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
           <Settings color="#fff" size={24} />
         </TouchableOpacity>
@@ -23,23 +25,23 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.avatarText}>{user?.name?.charAt(0)?.toUpperCase() || 'U'}</Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.name}>{user?.name || 'User'}</Text>
+            <Text style={styles.name}>{user?.name || t('common.unknown')}</Text>
             <Text style={styles.email}>{user?.email}</Text>
             <View style={styles.ratingRow}>
-              <Text style={styles.ratingText}>⭐ {user?.rating || '0.0'} ({user?.reviewsCount || 0} reviews)</Text>
+              <Text style={styles.ratingText}>⭐ {user?.rating || '0.0'} ({user?.reviewsCount || 0} {t('profile.reviews')})</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          
+          <Text style={styles.sectionTitle}>{t('profile.personalInfo')}</Text>
+
           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('EditProfile')}>
             <View style={styles.menuLeft}>
               <View style={styles.iconCircle}>
                 <User color="#16a34a" size={20} />
               </View>
-              <Text style={styles.menuText}>Personal Details</Text>
+              <Text style={styles.menuText}>{t('profile.editProfile')}</Text>
             </View>
             <ChevronRight color="#6b7280" size={20} />
           </TouchableOpacity>
@@ -49,7 +51,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.iconCircle}>
                 <Package color="#16a34a" size={20} />
               </View>
-              <Text style={styles.menuText}>My Listings</Text>
+              <Text style={styles.menuText}>{t('marketplace.myListings')}</Text>
             </View>
             <ChevronRight color="#6b7280" size={20} />
           </TouchableOpacity>
@@ -59,7 +61,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.iconCircle}>
                 <Lock color="#16a34a" size={20} />
               </View>
-              <Text style={styles.menuText}>Privacy & Security</Text>
+              <Text style={styles.menuText}>{t('settings.tabs.security')}</Text>
             </View>
             <ChevronRight color="#6b7280" size={20} />
           </TouchableOpacity>
@@ -69,7 +71,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.iconCircle}>
                 <Bell color="#16a34a" size={20} />
               </View>
-              <Text style={styles.menuText}>Price Alerts</Text>
+              <Text style={styles.menuText}>{t('nav.priceAlerts')}</Text>
             </View>
             <ChevronRight color="#6b7280" size={20} />
           </TouchableOpacity>
@@ -79,7 +81,43 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.iconCircle}>
                 <Mail color="#16a34a" size={20} />
               </View>
-              <Text style={styles.menuText}>Help & Support</Text>
+              <Text style={styles.menuText}>{t('footer.support')}</Text>
+            </View>
+            <ChevronRight color="#6b7280" size={20} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>About</Text>
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('AboutUs')}>
+            <View style={styles.menuLeft}>
+              <View style={styles.iconCircle}><Info color="#16a34a" size={20} /></View>
+              <Text style={styles.menuText}>{t('nav.aboutUs')}</Text>
+            </View>
+            <ChevronRight color="#6b7280" size={20} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('ContactUs')}>
+            <View style={styles.menuLeft}>
+              <View style={styles.iconCircle}><Mail color="#16a34a" size={20} /></View>
+              <Text style={styles.menuText}>{t('nav.contactUs')}</Text>
+            </View>
+            <ChevronRight color="#6b7280" size={20} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PrivacyPolicy')}>
+            <View style={styles.menuLeft}>
+              <View style={styles.iconCircle}><Shield color="#16a34a" size={20} /></View>
+              <Text style={styles.menuText}>{t('footer.privacyPolicy')}</Text>
+            </View>
+            <ChevronRight color="#6b7280" size={20} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('TermsOfService')}>
+            <View style={styles.menuLeft}>
+              <View style={styles.iconCircle}><FileText color="#16a34a" size={20} /></View>
+              <Text style={styles.menuText}>{t('footer.termsOfService')}</Text>
             </View>
             <ChevronRight color="#6b7280" size={20} />
           </TouchableOpacity>
@@ -87,7 +125,7 @@ export default function ProfileScreen({ navigation }) {
 
         <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
           <LogOut color="#ef4444" size={20} />
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>{t('nav.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

@@ -1,8 +1,8 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Edit2, Trash2 } from 'lucide-react-native';
-import { getMyListings, deleteListing } from '../../services/listingService';
+import { Edit2, Trash2, Eye, EyeOff, CheckCircle } from 'lucide-react-native';
+import { getMyListings, deleteListing, updateListingStatus } from '../../services/listingService';
 
 export default function MyListingsScreen({ navigation }) {
   const [listings, setListings] = useState([]);
@@ -39,8 +39,8 @@ export default function MyListingsScreen({ navigation }) {
       'Are you sure you want to delete this listing?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
+        {
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -55,26 +55,79 @@ export default function MyListingsScreen({ navigation }) {
     );
   };
 
+  // Toggles a listing between active / inactive. Web also supports "sold"
+  // which we expose as a separate menu — keep this simple for the
+  // single-tap hide/show UX.
+  const toggleVisibility = async (item) => {
+    const next = item.status === 'active' ? 'inactive' : 'active';
+    try {
+      await updateListingStatus(item._id, next);
+      setListings(prev => prev.map(l => l._id === item._id ? { ...l, status: next } : l));
+    } catch (err) {
+      Alert.alert('Error', err.response?.data?.message || 'Failed to update status');
+    }
+  };
+
+  const markSold = async (item) => {
+    if (item.status === 'sold') return;
+    Alert.alert('Mark as Sold?', 'Buyers will no longer see this listing.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Mark Sold',
+        onPress: async () => {
+          try {
+            await updateListingStatus(item._id, 'sold');
+            setListings(prev => prev.map(l => l._id === item._id ? { ...l, status: 'sold' } : l));
+          } catch (err) {
+            Alert.alert('Error', err.response?.data?.message || 'Failed to mark sold');
+          }
+        }
+      }
+    ]);
+  };
+
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <Image 
-        source={{ uri: item.images && item.images.length > 0 ? item.images[0] : 'https://via.placeholder.com/100' }} 
-        style={styles.image} 
+      <Image
+        source={item.images && item.images.length > 0 ? { uri: item.images[0] } : require('../../../assets/icon.png')}
+        style={styles.image}
       />
       <View style={styles.cardBody}>
         <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
         <Text style={styles.price}>₨ {item.price} {item.unit ? `/ ${item.unit}` : ''}</Text>
         <Text style={styles.status}>Status: {item.status}</Text>
         <View style={styles.actions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => navigation.navigate('EditListing', { id: item._id })}
+            accessibilityLabel="Edit listing"
           >
             <Edit2 color="#16a34a" size={20} />
           </TouchableOpacity>
-          <TouchableOpacity 
+          {item.status !== 'sold' && (
+            <TouchableOpacity
+              style={[styles.actionBtn, { marginLeft: 12 }]}
+              onPress={() => toggleVisibility(item)}
+              accessibilityLabel={item.status === 'active' ? 'Hide listing' : 'Show listing'}
+            >
+              {item.status === 'active'
+                ? <EyeOff color="#fbbf24" size={20} />
+                : <Eye color="#a3a3a3" size={20} />}
+            </TouchableOpacity>
+          )}
+          {item.status === 'active' && (
+            <TouchableOpacity
+              style={[styles.actionBtn, { marginLeft: 12 }]}
+              onPress={() => markSold(item)}
+              accessibilityLabel="Mark as sold"
+            >
+              <CheckCircle color="#3b82f6" size={20} />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
             style={[styles.actionBtn, { marginLeft: 12 }]}
             onPress={() => handleDelete(item._id)}
+            accessibilityLabel="Delete listing"
           >
             <Trash2 color="#ef4444" size={20} />
           </TouchableOpacity>

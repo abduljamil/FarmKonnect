@@ -31,26 +31,18 @@ const useUserSync = (user, setUser, navigate) => {
       
       if (data.success && data.user) {
         const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
-        
-        // Check if role has changed
-        if (currentUser.role !== data.user.role) {
-          // Update sessionStorage
-          const updatedUser = {
-            ...currentUser,
-            ...data.user,
-          };
+
+        // Role-only diff: merge the fresh server fields into the cached user
+        // and update local state. No alert(), no full-page reload — components
+        // that read `user.role` via React state will re-render naturally.
+        const updatedUser = { ...currentUser, ...data.user };
+        const shapeChanged =
+          currentUser.role !== data.user.role ||
+          currentUser.isEmailVerified !== data.user.isEmailVerified;
+
+        if (shapeChanged) {
           sessionStorage.setItem('user', JSON.stringify(updatedUser));
-          
-          // Update state
-          if (setUser) {
-            setUser(updatedUser);
-          }
-          
-          // Show notification
-          alert(`Your role has been updated to: ${data.user.role}`);
-          
-          // Reload the page to reflect changes in navigation
-          window.location.reload();
+          if (setUser) setUser(updatedUser);
         }
       }
     } catch (error) {
@@ -61,22 +53,13 @@ const useUserSync = (user, setUser, navigate) => {
   useEffect(() => {
     if (!user) return;
 
-    // Sync on mount
+    // Sync once on mount, then every 5 min. The aggressive 30-sec poll +
+    // focus-rebroadcast was hammering /auth/me from every page — 12 calls
+    // per minute per tab — without buying meaningful freshness for role
+    // changes (which happen rarely and are admin-driven).
     syncUserData();
-
-    // Sync when window regains focus
-    const handleFocus = () => {
-      syncUserData();
-    };
-    window.addEventListener('focus', handleFocus);
-
-    // Sync periodically (every 30 seconds)
-    const interval = setInterval(syncUserData, 30000);
-
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      clearInterval(interval);
-    };
+    const interval = setInterval(syncUserData, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [user, syncUserData]);
 
   return { syncUserData };

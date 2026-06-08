@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo } from 'react';
-import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, ActivityIndicator, Dimensions, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, ActivityIndicator, Dimensions, Image, Alert, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, ChevronDown, Search, Filter, Home, User } from 'lucide-react-native';
+import { ArrowLeft, ChevronDown, Search, Filter, Home, User, X, Check } from 'lucide-react-native';
 // Note: Trending icons and RefreshCw are missing in 1.8.0, so we use text/emojis for now
 import Svg, { Path, LinearGradient, Stop, Defs, Polyline } from 'react-native-svg';
 import { getCommodities, getPriceHistory, getForecast, getVarieties, getCitiesByFilters } from '../../services/priceService';
@@ -103,26 +103,28 @@ export default function PriceTrendsScreen({ navigation, route }) {
   const [selectedCommodity, setSelectedCommodity] = useState(initialCommodity);
   const [selectedVariety, setSelectedVariety] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
-  const [days, setDays] = useState(30);
+  // Default to 180 days so the chart still shows something even when a
+  // commodity/city combo hasn't been scraped in the last few weeks (was 30,
+  // which silently produced an empty chart on stale series).
+  const [days, setDays] = useState(180);
+
+  // Replaced two Alert.alert pickers — Alert only supports ~3 buttons on
+  // iOS in practice and was capped to the first 10 cities. These are real
+  // scrollable modals now.
+  const [showVarietyModal, setShowVarietyModal] = useState(false);
+  const [showCityModal, setShowCityModal] = useState(false);
 
   const showVarietyPicker = () => {
-    if (varieties.length === 0) return;
-    Alert.alert(
-      'Select Variety',
-      'Choose a variety to filter prices',
-      varieties.map(v => ({ text: v, onPress: () => setSelectedVariety(v) })),
-      { cancelable: true }
-    );
+    if (varieties.length === 0) {
+      Alert.alert('No varieties', 'This commodity has no varieties to filter by.');
+      return;
+    }
+    setShowVarietyModal(true);
   };
 
   const showCityPicker = () => {
     if (cities.length === 0) return;
-    Alert.alert(
-      'Select Market City',
-      'Choose a city to filter prices',
-      cities.slice(0, 10).map(c => ({ text: c, onPress: () => setSelectedCity(c) })),
-      { cancelable: true }
-    );
+    setShowCityModal(true);
   };
 
   useEffect(() => {
@@ -130,12 +132,20 @@ export default function PriceTrendsScreen({ navigation, route }) {
       try {
         const res = await getCommodities();
         if (res.data?.success) {
-          const list = (res.data.data || []).filter(c => TARGET_COMMODITIES.includes(c));
+          const apiList = res.data.data || [];
+          // Prefer the curated TARGET_COMMODITIES order, but fall back to
+          // whatever the API returns if the filter would leave us empty (the
+          // canonical commodity set on the backend can drift over time, e.g.
+          // the "Paddy" key is in the DB but not in our curated list).
+          const filtered = apiList.filter((c) => TARGET_COMMODITIES.includes(c));
+          const list = filtered.length > 0 ? filtered : apiList;
           setCommodities(list);
-          if (!selectedCommodity && list.length > 0) setSelectedCommodity(list[0]);
+          if (list.length > 0 && !list.includes(selectedCommodity)) {
+            setSelectedCommodity(list[0]);
+          }
         }
       } catch (err) {
-        console.error('Failed to init prices', err);
+        console.warn('Failed to init prices', err.message);
       }
     };
     init();
@@ -180,7 +190,13 @@ export default function PriceTrendsScreen({ navigation, route }) {
   }, [selectedCommodity, selectedVariety]);
 
   const fetchHistory = async () => {
-    if (!selectedCommodity || !selectedCity) return;
+    if (!selectedCommodity || !selectedCity) {
+      // No city selected yet — clear data so the empty state shows instead
+      // of stale rows from a previous commodity.
+      setData([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const params = { commodity: selectedCommodity, city: selectedCity, days };
@@ -190,10 +206,14 @@ export default function PriceTrendsScreen({ navigation, route }) {
         setData(res.data.data || []);
         setError('');
       } else {
+        setData([]);
         setError('No data found');
       }
     } catch (err) {
-      setError('Failed to fetch price history');
+      setData([]);
+      setError(err.response?.status === 401
+        ? 'Please sign in to view price history.'
+        : 'Failed to fetch price history');
     } finally {
       setLoading(false);
     }
@@ -306,10 +326,30 @@ export default function PriceTrendsScreen({ navigation, route }) {
           </View>
         </View>
 
+        {/* Time-range picker (mirrors web's 1M / 3M / 6M / 1Y / 5Y / All) */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+          {[
+            { label: '1M',  value: 30   },
+            { label: '3M',  value: 90   },
+            { label: '6M',  value: 180  },
+            { label: '1Y',  value: 365  },
+            { label: '5Y',  value: 1825 },
+            { label: 'All', value: 7300 },
+          ].map((opt) => (
+            <TouchableOpacity
+              key={opt.label}
+              style={[styles.rangeBtn, days === opt.value && styles.rangeBtnActive]}
+              onPress={() => setDays(opt.value)}
+            >
+              <Text style={[styles.rangeText, days === opt.value && styles.rangeTextActive]}>{opt.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
         {/* Chart View */}
         <View style={styles.chartContainer}>
            <View style={styles.chartHeader}>
-             <Text style={styles.chartTitle}>Historical Trend (Last 30 Days)</Text>
+             <Text style={styles.chartTitle}>Historical Trend (Last {days} Days)</Text>
              <TouchableOpacity style={styles.refreshBtn} onPress={fetchHistory}>
                 <Text style={{ color: '#16a34a', fontSize: 12 }}>REFRESH</Text>
              </TouchableOpacity>
@@ -322,6 +362,21 @@ export default function PriceTrendsScreen({ navigation, route }) {
            ) : error ? (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
+              </View>
+           ) : data.length < 2 ? (
+              // Was: SimpleLineChart silently returned null when data had
+              // fewer than 2 points, so the user saw an empty container with
+              // no indication of why. Now we show an explicit empty state
+              // with the active filters so they know what to change.
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>
+                  No price history for {selectedCommodity}
+                  {selectedVariety ? ` (${selectedVariety})` : ''}
+                  {selectedCity ? ` in ${selectedCity}` : ''} in the last {days} days.
+                </Text>
+                <Text style={[styles.errorText, { fontSize: 11, marginTop: 8 }]}>
+                  Try another city or variety.
+                </Text>
               </View>
            ) : (
              <View style={styles.chartSection}>
@@ -371,9 +426,73 @@ export default function PriceTrendsScreen({ navigation, route }) {
         </View>
 
       </ScrollView>
+
+      <PickerModal
+        visible={showVarietyModal}
+        title="Select Variety"
+        options={['', ...varieties]}
+        selected={selectedVariety}
+        getLabel={(v) => v || 'Default (no variety)'}
+        onSelect={(v) => { setSelectedVariety(v); setShowVarietyModal(false); }}
+        onClose={() => setShowVarietyModal(false)}
+      />
+      <PickerModal
+        visible={showCityModal}
+        title="Select Market City"
+        options={cities}
+        selected={selectedCity}
+        getLabel={(c) => c}
+        onSelect={(c) => { setSelectedCity(c); setShowCityModal(false); }}
+        onClose={() => setShowCityModal(false)}
+      />
     </SafeAreaView>
   );
 }
+
+// Generic scrollable picker used by the variety + city pickers — replaces
+// Alert.alert (which silently truncated to 3 options on iOS and showed only
+// the first 10 on Android).
+function PickerModal({ visible, title, options, selected, getLabel, onSelect, onClose }) {
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View style={pickerStyles.backdrop}>
+        <View style={pickerStyles.card}>
+          <View style={pickerStyles.header}>
+            <Text style={pickerStyles.title}>{title}</Text>
+            <TouchableOpacity onPress={onClose}><X color="#a3a3a3" size={22} /></TouchableOpacity>
+          </View>
+          <FlatList
+            data={options}
+            keyExtractor={(item, idx) => `${item}-${idx}`}
+            style={{ maxHeight: 400 }}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[pickerStyles.row, selected === item && pickerStyles.rowActive]}
+                onPress={() => onSelect(item)}
+              >
+                <Text style={[pickerStyles.rowText, selected === item && pickerStyles.rowTextActive]}>
+                  {getLabel(item)}
+                </Text>
+                {selected === item && <Check color="#16a34a" size={18} />}
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const pickerStyles = StyleSheet.create({
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' },
+  card: { backgroundColor: '#0f1a12', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, borderTopWidth: 1, borderColor: '#224026' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  title: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, marginBottom: 6, borderRadius: 10, backgroundColor: 'rgba(26, 46, 29, 0.4)', borderWidth: 1, borderColor: '#224026' },
+  rowActive: { backgroundColor: 'rgba(22, 163, 74, 0.15)', borderColor: '#16a34a' },
+  rowText: { color: '#e5e7eb', fontSize: 14 },
+  rowTextActive: { color: '#16a34a', fontWeight: '600' },
+});
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0f1a12' },
@@ -386,6 +505,10 @@ const styles = StyleSheet.create({
   commodityBtnActive: { backgroundColor: '#16a34a', borderColor: '#16a34a' },
   commodityText: { color: '#a3a3a3', fontSize: 14, fontWeight: '600' },
   commodityTextActive: { color: '#fff' },
+  rangeBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.25)', marginRight: 8, borderWidth: 1, borderColor: '#374151' },
+  rangeBtnActive: { backgroundColor: 'rgba(22, 163, 74, 0.15)', borderColor: '#16a34a' },
+  rangeText: { color: '#a3a3a3', fontSize: 12, fontWeight: '600' },
+  rangeTextActive: { color: '#16a34a' },
   filterRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   filterBox: { flex: 1 },
   filterLabel: { color: '#a3a3a3', fontSize: 12, marginBottom: 6, marginLeft: 4 },

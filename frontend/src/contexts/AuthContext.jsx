@@ -71,15 +71,19 @@ export const AuthProvider = ({ children }) => {
     };
 
     const hasRole = (...roles) => {
-        return user && roles.includes(user.role);
+        // Backend schema enum is ['user', 'admin'] (lowercase). Normalize the
+        // input so callers can pass either case without it silently failing.
+        return !!user && roles.map((r) => r.toLowerCase()).includes((user.role || '').toLowerCase());
     };
 
+    // FarmKonnect doesn't have a "Store Manager" role; only listing owners
+    // can manage their own products. Admins can manage anything.
     const canManageProducts = () => {
-        return hasRole('Admin', 'Store Manager'); // string matching based on schema
+        return hasRole('admin');
     };
 
     const isAdmin = () => {
-        return hasRole('Admin');
+        return hasRole('admin');
     };
 
     const value = {

@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
-import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Package, Tag, CheckCircle, Clock, AlertTriangle, ChevronRight } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { getMyTransactions } from '../../services/transactionService';
 import { AuthContext } from '../../contexts/AuthContext';
+import { SocketContext } from '../../contexts/SocketContext';
 import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
 
 export default function TransactionsScreen({ navigation }) {
   const { user } = useContext(AuthContext);
+  const { t } = useTranslation();
+  const socket = useContext(SocketContext);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -31,6 +35,20 @@ export default function TransactionsScreen({ navigation }) {
     fetchTransactions();
   }, []);
 
+  // Real-time order updates — was missing. Web subscribes to orderStatusUpdate
+  // + newOrder; without this, sellers had to manually pull-to-refresh to see
+  // a new order land.
+  useEffect(() => {
+    if (!socket) return;
+    const refresh = () => fetchTransactions();
+    socket.on('orderStatusUpdate', refresh);
+    socket.on('newOrder', refresh);
+    return () => {
+      socket.off('orderStatusUpdate', refresh);
+      socket.off('newOrder', refresh);
+    };
+  }, [socket]);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchTransactions();
@@ -49,54 +67,55 @@ export default function TransactionsScreen({ navigation }) {
       <AnimatedBlobs />
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Activity</Text>
+        <Text style={styles.headerTitle}>{t('mobile.activity.title')}</Text>
       </View>
 
       <View style={styles.filterBar}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.filterTab, filter === 'all' && styles.filterTabActive]}
           onPress={() => setFilter('all')}
         >
-          <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>All</Text>
+          <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>{t('mobile.activity.filterAll')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.filterTab, filter === 'pending' && styles.filterTabActive]}
           onPress={() => setFilter('pending')}
         >
-          <Text style={[styles.filterText, filter === 'pending' && styles.filterTextActive]}>Active</Text>
+          <Text style={[styles.filterText, filter === 'pending' && styles.filterTextActive]}>{t('mobile.activity.filterActive')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.filterTab, filter === 'completed' && styles.filterTabActive]}
           onPress={() => setFilter('completed')}
         >
-          <Text style={[styles.filterText, filter === 'completed' && styles.filterTextActive]}>History</Text>
+          <Text style={[styles.filterText, filter === 'completed' && styles.filterTextActive]}>{t('mobile.activity.filterHistory')}</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        contentContainerStyle={styles.container}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />}
-      >
-        {loading ? (
-          <ActivityIndicator size="large" color="#16a34a" style={{ marginTop: 40 }} />
-        ) : filtered.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Package color="#3d3d3d" size={60} />
-            <Text style={styles.emptyText}>No transactions found.</Text>
-          </View>
-        ) : (
-          filtered.map((trx) => {
+      {loading ? (
+        <ActivityIndicator size="large" color="#16a34a" style={{ marginTop: 40 }} />
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(trx, idx) => trx?._id || `tx-${idx}`}
+          contentContainerStyle={styles.container}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Package color="#3d3d3d" size={60} />
+              <Text style={styles.emptyText}>{t('mobile.activity.empty')}</Text>
+            </View>
+          }
+          renderItem={({ item: trx }) => {
             const isBuyer = (user?._id || user?.id)?.toString() === (trx.buyer?._id || trx.buyer)?.toString();
             return (
-              <TouchableOpacity 
-                key={trx._id} 
+              <TouchableOpacity
                 style={styles.card}
                 onPress={() => navigation.navigate('TransactionDetail', { id: trx._id })}
               >
                 <View style={styles.cardTop}>
                   <View style={styles.badgeRow}>
                     <View style={[styles.roleBadge, { backgroundColor: isBuyer ? 'rgba(59, 130, 246, 0.1)' : 'rgba(168, 85, 247, 0.1)' }]}>
-                      <Text style={[styles.roleText, { color: isBuyer ? '#60a5fa' : '#a855f7' }]}>{isBuyer ? 'BUYING' : 'SELLING'}</Text>
+                      <Text style={[styles.roleText, { color: isBuyer ? '#60a5fa' : '#a855f7' }]}>{isBuyer ? t('mobile.activity.buying') : t('mobile.activity.selling')}</Text>
                     </View>
                     <View style={[styles.statusBadge, { backgroundColor: trx.orderStatus === 'completed' ? 'rgba(22, 163, 74, 0.1)' : 'rgba(251, 191, 36, 0.1)' }]}>
                       <Text style={[styles.statusText, { color: trx.orderStatus === 'completed' ? '#16a34a' : '#fbbf24' }]}>
@@ -112,8 +131,8 @@ export default function TransactionsScreen({ navigation }) {
                     <Tag color="#16a34a" size={24} />
                   </View>
                   <View style={styles.itemInfo}>
-                    <Text style={styles.itemTitle}>{trx.listing?.title || 'Market Item'}</Text>
-                    <Text style={styles.itemMeta}>{trx.quantity} {trx.listing?.unit || 'units'} • {trx.paymentMethod.toUpperCase()}</Text>
+                    <Text style={styles.itemTitle}>{trx.listing?.title || t('mobile.activity.marketItem')}</Text>
+                    <Text style={styles.itemMeta}>{trx.quantity} {trx.listing?.unit || t('mobile.activity.units')} • {trx.paymentMethod.toUpperCase()}</Text>
                   </View>
                   <View style={styles.priceInfo}>
                     <Text style={styles.priceValue}>₨ {trx.amount?.toLocaleString()}</Text>
@@ -122,9 +141,9 @@ export default function TransactionsScreen({ navigation }) {
                 </View>
               </TouchableOpacity>
             );
-          })
-        )}
-      </ScrollView>
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }

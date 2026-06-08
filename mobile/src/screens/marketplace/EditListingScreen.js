@@ -1,8 +1,11 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, Alert, Image, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Camera, UploadCloud, MapPin, Tag } from 'lucide-react-native';
+import { ArrowLeft, Camera, X, Plus } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { getListingById, updateListing } from '../../services/listingService';
+import api from '../../services/api';
+import LocationPicker from '../../components/ui/LocationPicker';
 
 export default function EditListingScreen({ navigation, route }) {
   const { id } = route.params || {};
@@ -19,6 +22,7 @@ export default function EditListingScreen({ navigation, route }) {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const categories = [
     { label: 'Crops', value: 'crops' },
@@ -58,6 +62,61 @@ export default function EditListingScreen({ navigation, route }) {
     };
     fetchListing();
   }, [id]);
+
+  // Image management — was a "Change Photo" button with no handler. Now
+  // mirrors CreateListingScreen: pick from library or camera, upload to
+  // /api/upload/listings, then append the returned URL to formData.images.
+  const pickAndUploadImage = async (fromCamera) => {
+    if (formData.images.length >= 5) {
+      Alert.alert('Limit reached', 'Maximum 5 images per listing.');
+      return;
+    }
+    const perm = fromCamera
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('Permission required', 'Please allow access to continue.');
+      return;
+    }
+    const result = await (fromCamera
+      ? ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7, aspect: [4, 3] })
+      : ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: false, quality: 0.7, aspect: [4, 3] }));
+    if (result.canceled || !result.assets?.[0]) return;
+
+    setUploadingImage(true);
+    try {
+      const asset = result.assets[0];
+      const fd = new FormData();
+      fd.append('images', {
+        uri: asset.uri,
+        type: 'image/jpeg',
+        name: `listing_${Date.now()}.jpg`,
+      });
+      const res = await api.post('/upload/listings', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const urls = res.data?.data?.images || [];
+      if (urls.length > 0) {
+        setFormData((prev) => ({ ...prev, images: [...prev.images, ...urls].slice(0, 5) }));
+      }
+    } catch (err) {
+      Alert.alert('Error', err.response?.data?.message || 'Image upload failed');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const promptImageSource = () => {
+    Alert.alert('Add photo', 'Choose a source', [
+      { text: 'Camera',        onPress: () => pickAndUploadImage(true)  },
+      { text: 'Photo library', onPress: () => pickAndUploadImage(false) },
+      { text: 'Cancel',        style: 'cancel' },
+    ]);
+  };
+
+  const removeImage = (index) => {
+    setFormData((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
+  };
 
   const handleUpdate = async () => {
     if (!formData.title || !formData.price || !formData.category || !formData.location || !formData.description) {
@@ -105,11 +164,32 @@ export default function EditListingScreen({ navigation, route }) {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
-        <View style={styles.imageContainer}>
-           <Image style={styles.previewImage} source={{ uri: formData.images[0] || 'https://via.placeholder.com/150' }} />
-           <TouchableOpacity style={styles.changeImageBtn}>
-              <Text style={{color: '#fff'}}>Change Photo</Text>
-           </TouchableOpacity>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Photos ({formData.images.length}/5)</Text>
+          {formData.images.length > 0 && (
+            <FlatList
+              data={formData.images}
+              horizontal
+              keyExtractor={(uri, idx) => `${uri}-${idx}`}
+              showsHorizontalScrollIndicator={false}
+              style={{ marginBottom: 12 }}
+              renderItem={({ item, index }) => (
+                <View style={styles.imageItem}>
+                  <Image source={{ uri: item }} style={styles.imageThumb} />
+                  <TouchableOpacity style={styles.removeImageBtn} onPress={() => removeImage(index)}>
+                    <X color="#fff" size={16} />
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
+          )}
+          {formData.images.length < 5 && (
+            <TouchableOpacity style={styles.addImageBox} onPress={promptImageSource} disabled={uploadingImage}>
+              {uploadingImage
+                ? <ActivityIndicator color="#16a34a" />
+                : (<><Camera color="#16a34a" size={28} /><Text style={styles.addImageText}>Add photo</Text></>)}
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.formGroup}>
@@ -170,16 +250,13 @@ export default function EditListingScreen({ navigation, route }) {
               onChangeText={(text) => setFormData({ ...formData, quantity: text })}
             />
           </View>
-          <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={styles.label}>Location *</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholderTextColor="#6b7280"
-              value={formData.location}
-              onChangeText={(text) => setFormData({ ...formData, location: text })}
-            />
-          </View>
         </View>
+
+        <LocationPicker
+          label="Location *"
+          value={{ address: formData.location }}
+          onChange={(loc) => setFormData({ ...formData, location: loc.address || '' })}
+        />
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>Description *</Text>
@@ -206,9 +283,11 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
   container: { padding: 20, paddingBottom: 40 },
-  imageContainer: { alignItems: 'center', marginBottom: 24 },
-  previewImage: { width: '100%', height: 160, borderRadius: 16, backgroundColor: 'rgba(26, 46, 29, 0.5)' },
-  changeImageBtn: { position: 'absolute', bottom: 10, backgroundColor: 'rgba(0,0,0,0.6)', padding: 8, borderRadius: 8 },
+  imageItem: { position: 'relative', marginRight: 10 },
+  imageThumb: { width: 120, height: 120, borderRadius: 12, backgroundColor: '#1a2e1f' },
+  removeImageBtn: { position: 'absolute', top: 4, right: 4, width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center' },
+  addImageBox: { height: 100, borderRadius: 12, borderWidth: 1, borderColor: '#224026', borderStyle: 'dashed', backgroundColor: 'rgba(26, 46, 29, 0.5)', alignItems: 'center', justifyContent: 'center' },
+  addImageText: { color: '#16a34a', marginTop: 6, fontSize: 13, fontWeight: '600' },
   formGroup: { marginBottom: 20 },
   label: { color: '#fff', fontSize: 15, fontWeight: '600', marginBottom: 8 },
   input: { backgroundColor: 'rgba(26, 46, 29, 0.8)', borderWidth: 1, borderColor: '#224026', borderRadius: 12, color: '#fff', padding: 16, fontSize: 16 },

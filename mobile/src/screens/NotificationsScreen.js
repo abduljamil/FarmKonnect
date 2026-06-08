@@ -1,64 +1,138 @@
-import React from 'react';
-import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Bell, TrendingUp, MessageCircle, AlertTriangle, CheckCircle } from 'lucide-react-native';
+import { getPriceAlerts, markAllAlertsSeen } from '../services/priceService';
+import { SocketContext } from '../contexts/SocketContext';
 
-const notifications = [
-  { id: '1', type: 'price_alert', title: 'Price Alert Triggered', text: 'Wheat has dropped to your target price of ₨ 4,000 / 40kg.', time: '10 mins ago', read: false },
-  { id: '2', type: 'message', title: 'New Message', text: 'Ahmed Ali sent you a new message regarding your fertilizer order.', time: '1 hr ago', read: false },
-  { id: '3', type: 'escrow', title: 'Escrow Released', text: 'Funds (₨ 9,600) have been released to your JazzCash account.', time: 'Yesterday', read: true },
-  { id: '4', type: 'system', title: 'Welcome to FarmKonnect', text: 'Your account is ready! Complete your profile to start listing crops.', time: '2 days ago', read: true },
-];
+// Render real notifications instead of the hardcoded mock list.
+// Sources today:
+//   - Triggered price alerts via GET /api/alerts (filtered to status=triggered)
+//   - Live `price_alert_triggered` socket events for instant updates
+// Future: extend with order/escrow events once mobile gets a unified
+// notifications API on the backend.
 
 const getIcon = (type) => {
   switch (type) {
     case 'price_alert': return <TrendingUp color="#3b82f6" size={24} />;
-    case 'message': return <MessageCircle color="#a855f7" size={24} />;
-    case 'escrow': return <CheckCircle color="#16a34a" size={24} />;
-    case 'system': return <Bell color="#fbbf24" size={24} />;
-    default: return <Bell color="#a3a3a3" size={24} />;
+    case 'message':     return <MessageCircle color="#a855f7" size={24} />;
+    case 'escrow':      return <CheckCircle color="#16a34a" size={24} />;
+    case 'system':      return <Bell color="#fbbf24" size={24} />;
+    default:            return <Bell color="#a3a3a3" size={24} />;
   }
 };
 
 const getBgColor = (type) => {
   switch (type) {
     case 'price_alert': return 'rgba(59, 130, 246, 0.1)';
-    case 'message': return 'rgba(168, 85, 247, 0.1)';
-    case 'escrow': return 'rgba(22, 163, 74, 0.1)';
-    case 'system': return 'rgba(251, 191, 36, 0.1)';
-    default: return 'rgba(255, 255, 255, 0.1)';
+    case 'message':     return 'rgba(168, 85, 247, 0.1)';
+    case 'escrow':      return 'rgba(22, 163, 74, 0.1)';
+    case 'system':      return 'rgba(251, 191, 36, 0.1)';
+    default:            return 'rgba(255, 255, 255, 0.1)';
   }
 };
 
+const formatRelative = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const diffMs = Date.now() - d.getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1)  return 'Just now';
+  if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)  return `${hrs} hr${hrs === 1 ? '' : 's'} ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7)  return `${days} day${days === 1 ? '' : 's'} ago`;
+  return d.toLocaleDateString();
+};
+
+const alertToNotification = (alert) => ({
+  id: alert._id,
+  type: 'price_alert',
+  title: 'Price Alert Triggered',
+  text: `${alert.commodity}${alert.variety ? ` (${alert.variety})` : ''} is now ₨${(alert.currentPrice || 0).toLocaleString()}` +
+        ` — ${alert.condition === 'above' ? 'rose above' : 'dropped below'} ₨${(alert.targetPrice || 0).toLocaleString()}` +
+        (alert.city ? ` in ${alert.city}` : ''),
+  time: formatRelative(alert.triggeredAt),
+  read: !!alert.seen,
+});
+
 export default function NotificationsScreen({ navigation }) {
-  const handleNotificationPress = (notification) => {
-    // Close the notification screen
-    navigation.goBack();
-    
-    // Then navigate to the appropriate tab
-    // We need to navigate through the Main navigator stack
-    setTimeout(() => {
-      switch (notification.type) {
-        case 'price_alert':
-          // Navigate to Main/Dashboard tab
-          navigation.navigate('Main', { screen: 'Dashboard' });
-          break;
-        case 'message':
-          // Navigate to Main/Chat tab
-          navigation.navigate('Main', { screen: 'Chat' });
-          break;
-        case 'escrow':
-          // Navigate to Main/Transactions tab
-          navigation.navigate('Main', { screen: 'Transactions' });
-          break;
-        case 'system':
-          // System notifications just stay
-          break;
-        default:
-          break;
+  const socket = useContext(SocketContext);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await getPriceAlerts();
+      if (res.data?.success) {
+        const triggered = (res.data.data || []).filter((a) => a.status === 'triggered');
+        triggered.sort((a, b) => new Date(b.triggeredAt || 0) - new Date(a.triggeredAt || 0));
+        setNotifications(triggered.map(alertToNotification));
       }
-    }, 100);
+    } catch (err) {
+      console.warn('Failed to load notifications', err.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    // Auto-clear the unread badge on the Dashboard the moment the user
+    // opens this screen — matches the web's "alerts are seen as soon as
+    // viewed" behaviour. We don't await it; failure is non-fatal.
+    markAllAlertsSeen().catch(() => {});
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const onTriggered = (payload) => {
+      // Prepend the new alert; backend sends the same shape as `getPriceAlerts`
+      // wrapped in { alert, ... } — accept either.
+      const alert = payload?.alert || payload;
+      if (!alert?._id) return;
+      setNotifications((prev) => [alertToNotification(alert), ...prev.filter((n) => n.id !== alert._id)]);
+    };
+    socket.on('price_alert_triggered', onTriggered);
+    return () => { socket.off('price_alert_triggered', onTriggered); };
+  }, [socket]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  const handleNotificationPress = (notification) => {
+    if (notification.type === 'price_alert') {
+      navigation.navigate('Main', { screen: 'Dashboard' });
+    } else if (notification.type === 'message') {
+      navigation.navigate('Main', { screen: 'Chat' });
+    } else if (notification.type === 'escrow') {
+      navigation.navigate('Main', { screen: 'Transactions' });
+    }
   };
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      style={[styles.card, !item.read && styles.cardUnread]}
+      onPress={() => handleNotificationPress(item)}
+    >
+      <View style={[styles.iconBox, { backgroundColor: getBgColor(item.type) }]}>
+        {getIcon(item.type)}
+      </View>
+      <View style={styles.textContent}>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, !item.read && styles.titleUnread]}>{item.title}</Text>
+          <Text style={styles.time}>{item.time}</Text>
+        </View>
+        <Text style={styles.message} numberOfLines={2}>{item.text}</Text>
+      </View>
+      {!item.read && <View style={styles.unreadDot} />}
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.root}>
@@ -71,27 +145,27 @@ export default function NotificationsScreen({ navigation }) {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {notifications.map((note) => (
-          <TouchableOpacity 
-            key={note.id} 
-            style={[styles.card, !note.read && styles.cardUnread]}
-            onPress={() => handleNotificationPress(note)}
-          >
-            <View style={[styles.iconBox, { backgroundColor: getBgColor(note.type) }]}>
-              {getIcon(note.type)}
+      {loading ? (
+        <ActivityIndicator size="large" color="#16a34a" style={{ marginTop: 60 }} />
+      ) : (
+        <FlatList
+          data={notifications}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={renderItem}
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <AlertTriangle color="#6b7280" size={48} />
+              <Text style={styles.emptyTitle}>No notifications yet</Text>
+              <Text style={styles.emptySubtitle}>
+                You'll see alerts here when your price targets are hit or when there's activity on your account.
+              </Text>
             </View>
-            <View style={styles.textContent}>
-              <View style={styles.titleRow}>
-                <Text style={[styles.title, !note.read && styles.titleUnread]}>{note.title}</Text>
-                <Text style={styles.time}>{note.time}</Text>
-              </View>
-              <Text style={styles.message} numberOfLines={2}>{note.text}</Text>
-            </View>
-            {!note.read && <View style={styles.unreadDot} />}
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -111,5 +185,8 @@ const styles = StyleSheet.create({
   titleUnread: { color: '#fff', fontWeight: 'bold' },
   time: { color: '#6b7280', fontSize: 12 },
   message: { color: '#a3a3a3', fontSize: 14, lineHeight: 20 },
-  unreadDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#16a34a' }
+  unreadDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#16a34a' },
+  empty: { alignItems: 'center', padding: 40, marginTop: 40 },
+  emptyTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginTop: 16 },
+  emptySubtitle: { color: '#a3a3a3', fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 20 },
 });

@@ -62,4 +62,16 @@ listingSchema.pre("save", function (next) {
   next();
 });
 
+// Indexes for the queries getAllListings actually runs:
+//   - filter by status (default = "active") + sort by createdAt desc
+//   - filter by category + status
+//   - "my listings" → filter by createdBy
+//   - free-text search on title + description (replaces $regex scan)
+// autoIndex is off in production (per CommodityPrice.js precedent), so when
+// promoting these to Atlas, create them via mongosh.
+listingSchema.index({ status: 1, createdAt: -1 });
+listingSchema.index({ category: 1, status: 1, createdAt: -1 });
+listingSchema.index({ createdBy: 1, createdAt: -1 });
+listingSchema.index({ title: "text", description: "text" });
+
 module.exports = mongoose.model("Listing", listingSchema, "products");

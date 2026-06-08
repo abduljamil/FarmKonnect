@@ -7,6 +7,11 @@ export default {
   ],
   theme: {
     extend: {
+      // Urdu font stack — applied via the `font-urdu` class that LanguageContext
+      // toggles on <body> when language === 'ur'.
+      fontFamily: {
+        urdu: ['"Noto Nastaliq Urdu"', 'system-ui', 'sans-serif'],
+      },
       colors: {
         primary: {
           50: '#f0fdf4',

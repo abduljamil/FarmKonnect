@@ -20,6 +20,7 @@ const reviewRoutes = require("./routes/reviews");
 const initializeSocket = require("./config/socket");
 const { runScraper } = require("./services/scraperService");
 const alertService = require("./services/alertService");
+const { publicReadLimiter } = require("./middleware/limiter");
 const cron = require("node-cron");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -97,9 +98,19 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 // app.use(generalLimiter); // DISABLED - rate limiting only on auth routes
 
-// Session configuration (Merged from current version)
+// Session configuration. Hard-fail in production if SESSION_SECRET is missing
+// — the previous fallback ('farmkonnect-secret') was publicly known in the
+// source tree, which makes session-cookie signatures forgeable.
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (process.env.NODE_ENV === 'production' && (!SESSION_SECRET || SESSION_SECRET.length < 16)) {
+  console.error('FATAL: SESSION_SECRET must be set to a value ≥16 chars in production.');
+  process.exit(1);
+}
+if (!SESSION_SECRET) {
+  console.warn('⚠️  SESSION_SECRET is not set — using a dev fallback. Set SESSION_SECRET in your .env before deploying.');
+}
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'farmkonnect-secret',
+  secret: SESSION_SECRET || 'dev-only-fallback-do-not-use-in-production',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
@@ -129,11 +140,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/listings", listingRoutes);
-app.use("/api/prices", priceRoutes);
+// Public read-heavy endpoints get a soft rate limit so a runaway scraper
+// can't blow Atlas's connection budget.
+app.use("/api/prices", publicReadLimiter, priceRoutes);
+app.use("/api/weather", publicReadLimiter, weatherRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/weather", weatherRoutes);
 app.use("/api/alerts", priceAlertRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/reviews", reviewRoutes);
@@ -213,6 +226,52 @@ const startServer = async () => {
       await alertService.checkAndTriggerAlerts();
     } catch (err) {
       console.error("[Cron] Price alert check failed:", err.message);
+    }
+  });
+
+  // Escrow auto-release cron — every 30 min. Iterates Transactions whose
+  // 14-day escrow window has expired and triggers the JazzCash payout to the
+  // seller. This was documented as a feature in the Transaction schema
+  // (`escrowAutoReleased`, `escrowExpiryDate`) but never actually scheduled,
+  // so sellers were waiting forever. The controller is also exposed at
+  // POST /api/payments/escrow/auto-release for admin-triggered runs.
+  cron.schedule("*/30 * * * *", async () => {
+    if (!isDBConnected()) {
+      console.warn("[Cron] Skipping escrow auto-release - database not connected");
+      return;
+    }
+    try {
+      const Transaction = require("./models/Transaction");
+      const User = require("./models/User");
+      const paymentService = require("./services/paymentService");
+      const expired = await Transaction.findExpiredEscrow();
+      if (expired.length === 0) return;
+      console.log(`[Cron] Auto-releasing escrow for ${expired.length} transaction(s)`);
+      for (const tx of expired) {
+        try {
+          const seller = await User.findById(tx.seller);
+          if (!seller?.jazzcashNumber || !(tx.sellerAmount > 0)) continue;
+          const r = await paymentService.initiatePayout({
+            amount: tx.sellerAmount,
+            mobileNumber: seller.jazzcashNumber,
+            transactionId: tx._id.toString(),
+          });
+          if (r.success) {
+            tx.escrowAutoReleased = true;
+            tx.payoutStatus = "completed";
+            tx.payoutTransactionId = r.payoutId;
+            tx.payoutCompletedAt = new Date();
+            tx.paymentStatus = "released";
+            tx.orderStatus = "completed";
+            tx.completedAt = new Date();
+            await tx.save();
+          }
+        } catch (err) {
+          console.error(`[Cron] escrow tx ${tx._id} failed:`, err.message);
+        }
+      }
+    } catch (err) {
+      console.error("[Cron] Escrow auto-release failed:", err.message);
     }
   });
 
