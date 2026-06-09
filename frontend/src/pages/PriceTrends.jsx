@@ -53,20 +53,20 @@ const CommoditySelector = ({ m, selected, onSelect }) => {
   return (
     <button
       onClick={() => onSelect(m.commodity)}
-      className={`flex items-center gap-2 flex-shrink-0 px-4 py-2 rounded-full transition-all whitespace-nowrap snap-start ${
+      className={`flex items-center gap-2.5 flex-shrink-0 px-5 py-2.5 rounded-full transition-all whitespace-nowrap snap-start ${
         isSel
           ? "bg-primary-600 text-white shadow-md shadow-primary-500/25 ring-1 ring-primary-500"
           : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 ring-1 ring-gray-200 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
       }`}
     >
-      <div className="flex items-center justify-center w-6 h-6">
+      <div className="flex items-center justify-center w-7 h-7">
         {config.image ? (
-          <img src={config.image} alt={m.commodity} className="w-5 h-5 object-contain" />
+          <img src={config.image} alt={m.commodity} className="w-6 h-6 object-contain" />
         ) : (
-          <span className="text-lg leading-none">{config.emoji}</span>
+          <span className="text-xl leading-none">{config.emoji}</span>
         )}
       </div>
-      <span className="font-bold text-[13px]">{m.commodity}</span>
+      <span className="font-bold text-[15px]">{m.commodity}</span>
     </button>
   );
 };
@@ -187,16 +187,16 @@ const PriceTrends = () => {
           <div className="space-y-3 pt-4 sm:pt-6">
             {/* Simple commodity selector — horizontal row of logo+name buttons. */}
             {loading ? (
-              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+              <div className="flex gap-3 overflow-x-auto pt-2 pb-3 -mx-2 px-2 scrollbar-hide">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div
                     key={i}
-                    className="flex-shrink-0 h-10 w-32 bg-gray-100 dark:bg-gray-700/50 rounded-full animate-pulse"
+                    className="flex-shrink-0 h-12 w-36 bg-gray-100 dark:bg-gray-700/50 rounded-full animate-pulse"
                   />
                 ))}
               </div>
             ) : markets.length === 0 ? null : (
-              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide snap-x">
+              <div className="flex gap-3 overflow-x-auto pt-2 pb-3 -mx-2 px-2 scrollbar-hide snap-x">
                 {markets.map((m) => (
                   <CommoditySelector
                     key={m.commodity}
