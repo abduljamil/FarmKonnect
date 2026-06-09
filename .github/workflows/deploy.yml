@@ -57,7 +57,8 @@ jobs:
 
             cd ~/FarmKonnect
             echo "🔵 Pulling latest code..."
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
 
             echo "🟡 Rebuilding and restarting containers..."
             docker-compose down
