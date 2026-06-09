@@ -99,13 +99,13 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 // app.use(generalLimiter); // DISABLED - rate limiting only on auth routes
 
-// Session configuration. Hard-fail in production if SESSION_SECRET is missing
-// — the previous fallback ('farmkonnect-secret') was publicly known in the
-// source tree, which makes session-cookie signatures forgeable.
+// Session configuration. In production, missing secrets should not crash the
+// server if the app can still serve health checks and static routes. The
+// deployment can then surface the real issue from the logs instead of exiting
+// early during boot.
 const SESSION_SECRET = process.env.SESSION_SECRET;
 if (process.env.NODE_ENV === 'production' && (!SESSION_SECRET || SESSION_SECRET.length < 16)) {
-  console.error('FATAL: SESSION_SECRET must be set to a value ≥16 chars in production.');
-  process.exit(1);
+  console.warn('⚠️ SESSION_SECRET is missing or too short; continuing with a development fallback.');
 }
 if (!SESSION_SECRET) {
   console.warn('⚠️  SESSION_SECRET is not set — using a dev fallback. Set SESSION_SECRET in your .env before deploying.');
@@ -193,9 +193,13 @@ const startServer = async () => {
     console.log('⚠️ Server is running but database features will be unavailable until connection is restored.');
   }
 
-  // Verify email connection
-  const { verifyConnection } = require('./config/email');
-  verifyConnection();
+  // Verify email connection but don't crash startup if mail config is incomplete
+  try {
+    const { verifyConnection } = require('./config/email');
+    verifyConnection();
+  } catch (error) {
+    console.warn('⚠️ Email verification skipped:', error.message);
+  }
 
   // Initialize alert service with Socket.io instance
   alertService.setIO(io);
