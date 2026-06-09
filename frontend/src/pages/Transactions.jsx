@@ -292,13 +292,13 @@ export default function Transactions() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <p className={`${isDark ? "text-gray-400" : "text-gray-600"}`}>
-              {t("transactions.list.noTransactions")}
+              {t("transactions.list.noOrders")}
             </p>
             <Link
               to="/listings"
               className="inline-block mt-4 text-green-600 hover:text-green-700 font-medium"
             >
-              {t("transactions.list.browseMarketplace")} →
+              {t("transactions.list.shopNow")} →
             </Link>
           </div>
         ) : (
@@ -340,7 +340,7 @@ export default function Transactions() {
                             Rs. {transaction.amount?.toLocaleString() || 0}
                           </p>
                           <p className={`text-sm capitalize ${paymentStatusColors[transaction.paymentStatus] || "text-gray-500"}`}>
-                            {transaction.paymentMethod === "cod" ? t("transactions.list.cod") : (transaction.paymentMethod || "N/A")}
+                            {transaction.paymentMethod === "cod" ? t("transactions.checkout.cod") : (transaction.paymentMethod || "N/A")}
                           </p>
                         </div>
                       </div>
@@ -426,7 +426,7 @@ export default function Transactions() {
                               disabled={actionLoading === transaction._id}
                               className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
                             >
-                              {actionLoading === transaction._id ? t("common.loading") : t("transactions.list.confirmReceived")}
+                              {actionLoading === transaction._id ? t("common.loading") : t("transactions.detail.confirmReceived")}
                             </button>
                           )
                         )}
@@ -451,7 +451,7 @@ export default function Transactions() {
                               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                               } disabled:opacity-50`}
                           >
-                            {t("transactions.list.cancel")}
+                            {t("transactions.list.cancelOrder")}
                           </button>
                         )}
 
@@ -516,7 +516,7 @@ export default function Transactions() {
         onConfirm={handleCancel}
         title={t("transactions.list.confirmCancelTitle")}
         message={t("transactions.list.confirmCancelDesc")}
-        confirmText={t("transactions.list.cancel")}
+        confirmText={t("transactions.list.cancelOrder")}
         variant="warning"
       />
     </div>
