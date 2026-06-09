@@ -8,8 +8,20 @@ import { useLanguage } from "../contexts/LanguageContext";
 
 const AboutUs = () => {
     const { t } = useLanguage();
-    const userData = sessionStorage.getItem("user");
-    const user = userData ? JSON.parse(userData) : null;
+
+    const getStoredUser = () => {
+        if (typeof window === "undefined") return null;
+
+        try {
+            const userData = window.sessionStorage.getItem("user");
+            return userData ? JSON.parse(userData) : null;
+        } catch (error) {
+            console.warn("Unable to parse stored user data:", error);
+            return null;
+        }
+    };
+
+    const user = getStoredUser();
 
     const values = [
         {
@@ -41,14 +53,14 @@ const AboutUs = () => {
             description: "Full-stack developer passionate about building solutions for rural communities.",
         },
         {
-            name: "Sameer Ahmad",
-            role: "Developer",
-            description: "Agricultural engineer with experience in farming technology.",
-        },
-        {
             name: "Javeria Zahid",
             role: "Developer",
-            description: "Expert in supply chain management and rural development initiatives.",
+            description: "MERN-stack developer applying machine learning to build scalable solutions for underserved rural communities.",
+        },
+        {
+         name: "Sameer Ahmad",
+            role: "Developer",
+            description: "Agricultural engineer with experience in farming technology.",
         },
         {
             name: "Hamdan Aftab",
@@ -150,7 +162,7 @@ const AboutUs = () => {
                     {team.map((member, index) => (
                         <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
                             <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-emerald-400 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
-                                {member.name.split(' ').map(n => n[0]).join('')}
+                                {member.name?.split(" ").filter(Boolean).map((n) => n[0]).join("") || "U"}
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center">{member.name}</h3>
                             <p className="text-primary-600 dark:text-primary-400 text-sm text-center mb-3">{member.role}</p>

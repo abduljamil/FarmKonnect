@@ -24,7 +24,7 @@ jobs:
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Run Frontend Lint
         working-directory: ./frontend
@@ -55,14 +55,23 @@ jobs:
             # Phase 8.
             set -euo pipefail
 
+            if command -v docker-compose >/dev/null 2>&1; then
+              COMPOSE_CMD=(docker-compose)
+            elif docker compose version >/dev/null 2>&1; then
+              COMPOSE_CMD=(docker compose)
+            else
+              echo "❌ Docker Compose is not installed on the EC2 instance."
+              exit 1
+            fi
+
             cd ~/FarmKonnect
             echo "🔵 Pulling latest code..."
             git fetch origin main
             git reset --hard origin/main
 
             echo "🟡 Rebuilding and restarting containers..."
-            docker-compose down
-            docker-compose up -d --build
+            "${COMPOSE_CMD[@]}" down
+            "${COMPOSE_CMD[@]}" up -d --build
 
             echo "🟢 Deployment complete!"
             docker image prune -f
