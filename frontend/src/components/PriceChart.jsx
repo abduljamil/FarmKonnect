@@ -285,7 +285,7 @@ const ForecastOutlook = memo(({ docs, t }) => {
           return (
             <div
               key={d.horizon_weeks}
-              className="p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm"
+              className="p-3 rounded-xl bg-gray-50 dark:bg-gray-900/40 ring-1 ring-gray-100 dark:ring-gray-700"
             >
               <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
                 {t(`forecast.${HORIZON_KEY[d.horizon_weeks] || "h1"}`)}
@@ -1083,7 +1083,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
             {/* Time Period */}
             <div className="flex-1">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1.5 ml-1">{t("priceChart.period")}</p>
-              <div className="flex gap-1">
+              <div className="flex gap-0.5 p-1 bg-gray-100 dark:bg-gray-700/50 rounded-xl h-[42px]">
                 {availablePeriods.map((period) => (
                   <button
                     key={period.value}
@@ -1092,10 +1092,10 @@ const PriceChart = ({ user, onLoginRequired }) => {
                       setSelectedDate(""); // Clear date when period is selected
                     })}
                     className={`
-                      flex-1 h-[42px] px-2 rounded-lg text-sm font-bold transition-all duration-200
+                      flex-1 rounded-lg text-sm font-semibold transition-all duration-200
                       ${(days === period.value && !selectedDate)
-                        ? "bg-primary-600 text-white shadow-md"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                        ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
+                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                       }
                     `}
                   >
@@ -1107,10 +1107,10 @@ const PriceChart = ({ user, onLoginRequired }) => {
           </div>
 
           {/* Price Display */}
-          <div className="bg-gradient-to-r from-primary-50 to-emerald-50 dark:from-primary-900/20 dark:to-emerald-900/20 rounded-xl p-4 border border-primary-100 dark:border-primary-800/30">
+          <div className="px-1">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${currentConfig.bg}`}>
+                <div className={`p-2 rounded-xl ${currentConfig.bg}`}>
                   {currentConfig.image ? (
                     <img src={currentConfig.image} alt={selectedCommodity} className="w-12 h-12 object-contain" />
                   ) : (
@@ -1122,8 +1122,8 @@ const PriceChart = ({ user, onLoginRequired }) => {
                     {selectedCommodity}{selectedVariety && ` • ${selectedVariety}`} • {selectedCity}
                   </p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-gray-900 dark:text-white">
-                      ₨{latestPrice.toLocaleString()}
+                    <span className="text-4xl font-extrabold tracking-tight tabular-nums text-gray-900 dark:text-white">
+                      <Ltr>₨{latestPrice.toLocaleString()}</Ltr>
                     </span>
                     <span className="text-sm text-gray-500 dark:text-gray-400">/{displayUnit}</span>
                   </div>
@@ -1143,9 +1143,9 @@ const PriceChart = ({ user, onLoginRequired }) => {
                     <Minus className="w-5 h-5 text-gray-500" />
                   )}
                   <div>
-                    <p className={`text-lg font-bold ${isPositive ? "text-green-700 dark:text-green-400" : isNegative ? "text-red-700 dark:text-red-400" : "text-gray-600"
+                    <p className={`text-lg font-bold tabular-nums ${isPositive ? "text-green-700 dark:text-green-400" : isNegative ? "text-red-700 dark:text-red-400" : "text-gray-600"
                       }`}>
-                      {isPositive ? "+" : ""}{priceChange.toFixed(1)}%
+                      <Ltr>{isPositive ? "+" : ""}{priceChange.toFixed(1)}%</Ltr>
                     </p>
                   </div>
                 </div>

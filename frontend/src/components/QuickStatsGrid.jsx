@@ -21,7 +21,6 @@ const StatCard = ({
   subtitle,
   icon: IconComponent, // eslint-disable-line no-unused-vars
   trend,
-  trendLabel,
   color,
   onClick,
   delay = 0
@@ -34,9 +33,9 @@ const StatCard = ({
   }, [delay]);
 
   const getTrendIcon = () => {
-    if (trend > 0) return <ArrowUpRight className="w-4 h-4" />;
-    if (trend < 0) return <ArrowDownRight className="w-4 h-4" />;
-    return <Minus className="w-4 h-4" />;
+    if (trend > 0) return <ArrowUpRight className="w-3.5 h-3.5" />;
+    if (trend < 0) return <ArrowDownRight className="w-3.5 h-3.5" />;
+    return <Minus className="w-3.5 h-3.5" />;
   };
 
   const getTrendColor = () => {
@@ -63,33 +62,35 @@ const StatCard = ({
       `}
       style={{ transitionDelay: `${delay}ms` }}
     >
-      {/* Icon */}
-      <div className={`inline-flex p-3 rounded-xl ${colorStyles[color]} mb-4`}>
-        <IconComponent className="w-6 h-6" />
+      {/* Top row: icon chip + trend pill */}
+      <div className="flex items-center justify-between">
+        <div className={`inline-flex p-2.5 rounded-xl ${colorStyles[color]}`}>
+          <IconComponent className="w-5 h-5" />
+        </div>
+        {trend !== undefined && (
+          <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${getTrendColor()}`}>
+            {getTrendIcon()}
+            <span className="tabular-nums">{Math.abs(trend)}%</span>
+          </span>
+        )}
       </div>
 
       {/* Value */}
-      <div className="mb-1">
-        <span className="text-3xl font-extrabold tracking-tight tabular-nums text-gray-900 dark:text-white">
-          {value}
-        </span>
-      </div>
+      <p className="mt-4 text-3xl font-extrabold tracking-tight tabular-nums text-gray-900 dark:text-white">
+        {value}
+      </p>
 
       {/* Title */}
-      <p className="text-gray-600 dark:text-gray-400 font-medium mb-2">
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
         {title}
       </p>
 
-      {/* Trend or Subtitle */}
-      {trend !== undefined ? (
-        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getTrendColor()}`}>
-          {getTrendIcon()}
-          <span>{Math.abs(trend)}%</span>
-          {trendLabel && <span className="text-gray-500 dark:text-gray-400 ml-1">{trendLabel}</span>}
-        </div>
-      ) : subtitle ? (
-        <p className="text-sm text-gray-500 dark:text-gray-500">{subtitle}</p>
-      ) : null}
+      {/* Subtitle (when there is no trend) */}
+      {trend === undefined && subtitle && (
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
+          {subtitle}
+        </p>
+      )}
 
       {/* Decorative gradient */}
       <div className="absolute top-0 right-0 w-24 h-24 opacity-5 pointer-events-none">
