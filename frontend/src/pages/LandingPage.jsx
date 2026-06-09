@@ -179,18 +179,7 @@ const LandingPage = () => {
                                 <ArrowRight className={`w-5 h-5 group-hover:translate-x-1 transition-transform `} />
                             </Button>
                             <Button
-                                onClick={() => {
-                                    navigate("/dashboard");
-                                    setTimeout(() => {
-                                        const element = document.getElementById("price-chart");
-                                        if (element) {
-                                            const offset = 100;
-                                            const elementPosition = element.getBoundingClientRect().top;
-                                            const offsetPosition = elementPosition + window.pageYOffset - offset;
-                                            window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-                                        }
-                                    }, 100);
-                                }}
+                                onClick={() => navigate("/price-trends")}
                                 variant="outline"
                                 className="px-8 py-4 text-lg border-white/30 text-white hover:bg-white/10"
                             >

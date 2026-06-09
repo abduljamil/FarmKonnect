@@ -144,8 +144,8 @@ const Dashboard = () => {
                 </div>
 
                 {/* Top bento row: greeting hero (2/3) + promoted Market Outlook (1/3) */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 animate-fadeIn">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 animate-fadeIn">
                         <div className="lg:col-span-2">
                             <DashboardHero user={user} />
                         </div>
@@ -155,16 +155,16 @@ const Dashboard = () => {
                     </div>
 
                     {/* Quick Stats Grid */}
-                    <section className="mb-8 animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+                    <section className="mb-4 animate-fadeIn" style={{ animationDelay: '0.1s' }}>
                         <QuickStatsGrid user={user} unreadCount={unreadCount} />
                     </section>
                 </div>
 
                 {/* Bottom bento: attention strip + weather / alerts */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-4">
                     <AttentionStrip user={user} unreadCount={unreadCount} />
 
-                    <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <section className="flex flex-col gap-4">
                         {/* Weather Widget */}
                         <div className="animate-fadeIn" style={{ animationDelay: '0.2s' }}>
                             <WeatherWidget />

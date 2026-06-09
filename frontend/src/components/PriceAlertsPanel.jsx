@@ -49,80 +49,84 @@ const AlertItem = ({ alert, onDelete, onReactivate }) => {
   const commodityIcon = COMMODITIES.find(c => c.value === alert.commodity)?.icon || "🌿";
 
   return (
-    <div className={`p-4 rounded-xl border transition-all ${isTriggered
+      <div className={`p-4 rounded-xl border transition-all w-72 shrink-0 snap-start flex flex-col justify-between h-full ${isTriggered
       ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
       : "bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600"
       }`}>
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{commodityIcon}</span>
-          <div>
-            <h4 className="font-medium text-gray-900 dark:text-white text-sm">
-              {alert.commodity}
-              {alert.variety && <span className="text-gray-500"> ({alert.variety})</span>}
-            </h4>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {alert.condition === "above" ? t("priceAlerts.conditionAbove") : t("priceAlerts.conditionBelow")} ₨{alert.targetPrice?.toLocaleString()}
-              {alert.city && <span> {t("priceAlerts.inCity")} {alert.city}</span>}
-            </p>
+      <div>
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg leading-none">{commodityIcon}</span>
+            <div className="min-w-0">
+              <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                {alert.commodity}
+                {alert.variety && <span className="text-gray-500"> ({alert.variety})</span>}
+              </h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {alert.condition === "above" ? t("priceAlerts.conditionAbove") : t("priceAlerts.conditionBelow")} ₨{alert.targetPrice?.toLocaleString()}
+                {alert.city && <span> {t("priceAlerts.inCity")} {alert.city}</span>}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center shrink-0">
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md transition-colors text-gray-400 hover:text-red-500"
+            >
+              {deleting ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+            </button>
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          {isTriggered ? (
-            <button
-              onClick={() => onReactivate(alert._id)}
-              className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50 px-2 py-1 rounded-full hover:bg-green-200 dark:hover:bg-green-900/70 transition-colors"
-            >
-              <Check className="w-3 h-3" />
-              {t("priceAlerts.triggered")}
-            </button>
-          ) : (
-            <span className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-2 py-1 rounded-full">
-              <BellRing className="w-3 h-3" />
-              {t("priceAlerts.active")}
-            </span>
-          )}
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md transition-colors ml-1 text-gray-400 hover:text-red-500"
-          >
-            {deleting ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <Trash2 className="w-4 h-4" />
-            )}
-          </button>
-        </div>
+
+        {/* Progress bar */}
+        {alert.currentPrice && (
+          <div className="mb-3">
+            <div className="flex justify-between text-[10px] mb-1">
+              <span className="text-gray-500 dark:text-gray-400">
+                {t("priceAlerts.currentLabel")}: ₨{alert.currentPrice?.toLocaleString()}
+              </span>
+              <span className="text-gray-500 dark:text-gray-400">
+                {t("priceAlerts.targetLabel")}: ₨{alert.targetPrice?.toLocaleString()}
+              </span>
+            </div>
+            <div className="h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${isTriggered ? "bg-green-500" : "bg-emerald-500"
+                  }`}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Progress bar */}
-      {alert.currentPrice && (
-        <div className="mb-2">
-          <div className="flex justify-between text-xs mb-1">
-            <span className="text-gray-500 dark:text-gray-400">
-              {t("priceAlerts.currentLabel")}: ₨{alert.currentPrice?.toLocaleString()}
-            </span>
-            <span className="text-gray-500 dark:text-gray-400">
-              {t("priceAlerts.targetLabel")}: ₨{alert.targetPrice?.toLocaleString()}
-            </span>
-          </div>
-          <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${isTriggered ? "bg-green-500" : "bg-emerald-500"
-                }`}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      <p className="text-xs text-gray-500 dark:text-gray-400">
-        {t("priceAlerts.createdOn")} {new Date(alert.createdAt).toLocaleDateString()}
-        {isTriggered && alert.triggeredAt && (
-          <span> · {t("priceAlerts.triggeredOn")} {new Date(alert.triggeredAt).toLocaleDateString()}</span>
+      <div className="flex items-center justify-between mt-auto pt-2">
+        <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate pr-2">
+          {isTriggered && alert.triggeredAt 
+            ? `${t("priceAlerts.triggeredOn")} ${new Date(alert.triggeredAt).toLocaleDateString()}`
+            : `${t("priceAlerts.createdOn")} ${new Date(alert.createdAt).toLocaleDateString()}`
+          }
+        </p>
+        {isTriggered ? (
+          <button
+            onClick={() => onReactivate(alert._id)}
+            className="flex items-center gap-1 text-[10px] font-bold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50 px-2 py-1 rounded-md hover:bg-green-200 dark:hover:bg-green-900/70 transition-colors shrink-0"
+          >
+            <Check className="w-3 h-3" />
+            {t("priceAlerts.triggered")}
+          </button>
+        ) : (
+          <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-2 py-1 rounded-md shrink-0">
+            <BellRing className="w-3 h-3" />
+            {t("priceAlerts.active")}
+          </span>
         )}
-      </p>
+      </div>
     </div>
   );
 };
@@ -705,23 +709,23 @@ const PriceAlertsPanel = ({ user }) => {
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-3xl dash-card overflow-hidden">
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-              <Bell className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+      <div className="bg-white dark:bg-gray-800 rounded-3xl dash-card overflow-hidden flex flex-col lg:flex-row h-full">
+        {/* Header / Add Alert Panel */}
+        <div className="lg:w-1/4 p-5 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex flex-col justify-center items-start shrink-0">
+          <div className="flex items-center gap-3 w-full mb-4">
+            <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl shrink-0">
+              <Bell className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">{t("priceAlerts.title")}</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="min-w-0">
+              <h3 className="font-bold text-gray-900 dark:text-white leading-tight truncate">{t("priceAlerts.title")}</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                 {t("priceAlerts.statsLine", { active: activeCount, triggered: triggeredCount })}
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium"
+            className="w-full flex items-center justify-center gap-2 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:border-emerald-200 dark:hover:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all shadow-sm"
           >
             <Plus className="w-4 h-4" />
             {t("priceAlerts.addAlert")}
@@ -729,43 +733,51 @@ const PriceAlertsPanel = ({ user }) => {
         </div>
 
         {/* Alerts List */}
-        <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
+        <div className="lg:w-3/4 p-5 bg-white dark:bg-gray-800">
           {loading ? (
-            <div className="py-8 text-center">
-              <RefreshCw className="w-8 h-8 text-gray-400 animate-spin mx-auto mb-2" />
-              <p className="text-gray-500 dark:text-gray-400">{t("priceAlerts.loadingAlerts")}</p>
+            <div className="flex items-center justify-center h-full min-h-[120px]">
+              <div className="flex items-center gap-3">
+                <RefreshCw className="w-5 h-5 text-gray-400 animate-spin" />
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("priceAlerts.loadingAlerts")}</p>
+              </div>
             </div>
           ) : error ? (
-            <div className="py-8 text-center">
-              <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-              <p className="text-red-500 dark:text-red-400">{error}</p>
-              <button
-                onClick={fetchAlerts}
-                className="mt-2 text-sm text-emerald-600 hover:text-emerald-700"
-              >
-                {t("priceAlerts.tryAgain")}
-              </button>
+            <div className="flex items-center justify-center h-full min-h-[120px]">
+              <div className="text-center">
+                <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+                <p className="text-sm font-medium text-red-500 dark:text-red-400">{error}</p>
+                <button
+                  onClick={fetchAlerts}
+                  className="mt-2 text-xs font-bold text-emerald-600 hover:text-emerald-700"
+                >
+                  {t("priceAlerts.tryAgain")}
+                </button>
+              </div>
             </div>
           ) : alerts.length > 0 ? (
-            alerts.map((alert) => (
-              <AlertItem
-                key={alert._id}
-                alert={alert}
-                onDelete={handleDelete}
-                onReactivate={handleReactivate}
-              />
-            ))
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x h-full items-stretch">
+              {alerts.map((alert) => (
+                <AlertItem
+                  key={alert._id}
+                  alert={alert}
+                  onDelete={handleDelete}
+                  onReactivate={handleReactivate}
+                />
+              ))}
+            </div>
           ) : (
-            <div className="py-8 text-center">
-              <Bell className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 dark:text-gray-400 mb-4">{t("priceAlerts.noAlerts")}</p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
-              >
-                <Plus className="w-4 h-4" />
-                {t("priceAlerts.createFirst")}
-              </button>
+            <div className="flex items-center justify-center h-full min-h-[120px]">
+              <div className="text-center">
+                <Bell className="w-10 h-10 text-gray-200 dark:text-gray-700 mx-auto mb-3" />
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">{t("priceAlerts.noAlerts")}</p>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors text-xs font-bold"
+                >
+                  <Plus className="w-3 h-3" />
+                  {t("priceAlerts.createFirst")}
+                </button>
+              </div>
             </div>
           )}
         </div>

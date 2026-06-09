@@ -53,17 +53,19 @@ const CommoditySelector = ({ m, selected, onSelect }) => {
   return (
     <button
       onClick={() => onSelect(m.commodity)}
-      className={`flex items-center gap-2 flex-shrink-0 px-4 py-2.5 rounded-full transition-all whitespace-nowrap snap-start ${
+      className={`flex items-center gap-2 flex-shrink-0 px-4 py-2 rounded-full transition-all whitespace-nowrap snap-start ${
         isSel
           ? "bg-primary-600 text-white shadow-md shadow-primary-500/25 ring-1 ring-primary-500"
           : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 ring-1 ring-gray-200 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
       }`}
     >
-      {config.image ? (
-        <img src={config.image} alt={m.commodity} className="w-5 h-5 object-contain" />
-      ) : (
-        <span className="text-lg leading-none">{config.emoji}</span>
-      )}
+      <div className="flex items-center justify-center w-6 h-6">
+        {config.image ? (
+          <img src={config.image} alt={m.commodity} className="w-5 h-5 object-contain" />
+        ) : (
+          <span className="text-lg leading-none">{config.emoji}</span>
+        )}
+      </div>
       <span className="font-bold text-[13px]">{m.commodity}</span>
     </button>
   );
@@ -181,41 +183,42 @@ const PriceTrends = () => {
             </div>
           </div>
 
-          {/* Simple commodity selector — horizontal row of logo+name buttons.
-              Just lets the user pick which commodity to chart; price/spark/%
-              context lives in the heatmap card below. */}
-          {loading ? (
-            <div className="flex gap-2 overflow-x-auto pb-1 px-0.5 scrollbar-hide">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  className="flex-shrink-0 h-[58px] w-32 bg-gray-100 dark:bg-gray-700/50 rounded-xl animate-pulse"
-                />
-              ))}
-            </div>
-          ) : markets.length === 0 ? null : (
-            <div className="flex gap-2 overflow-x-auto pb-1 px-0.5 scrollbar-hide snap-x">
-              {markets.map((m) => (
-                <CommoditySelector
-                  key={m.commodity}
-                  m={m}
-                  selected={selected}
-                  onSelect={setSelected}
-                />
-              ))}
-            </div>
-          )}
+          {/* Commodity Selector and Chart Card grouped together */}
+          <div className="space-y-3">
+            {/* Simple commodity selector — horizontal row of logo+name buttons. */}
+            {loading ? (
+              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    className="flex-shrink-0 h-10 w-32 bg-gray-100 dark:bg-gray-700/50 rounded-full animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : markets.length === 0 ? null : (
+              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide snap-x">
+                {markets.map((m) => (
+                  <CommoditySelector
+                    key={m.commodity}
+                    m={m}
+                    selected={selected}
+                    onSelect={setSelected}
+                  />
+                ))}
+              </div>
+            )}
 
-          {/* Chart card — full width. Internal chart container in
-              PriceChart.jsx scales to ~55vh so the graph dominates the
-              visible area without scrolling. */}
-          <div>
-            <PriceChart
-              user={user}
-              onLoginRequired={() => navigate("/signin")}
-              commodityOverride={selected}
-              hideCommodityButtons
-            />
+            {/* Chart card — full width. Internal chart container in
+                PriceChart.jsx scales to ~55vh so the graph dominates the
+                visible area without scrolling. */}
+            <div>
+              <PriceChart
+                user={user}
+                onLoginRequired={() => navigate("/signin")}
+                commodityOverride={selected}
+                hideCommodityButtons
+              />
+            </div>
           </div>
 
           {/* Market heatmap */}
