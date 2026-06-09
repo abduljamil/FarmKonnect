@@ -478,6 +478,21 @@
     "updatedHourly": "Updated hourly",
     "select": "Select..."
   },
+  "priceTrends": {
+    "badge": "Live market data · AMIS Punjab",
+    "title": "Price Trends & Forecasts",
+    "subtitle": "Track mandi prices across Punjab and see where the market is heading — powered by AI forecasts.",
+    "kpiCommodities": "Commodities",
+    "kpiForecast": "Forecast",
+    "kpiHourly": "Hourly",
+    "kpiUpdated": "Updated",
+    "markets": "Markets",
+    "searchPlaceholder": "Search commodity…",
+    "noData": "No market data available",
+    "heatmapTitle": "Market at a glance",
+    "heatmapSubtitle": "All commodities · today",
+    "sortedByChange": "Sorted by change"
+  },
   "forecast": {
     "outlookTitle": "Market Outlook",
     "outlookSubtitle": "AI price forecast for the weeks ahead",

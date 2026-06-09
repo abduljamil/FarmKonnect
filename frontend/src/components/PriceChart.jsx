@@ -438,6 +438,9 @@ const PriceChart = ({ user, onLoginRequired, commodityOverride, hideCommodityBut
 
     fetchInitialData();
     return () => { isMounted = false; };
+    // commodityOverride is read once to seed the default; the dedicated sync
+    // effect handles later changes, so we don't want this to re-run on it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch varieties when the commodity changes (empty for single-variety commodities)

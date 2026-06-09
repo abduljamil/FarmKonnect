@@ -478,6 +478,21 @@
     "updatedHourly": "ہر گھنٹے اپڈیٹ",
     "select": "منتخب کریں..."
   },
+  "priceTrends": {
+    "badge": "براہ راست مارکیٹ ڈیٹا · AMIS پنجاب",
+    "title": "قیمتوں کے رجحانات اور پیش گوئیاں",
+    "subtitle": "پنجاب بھر میں منڈی کی قیمتیں دیکھیں اور جانیں مارکیٹ کس طرف جا رہی ہے — اے آئی پیش گوئی کے ساتھ۔",
+    "kpiCommodities": "اجناس",
+    "kpiForecast": "پیش گوئی",
+    "kpiHourly": "ہر گھنٹہ",
+    "kpiUpdated": "اپڈیٹ",
+    "markets": "منڈیاں",
+    "searchPlaceholder": "جنس تلاش کریں…",
+    "noData": "مارکیٹ ڈیٹا دستیاب نہیں",
+    "heatmapTitle": "ایک نظر میں مارکیٹ",
+    "heatmapSubtitle": "تمام اجناس · آج",
+    "sortedByChange": "تبدیلی کے مطابق ترتیب"
+  },
   "forecast": {
     "outlookTitle": "مارکیٹ کا امکان",
     "outlookSubtitle": "آنے والے ہفتوں کے لیے قیمت کی پیش گوئی",
