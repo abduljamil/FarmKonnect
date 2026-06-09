@@ -383,11 +383,10 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
   const navLinks = [
     { path: "/dashboard", label: t("nav.dashboard"), icon: Home, show: true, scrollToTop: true },
     {
-      path: "/dashboard",
+      path: "/price-trends",
       label: t("dashboard.priceChart.title"),
       icon: TrendingUp,
       show: true,
-      scrollTo: "price-chart"
     },
     { path: "/listings", label: t("nav.marketplace"), icon: ShoppingBag, show: true },
     {

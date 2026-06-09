@@ -120,6 +120,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const Methodology = lazy(() => import("./pages/Methodology"));
 const Kisan = lazy(() => import("./pages/Kisan"));
+const PriceTrends = lazy(() => import("./pages/PriceTrends"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -163,6 +164,7 @@ function App() {
                           <Route path="/privacy" element={<PrivacyPolicy />} />
                           <Route path="/terms" element={<TermsOfService />} />
                           <Route path="/how-forecasts-work" element={<Methodology />} />
+                          <Route path="/price-trends" element={<PriceTrends />} />
 
                           {/* Email verification and password reset routes */}
                           <Route path="/verify-email/:token" element={<VerifyEmail />} />

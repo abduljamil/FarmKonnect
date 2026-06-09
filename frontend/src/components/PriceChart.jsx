@@ -356,7 +356,7 @@ const ForecastOutlook = memo(({ docs, t }) => {
 
 ForecastOutlook.displayName = "ForecastOutlook";
 
-const PriceChart = ({ user, onLoginRequired }) => {
+const PriceChart = ({ user, onLoginRequired, commodityOverride, hideCommodityButtons = false }) => {
   const { t } = useLanguage();
   const [commodities, setCommodities] = useState([]);
   const [varieties, setVarieties] = useState([]);
@@ -388,6 +388,15 @@ const PriceChart = ({ user, onLoginRequired }) => {
           : [TIME_PERIODS[TIME_PERIODS.length - 1]])
       : TIME_PERIODS;
 
+  // When embedded in a page (e.g. Price Trends), the commodity is driven from
+  // outside via `commodityOverride` — sync it into local state when it changes.
+  useEffect(() => {
+    if (commodityOverride && commodityOverride !== selectedCommodity) {
+      setSelectedCommodity(commodityOverride);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [commodityOverride]);
+
   // Fetch initial data
   useEffect(() => {
     let isMounted = true;
@@ -415,7 +424,7 @@ const PriceChart = ({ user, onLoginRequired }) => {
 
           setCommodities(shown);
           setCities(cityList);
-          setSelectedCommodity(shown[0] || "");
+          setSelectedCommodity(commodityOverride || shown[0] || "");
           setSelectedCity(pickDefaultCity(cityList));
           setLoading(false);
         }
@@ -1008,17 +1017,19 @@ const PriceChart = ({ user, onLoginRequired }) => {
       ) : (
         <div className="p-4 space-y-4">
           {/* Commodity Selection */}
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-            {commodities.map((commodity) => (
-              <CommodityButton
-                key={commodity}
-                commodity={commodity}
-                config={getCommodityConfig(commodity)}
-                isSelected={selectedCommodity === commodity}
-                onClick={() => setSelectedCommodity(commodity)}
-              />
-            ))}
-          </div>
+          {!hideCommodityButtons && (
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+              {commodities.map((commodity) => (
+                <CommodityButton
+                  key={commodity}
+                  commodity={commodity}
+                  config={getCommodityConfig(commodity)}
+                  isSelected={selectedCommodity === commodity}
+                  onClick={() => setSelectedCommodity(commodity)}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Filters Row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

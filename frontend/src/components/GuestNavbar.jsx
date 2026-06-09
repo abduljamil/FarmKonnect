@@ -39,16 +39,7 @@ const GuestNavbar = () => {
 
   const scrollToPriceChart = (e) => {
     e.preventDefault();
-    navigate("/dashboard");
-    setTimeout(() => {
-      const element = document.getElementById("price-chart");
-      if (element) {
-        const offset = 100; // Navbar height + extra padding
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - offset;
-        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-      }
-    }, 100);
+    navigate("/price-trends");
   };
 
   return (
