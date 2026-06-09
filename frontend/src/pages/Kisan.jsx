@@ -3,7 +3,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
   Send,
-  Sprout,
   Plus,
   Trash2,
   Loader2,
@@ -11,6 +10,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 import kisanAPI from "../utils/kisanApi";
+
+const BRAND_EMOJI = "🌾";
 
 const SUGGESTIONS = [
   "What's the wheat price in Lahore today?",
@@ -225,7 +226,7 @@ export default function Kisan() {
             <header className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white">
-                  <Sprout className="w-5 h-5" />
+                  <span className="text-xl leading-none">{BRAND_EMOJI}</span>
                 </div>
                 <div>
                   <h1 className="font-semibold text-gray-900 dark:text-white">
@@ -304,7 +305,7 @@ function EmptyState({ onPick }) {
   return (
     <div className="h-full flex flex-col items-center justify-center text-center py-10">
       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white mb-4 shadow-lg">
-        <Sprout className="w-8 h-8" />
+        <span className="text-4xl leading-none">{BRAND_EMOJI}</span>
       </div>
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
         Hi, I'm Kisan AI 🌾
@@ -346,7 +347,7 @@ function MessageRow({ message }) {
   return (
     <div className="flex gap-3">
       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white flex-shrink-0 mt-0.5">
-        <Sprout className="w-4 h-4" />
+        <span className="text-base leading-none">{BRAND_EMOJI}</span>
       </div>
       <div className="flex-1 min-w-0">
         {message.toolCalls && message.toolCalls.length > 0 && (

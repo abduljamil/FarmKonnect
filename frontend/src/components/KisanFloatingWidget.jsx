@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
-  Sprout,
   Send,
   X,
   Minimize2,
@@ -16,6 +15,10 @@ import {
   Sparkles,
   RotateCcw,
 } from "lucide-react";
+
+// FarmKonnect brand mark — single source of truth used everywhere Kisan's
+// avatar appears (FAB, header, message bubbles, welcome).
+const BRAND_EMOJI = "🌾";
 import kisanAPI from "../utils/kisanApi";
 
 // Pages where the widget should NOT appear
@@ -256,7 +259,13 @@ export default function KisanFloatingWidget() {
           >
             <span className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-30 group-hover:opacity-50" />
             <span className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-400 to-green-600" />
-            <Sprout className="relative w-7 h-7 drop-shadow-md" />
+            <span
+              className="relative text-3xl leading-none drop-shadow-md"
+              role="img"
+              aria-label="FarmKonnect"
+            >
+              {BRAND_EMOJI}
+            </span>
             <span className="absolute -top-1 -right-1 bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md tracking-wider">
               AI
             </span>
@@ -281,7 +290,7 @@ export default function KisanFloatingWidget() {
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center kisan-avatar-pulse">
-                      <Sprout className="w-6 h-6" />
+                      <span className="text-2xl leading-none">{BRAND_EMOJI}</span>
                     </div>
                     <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-green-700 animate-pulse" />
                   </div>
@@ -406,7 +415,7 @@ function WelcomeBlock({ onPick }) {
     <div className="kisan-welcome">
       <div className="flex items-start gap-3 mb-4">
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center text-white flex-shrink-0 shadow-md kisan-avatar-bounce">
-          <Sprout className="w-5 h-5" />
+          <span className="text-xl leading-none">{BRAND_EMOJI}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="inline-block max-w-[90%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gradient-to-br from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-800 border border-green-200/60 dark:border-gray-700">
@@ -471,7 +480,7 @@ function MessageBubble({ message, isFirst }) {
   return (
     <div className={`flex gap-2 ${!isFirst ? "kisan-message-slide-left" : ""}`}>
       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center text-white flex-shrink-0 mt-0.5 shadow-sm">
-        <Sprout className="w-3.5 h-3.5" />
+        <span className="text-sm leading-none">{BRAND_EMOJI}</span>
       </div>
       <div className="flex-1 min-w-0">
         {message.toolCalls && message.toolCalls.length > 0 && (
@@ -512,7 +521,7 @@ function ThinkingBubble() {
   return (
     <div className="flex gap-2 kisan-message-slide-left">
       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center text-white flex-shrink-0 mt-0.5 shadow-sm">
-        <Sprout className="w-3.5 h-3.5" />
+        <span className="text-sm leading-none">{BRAND_EMOJI}</span>
       </div>
       <div className="inline-flex items-center gap-1 px-4 py-3 rounded-2xl rounded-tl-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
         <span className="w-1.5 h-1.5 bg-green-500 rounded-full kisan-typing-dot" style={{ animationDelay: "0ms" }} />

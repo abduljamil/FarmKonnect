@@ -12,7 +12,9 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send, Sprout, Plus, Wrench, Trash2 } from 'lucide-react-native';
+import { Send, Plus, Wrench, Trash2 } from 'lucide-react-native';
+
+const BRAND_EMOJI = '🌾';
 import {
   listConversations,
   startConversation,
@@ -167,7 +169,7 @@ export default function KisanScreen({ navigation }) {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.headerAvatar}>
-            <Sprout color="#fff" size={20} />
+            <Text style={styles.headerAvatarEmoji}>{BRAND_EMOJI}</Text>
           </View>
           <View>
             <Text style={styles.headerTitle}>Kisan</Text>
@@ -290,7 +292,7 @@ function EmptyState({ onPick }) {
   return (
     <ScrollView contentContainerStyle={styles.emptyWrap}>
       <View style={styles.emptyAvatar}>
-        <Sprout color="#fff" size={32} />
+        <Text style={styles.emptyAvatarEmoji}>{BRAND_EMOJI}</Text>
       </View>
       <Text style={styles.emptyTitle}>Hi, I'm Kisan AI 🌾</Text>
       <Text style={styles.emptySubtitle}>
@@ -329,7 +331,7 @@ function MessageRow({ message }) {
   return (
     <View style={styles.botRow}>
       <View style={styles.botAvatar}>
-        <Sprout color="#fff" size={14} />
+        <Text style={styles.botAvatarEmoji}>{BRAND_EMOJI}</Text>
       </View>
       <View style={{ flex: 1 }}>
         {message.toolCalls && message.toolCalls.length > 0 && (
@@ -385,6 +387,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerAvatarEmoji: { fontSize: 22, lineHeight: 26 },
   headerTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   headerSubtitle: { color: '#86efac', fontSize: 11 },
   iconBtn: { padding: 6 },
@@ -446,6 +449,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 2,
   },
+  botAvatarEmoji: { fontSize: 14, lineHeight: 18 },
   toolChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 6 },
   toolChip: {
     flexDirection: 'row',
@@ -488,6 +492,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
+  emptyAvatarEmoji: { fontSize: 40, lineHeight: 46 },
   emptyTitle: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 6 },
   emptySubtitle: {
     color: '#9ca3af',

@@ -7,8 +7,9 @@ import {
   Animated,
   Easing,
 } from 'react-native';
-import { Sprout } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+
+const BRAND_EMOJI = '🌾';
 
 /**
  * Floating action button for Kisan AI. Sits above tab bar, pulses gently to
@@ -49,7 +50,7 @@ export default function KisanFAB({ bottom = 90 }) {
           onPress={() => navigation.navigate('KisanScreen')}
           style={styles.button}
         >
-          <Sprout color="#fff" size={28} />
+          <Text style={styles.emoji}>{BRAND_EMOJI}</Text>
           <View style={styles.aiBadge}>
             <Text style={styles.aiBadgeText}>AI</Text>
           </View>
@@ -94,6 +95,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.18)',
   },
+  emoji: { fontSize: 28, lineHeight: 32 },
   aiBadge: {
     position: 'absolute',
     top: -4,
