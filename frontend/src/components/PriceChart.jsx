@@ -74,8 +74,25 @@ const ChartSkeleton = () => (
 // lgbm_quantile_median/etc.).
 const CustomTooltip = memo(({ active, payload }) => {
   if (active && payload && payload.length) {
-    // recharts sometimes passes multiple series — pick whichever has a value.
-    const hit = payload.find((p) => p.value != null) || payload[0];
+    // recharts passes ALL chart series in `payload` ordered by render order.
+    // Our forecast chart renders the uncertainty band first (`band_low` +
+    // `band_range` Areas, needed for stacking), then `price` (actual), then
+    // `predicted_price` (the orange forecast Line). A naive
+    // `payload.find(p => p.value != null)` therefore picks `band_low` at any
+    // forecast point — i.e. the BOTTOM of the uncertainty band — and the
+    // tooltip ends up displaying the band-edge value (e.g. "Rs 3,463")
+    // while the visible orange line is at the much higher `predicted_price`
+    // (e.g. ~Rs 4,200). It also falls through to the green "actual" styling
+    // because the dataKey isn't "predicted_price". Fix: prioritise the
+    // meaningful data series — `predicted_price` for forecast points,
+    // `price` for historical — over the band auxiliaries.
+    const pickByKey = (key) =>
+      payload.find((p) => p.dataKey === key && p.value != null);
+    const hit =
+      pickByKey("predicted_price") ||
+      pickByKey("price") ||
+      payload.find((p) => p.value != null) ||
+      payload[0];
     const d = hit.payload;
     const value = hit.value;
     const isForecast = !!d.is_forecast && hit.dataKey === "predicted_price";
