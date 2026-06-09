@@ -10,8 +10,15 @@ import API_URL from "../config";
 import { useLanguage } from "../contexts/LanguageContext";
 import { getCommodityConfig, DISPLAY_COMMODITIES } from "../utils/commodities";
 
-// ── Tiny sparkline (green up / red down) ───────────────────────────────────
-const Sparkline = ({ points, up, className = "" }) => {
+// % move below which we render the row as "flat" (neutral gray + em-dash)
+// instead of green/red. Rounding-to-zero-percent rows used to render in green
+// — same colour as a real gain — which made commodities like Wheat at "0.0%"
+// look like they had upward momentum. 0.05% is the same threshold we'd round
+// to "0.0%" on screen, so anything tighter is visually indistinguishable.
+const FLAT_THRESHOLD = 0.05;
+
+// ── Tiny sparkline (green up / red down / gray flat) ───────────────────────
+const Sparkline = ({ points, up, flat, className = "" }) => {
   if (!points || points.length < 2) {
     return <div className={className} />;
   }
@@ -23,12 +30,13 @@ const Sparkline = ({ points, up, className = "" }) => {
   const d = points
     .map((v, i) => `${i ? "L" : "M"}${(i * sx).toFixed(1)},${(pad + (1 - (v - min) / range) * (h - 2 * pad)).toFixed(1)}`)
     .join(" ");
+  const stroke = flat ? "#9ca3af" : up ? "#059669" : "#e11d48";
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className={className} preserveAspectRatio="none" aria-hidden="true">
       <path
         d={d}
         fill="none"
-        stroke={up ? "#059669" : "#e11d48"}
+        stroke={stroke}
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -64,13 +72,21 @@ const MarketRow = ({ m, selected, onSelect }) => {
         </p>
         <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">{m.city}</p>
       </div>
-      <Sparkline points={m.spark} up={m.up} className="w-12 h-7 flex-shrink-0" />
+      <Sparkline points={m.spark} up={m.up} flat={m.isFlat} className="w-12 h-7 flex-shrink-0" />
       <div className="text-right flex-shrink-0 w-[70px]">
         <p className="text-sm font-bold tabular-nums text-gray-900 dark:text-white">
           <Ltr>₨{Math.round(m.price).toLocaleString()}</Ltr>
         </p>
-        <p className={`text-[11px] font-semibold tabular-nums ${m.up ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-          <Ltr>{m.changePct > 0 ? "+" : ""}{m.changePct.toFixed(1)}%</Ltr>
+        <p className={`text-[11px] font-semibold tabular-nums ${
+          m.isFlat
+            ? "text-gray-400 dark:text-gray-500"
+            : m.up
+              ? "text-emerald-600 dark:text-emerald-400"
+              : "text-rose-600 dark:text-rose-400"
+        }`}>
+          <Ltr>
+            {m.isFlat ? "—" : `${m.changePct > 0 ? "+" : ""}${m.changePct.toFixed(1)}%`}
+          </Ltr>
         </p>
       </div>
     </button>
@@ -119,9 +135,10 @@ const PriceTrends = () => {
               const first = pts[0];
               const last = pts[pts.length - 1];
               const changePct = first ? ((last - first) / first) * 100 : 0;
-              return { commodity: p.commodity, city: p.city, price: p.price, unit: p.unit, changePct, up: changePct >= 0, spark: pts };
+              const isFlat = Math.abs(changePct) < FLAT_THRESHOLD;
+              return { commodity: p.commodity, city: p.city, price: p.price, unit: p.unit, changePct, isFlat, up: !isFlat && changePct > 0, spark: pts };
             } catch {
-              return { commodity: p.commodity, city: p.city, price: p.price, unit: p.unit, changePct: 0, up: true, spark: [] };
+              return { commodity: p.commodity, city: p.city, price: p.price, unit: p.unit, changePct: 0, isFlat: true, up: false, spark: [] };
             }
           })
         );
@@ -254,9 +271,11 @@ const PriceTrends = () => {
                       key={m.commodity}
                       onClick={() => setSelected(m.commodity)}
                       className={`text-left rounded-2xl p-4 ring-1 dash-card-hover transition ${
-                        m.up
-                          ? "bg-emerald-50/60 dark:bg-emerald-900/15 ring-emerald-100 dark:ring-emerald-800/40"
-                          : "bg-rose-50/50 dark:bg-rose-900/15 ring-rose-100 dark:ring-rose-800/40"
+                        m.isFlat
+                          ? "bg-gray-50/70 dark:bg-gray-800/40 ring-gray-200 dark:ring-gray-700"
+                          : m.up
+                            ? "bg-emerald-50/60 dark:bg-emerald-900/15 ring-emerald-100 dark:ring-emerald-800/40"
+                            : "bg-rose-50/50 dark:bg-rose-900/15 ring-rose-100 dark:ring-rose-800/40"
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -271,15 +290,23 @@ const PriceTrends = () => {
                             <p className="text-[11px] text-gray-400 truncate">{m.city}</p>
                           </div>
                         </div>
-                        <span className={`text-xs font-bold tabular-nums ${m.up ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-                          <Ltr>{m.changePct > 0 ? "+" : ""}{m.changePct.toFixed(1)}%</Ltr>
+                        <span className={`text-xs font-bold tabular-nums ${
+                          m.isFlat
+                            ? "text-gray-400 dark:text-gray-500"
+                            : m.up
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : "text-rose-600 dark:text-rose-400"
+                        }`}>
+                          <Ltr>
+                            {m.isFlat ? "—" : `${m.changePct > 0 ? "+" : ""}${m.changePct.toFixed(1)}%`}
+                          </Ltr>
                         </span>
                       </div>
                       <div className="flex items-end justify-between mt-3">
                         <p className="text-lg font-extrabold tabular-nums text-gray-900 dark:text-white">
                           <Ltr>₨{Math.round(m.price).toLocaleString()}</Ltr>
                         </p>
-                        <Sparkline points={m.spark} up={m.up} className="w-20 h-8" />
+                        <Sparkline points={m.spark} up={m.up} flat={m.isFlat} className="w-20 h-8" />
                       </div>
                     </button>
                   );
