@@ -206,7 +206,7 @@ const WeatherWidget = ({ defaultCity = "Lahore" }) => {
                 <select
                   value={selectedCity}
                   onChange={handleCityChange}
-                  className="appearance-none bg-white/60 dark:bg-gray-800/60 border border-sky-200/50 dark:border-sky-700/50
+                  className="appearance-none bg-none bg-white/60 dark:bg-gray-800/60 border border-sky-200/50 dark:border-sky-700/50
                            text-gray-700 dark:text-gray-300 text-xs rounded-lg pl-2 pr-6 py-1.5
                            focus:ring-2 focus:ring-sky-500 focus:border-sky-500 cursor-pointer backdrop-blur-sm"
                 >

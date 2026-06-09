@@ -184,7 +184,7 @@ const PriceTrends = () => {
           </div>
 
           {/* Commodity Selector and Chart Card grouped together */}
-          <div className="space-y-3">
+          <div className="space-y-3 pt-4 sm:pt-6">
             {/* Simple commodity selector — horizontal row of logo+name buttons. */}
             {loading ? (
               <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">

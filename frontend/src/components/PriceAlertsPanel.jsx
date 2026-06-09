@@ -347,7 +347,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
               <select
                 value={formData.commodity}
                 onChange={(e) => handleCommodityChange(e.target.value)}
-                className="w-full appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
+                className="w-full appearance-none bg-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
                          text-gray-900 dark:text-white rounded-lg px-4 py-2.5 pr-10
                          focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
@@ -378,7 +378,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
                     <select
                       value={formData.variety}
                       onChange={(e) => handleVarietyChange(e.target.value)}
-                      className="w-full appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600
+                      className="w-full appearance-none bg-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600
                                text-gray-900 dark:text-white rounded-lg px-4 py-2.5 pr-10
                                focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     >
@@ -421,7 +421,7 @@ const CreateAlertModal = ({ isOpen, onClose, onCreated }) => {
                   <select
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600
+                    className="w-full appearance-none bg-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600
                              text-gray-900 dark:text-white rounded-lg px-4 py-2.5 pr-10
                              focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   >
