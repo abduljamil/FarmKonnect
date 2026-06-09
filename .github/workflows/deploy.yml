@@ -24,7 +24,7 @@ jobs:
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
       - name: Run Frontend Lint
         working-directory: ./frontend
@@ -70,7 +70,6 @@ jobs:
             git reset --hard origin/main
 
             echo "🟡 Rebuilding and restarting containers..."
-            "${COMPOSE_CMD[@]}" down
             "${COMPOSE_CMD[@]}" up -d --build
 
             echo "🟢 Deployment complete!"
