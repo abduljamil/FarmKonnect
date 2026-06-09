@@ -1227,9 +1227,13 @@ const PriceChart = ({ user, onLoginRequired, commodityOverride, hideCommodityBut
             />
           </div>
 
-          {/* Chart */}
+          {/* Chart — height scales with viewport so the graph dominates
+              the visible area on Price Trends (previously hard-coded h-64
+              = 256px which felt cramped on any monitor). clamp() floors at
+              280px for tiny screens and caps at 720px so it never goes
+              absurdly tall on 4K displays. */}
           <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3">
-            <div className="w-full h-64">
+            <div className="w-full h-72 sm:h-[clamp(320px,55vh,720px)]">
               {error || isEmpty ? (
                 <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
                   <div className="text-4xl mb-3">📊</div>

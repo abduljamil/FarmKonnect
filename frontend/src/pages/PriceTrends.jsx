@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Navbar from "../components/Navbar";
 import GuestNavbar from "../components/GuestNavbar";
 import Footer from "../components/Footer";
@@ -46,50 +46,128 @@ const Sparkline = ({ points, up, flat, className = "" }) => {
   );
 };
 
-// ── A single watchlist row ─────────────────────────────────────────────────
-const MarketRow = ({ m, selected, onSelect }) => {
+// ── Horizontal market chip — compact card for the top strip ────────────────
+// Used in place of the old 340px sticky sidebar. Each chip carries the same
+// info (emoji, name, city, price, % change, sparkline) but laid out for a
+// horizontally-scrolling row so the chart underneath can fill the viewport.
+const MarketChip = ({ m, selected, onSelect }) => {
   const config = getCommodityConfig(m.commodity);
   const isSel = selected === m.commodity;
+  const accent = m.isFlat
+    ? "text-gray-400 dark:text-gray-500"
+    : m.up
+      ? "text-emerald-600 dark:text-emerald-400"
+      : "text-rose-600 dark:text-rose-400";
   return (
     <button
       onClick={() => onSelect(m.commodity)}
-      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors border-l-[3px] ${
+      className={`flex-shrink-0 w-44 sm:w-48 text-left rounded-2xl p-3 transition-all snap-start ${
         isSel
-          ? "bg-primary-50/70 dark:bg-primary-900/20 border-primary-500"
-          : "border-transparent hover:bg-gray-50 dark:hover:bg-gray-700/40"
+          ? "ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-900/30 shadow-md"
+          : "ring-1 ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-800 hover:ring-primary-300 dark:hover:ring-primary-700 hover:shadow-sm"
       }`}
     >
-      <div className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-700 grid place-items-center flex-shrink-0 overflow-hidden">
-        {config.image ? (
-          <img src={config.image} alt={m.commodity} className="w-7 h-7 object-contain" />
-        ) : (
-          <span className="text-lg">{config.emoji}</span>
-        )}
+      <div className="flex items-center gap-2 mb-1.5">
+        <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 grid place-items-center flex-shrink-0 overflow-hidden">
+          {config.image ? (
+            <img src={config.image} alt={m.commodity} className="w-5 h-5 object-contain" />
+          ) : (
+            <span className="text-base">{config.emoji}</span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-bold truncate text-gray-900 dark:text-white leading-tight">{m.commodity}</p>
+          <p className="text-[10px] text-gray-400 truncate leading-tight">{m.city}</p>
+        </div>
       </div>
-      <div className="min-w-0 flex-1">
-        <p className={`text-sm font-semibold truncate ${isSel ? "text-primary-800 dark:text-primary-300" : "text-gray-800 dark:text-gray-100"}`}>
-          {m.commodity}
-        </p>
-        <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">{m.city}</p>
-      </div>
-      <Sparkline points={m.spark} up={m.up} flat={m.isFlat} className="w-12 h-7 flex-shrink-0" />
-      <div className="text-right flex-shrink-0 w-[70px]">
-        <p className="text-sm font-bold tabular-nums text-gray-900 dark:text-white">
-          <Ltr>₨{Math.round(m.price).toLocaleString()}</Ltr>
-        </p>
-        <p className={`text-[11px] font-semibold tabular-nums ${
-          m.isFlat
-            ? "text-gray-400 dark:text-gray-500"
-            : m.up
-              ? "text-emerald-600 dark:text-emerald-400"
-              : "text-rose-600 dark:text-rose-400"
-        }`}>
-          <Ltr>
-            {m.isFlat ? "—" : `${m.changePct > 0 ? "+" : ""}${m.changePct.toFixed(1)}%`}
-          </Ltr>
-        </p>
+      <div className="flex items-end justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-base font-extrabold tabular-nums text-gray-900 dark:text-white leading-tight">
+            <Ltr>₨{Math.round(m.price).toLocaleString()}</Ltr>
+          </p>
+          <p className={`text-[11px] font-semibold tabular-nums leading-tight ${accent}`}>
+            <Ltr>{m.isFlat ? "—" : `${m.changePct > 0 ? "+" : ""}${m.changePct.toFixed(1)}%`}</Ltr>
+          </p>
+        </div>
+        <Sparkline points={m.spark} up={m.up} flat={m.isFlat} className="w-14 h-7 flex-shrink-0" />
       </div>
     </button>
+  );
+};
+
+// ── Horizontal market strip with optional scroll arrows ────────────────────
+// Encapsulates the loading / empty / list states and adds left/right scroll
+// buttons that fade in only when overflow exists. Used at the top of the
+// Price Trends page in place of the old sticky sidebar.
+const MarketStrip = ({ markets, loading, selected, onSelect, title, emptyText }) => {
+  const scrollerRef = useRef(null);
+  const [hasOverflow, setHasOverflow] = useState(false);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const check = () => setHasOverflow(el.scrollWidth > el.clientWidth + 4);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [markets.length]);
+
+  const scrollBy = (delta) => {
+    scrollerRef.current?.scrollBy({ left: delta, behavior: "smooth" });
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-3xl dash-card overflow-hidden">
+      <div className="px-4 sm:px-5 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <h2 className="font-bold tracking-tight text-gray-900 dark:text-white">{title}</h2>
+        <div className="flex items-center gap-2">
+          {!loading && <span className="text-[11px] font-semibold text-gray-400">{markets.length}</span>}
+          {hasOverflow && (
+            <div className="hidden sm:flex items-center gap-1">
+              <button
+                onClick={() => scrollBy(-280)}
+                aria-label="Scroll markets left"
+                className="w-7 h-7 grid place-items-center rounded-lg bg-gray-100 dark:bg-gray-700/60 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => scrollBy(280)}
+                aria-label="Scroll markets right"
+                className="w-7 h-7 grid place-items-center rounded-lg bg-gray-100 dark:bg-gray-700/60 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div
+        ref={scrollerRef}
+        className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
+      >
+        {loading ? (
+          <div className="flex gap-2 px-4 sm:px-5 py-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-44 sm:w-48 h-[88px] bg-gray-100 dark:bg-gray-700/50 rounded-2xl animate-pulse"
+              />
+            ))}
+          </div>
+        ) : markets.length === 0 ? (
+          <p className="p-6 text-center text-sm text-gray-400">{emptyText}</p>
+        ) : (
+          <div className="flex gap-2 px-4 sm:px-5 py-4">
+            {markets.map((m) => (
+              <MarketChip key={m.commodity} m={m} selected={selected} onSelect={onSelect} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -205,46 +283,29 @@ const PriceTrends = () => {
             </div>
           </div>
 
-          {/* Main split: watchlist + chart */}
-          <div className="flex flex-col lg:flex-row gap-6">
-            <aside className="lg:w-[340px] flex-shrink-0">
-              <div className="bg-white dark:bg-gray-800 rounded-3xl dash-card overflow-hidden lg:sticky lg:top-24">
-                <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="font-bold tracking-tight text-gray-900 dark:text-white">{t("priceTrends.markets")}</h2>
-                    {!loading && <span className="text-[11px] font-semibold text-gray-400">{markets.length}</span>}
-                  </div>
-                  <div className="flex items-center gap-2 h-9 px-3 rounded-xl bg-gray-100 dark:bg-gray-700/60 text-sm text-gray-400">
-                    <Search className="w-4 h-4" />
-                    {t("priceTrends.searchPlaceholder")}
-                  </div>
-                </div>
-                <div className="max-h-[620px] overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700/50">
-                  {loading ? (
-                    <div className="p-4 space-y-3">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="h-12 bg-gray-100 dark:bg-gray-700/50 rounded-xl animate-pulse" />
-                      ))}
-                    </div>
-                  ) : markets.length === 0 ? (
-                    <p className="p-6 text-center text-sm text-gray-400">{t("priceTrends.noData")}</p>
-                  ) : (
-                    markets.map((m) => (
-                      <MarketRow key={m.commodity} m={m} selected={selected} onSelect={setSelected} />
-                    ))
-                  )}
-                </div>
-              </div>
-            </aside>
+          {/* Horizontal markets strip — replaces the old 340px sticky
+              sidebar so the chart below can use the full viewport width.
+              Scrolls horizontally on overflow; left/right buttons appear
+              on desktop. snap-x keeps chips aligned when flicking on touch. */}
+          <MarketStrip
+            markets={markets}
+            loading={loading}
+            selected={selected}
+            onSelect={setSelected}
+            title={t("priceTrends.markets")}
+            emptyText={t("priceTrends.noData")}
+          />
 
-            <div className="flex-1 min-w-0">
-              <PriceChart
-                user={user}
-                onLoginRequired={() => navigate("/signin")}
-                commodityOverride={selected}
-                hideCommodityButtons
-              />
-            </div>
+          {/* Chart card — now full width. Internal chart container in
+              PriceChart.jsx scales to ~55vh so the graph dominates the
+              visible area without scrolling. */}
+          <div>
+            <PriceChart
+              user={user}
+              onLoginRequired={() => navigate("/signin")}
+              commodityOverride={selected}
+              hideCommodityButtons
+            />
           </div>
 
           {/* Market heatmap */}
