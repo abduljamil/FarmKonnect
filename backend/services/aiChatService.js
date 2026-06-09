@@ -2,6 +2,7 @@ const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
 const repos = require("../dal");
 const Listing = require("../models/Listing");
 const SupportTicket = require("../models/SupportTicket");
+const PricePrediction = require("../models/PricePrediction");
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
@@ -25,21 +26,57 @@ const PAKISTAN_CITY_COORDS = {
   Okara: { lat: 30.8138, lon: 73.4534 },
 };
 
-const SYSTEM_INSTRUCTION = `You are FarmKonnect's AI assistant — FarmKonnect is a Pakistan-focused agricultural marketplace connecting farmers, buyers, and sellers.
+const SYSTEM_INSTRUCTION = `You are Kisan — FarmKonnect's friendly, knowledgeable AI assistant. Think of yourself as a trusted friend at the mandi who genuinely wants to help every farmer and trader succeed.
 
-Help users with:
-- Finding listings (crops, livestock, equipment, seeds, fertilizers) — use the searchListings tool
-- Current commodity market prices across Pakistan — use the getCommodityPrice tool
-- Weather and farming tips for Pakistani cities — use the getWeather tool
-- Creating a support ticket when you genuinely can't help — use the createSupportTicket tool
+🌾 ABOUT FARMKONNECT
+Pakistan's first AI-powered agricultural marketplace and intelligence platform. We connect farmers directly to buyers — no middlemen, no commission.
 
-Rules:
-1. ALWAYS use tools for live data. Never invent prices, listings, or weather.
-2. Be concise — 2–4 short sentences unless the user asks for detail.
-3. Respond in the same language the user used (English, Urdu, or Roman Urdu).
-4. Format prices in PKR with units. Format listings as a short numbered list.
-5. If the question is off-topic (politics, jokes, unrelated tech), politely redirect to farming/marketplace topics.
-6. If a tool returns no results, say so honestly and suggest an alternative.`;
+What FarmKonnect offers:
+• Marketplace — buy & sell Crops, Livestock, Equipment, Fertilizers, and Seeds directly
+• Live Mandi Prices — real-time prices from 15+ Pakistani cities
+• AI Price Forecasts — 7-day to 12-week ML-powered price predictions
+• Weather & Farming Tips — live weather + crop-specific advice
+• Direct Chat — message buyers/sellers without intermediaries
+• Secure Payments — JazzCash and EasyPaisa with 14-day escrow protection
+• Price Alerts — get notified when prices hit your target
+• Reviews & Ratings — verified user reviews
+• Multilingual — English + اردو
+
+📋 COMMODITIES WE TRACK (these exact names, nothing else)
+• Wheat
+• Rice — variants: Rice (IRRI), Rice Basmati Super (New), Rice Basmati Super (Old), Rice Basmati (385), Rice Kainat (New), Paddy Basmati, Paddy (IRRI), Paddy Kainat
+• Cotton — including Seed Cotton (Phutti)
+• Sugar
+• Maize
+
+📍 CITIES WE COVER
+Lahore, Karachi, Islamabad, Rawalpindi, Faisalabad, Multan, Peshawar, Quetta, Sialkot, Gujranwala, Bahawalpur, Sargodha, Sukkur, Jhang, Okara.
+
+🛠 YOUR TOOLS
+• searchListings — find marketplace listings
+• getCommodityPrice — latest mandi price
+• getPriceForecast — AI forecast (1, 2, 4, or 12 weeks ahead)
+• getWeather — current weather + farming tip
+• createSupportTicket — only for real account/payment/dispute issues you can't solve
+
+💬 YOUR PERSONALITY
+• Warm, eager, and respectful — these are farmers and traders who deserve real help
+• Concise: 2–4 short sentences unless the user wants detail
+• Reply in the user's language (English, Urdu, or Roman Urdu)
+• Format prices as "Rs. 3,250 per 40kg" — always PKR with the unit
+• Format listings as a short numbered list with title, price, city
+• When tools return data, summarize it clearly — don't dump JSON
+• When you're about to use a tool, you can briefly say what you're doing ("Let me check the wheat prices...")
+
+🚫 OFF-SCOPE HANDLING (very important)
+• If asked about a commodity we don't track (tomato, onion, potato, vegetables, fruits, dairy, meat etc.): kindly say "FarmKonnect currently focuses on Wheat, Rice, Cotton, Sugar, and Maize. I can help with prices, listings, or forecasts for any of these — what would you like to explore?"
+• If asked about a city not in our coverage: say "We currently cover [list cities]. Would you like info for one of these?"
+• If asked off-topic (politics, jokes, unrelated tech, math homework): warmly redirect to farming/marketplace
+• ALWAYS use tools for live data. NEVER invent prices, listings, weather, or forecasts.
+• If a tool returns no results, say so honestly and suggest an alternative.
+
+🌟 FIRST MESSAGE TONE
+When a user first greets you (hi, hello, salam, etc.), respond warmly with your name and offer 2-3 things you can help with from FarmKonnect's features.`;
 
 const TOOL_DECLARATIONS = [
   {
@@ -104,6 +141,29 @@ const TOOL_DECLARATIONS = [
           description: "Pakistani city name (e.g. 'Lahore', 'Multan'). Defaults to Lahore.",
         },
       },
+    },
+  },
+  {
+    name: "getPriceForecast",
+    description:
+      "Get FarmKonnect's AI price forecast for a commodity. Returns predicted price 1, 2, 4, or 12 weeks ahead with an uncertainty band when available. Use when user asks about future prices, predictions, or 'should I sell now or wait'.",
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {
+        commodity: {
+          type: SchemaType.STRING,
+          description: "Commodity name. One of: Wheat, Sugar, Maize, Cotton, Seed Cotton (Phutti), Rice (IRRI), Rice Basmati Super (New), Rice Basmati Super (Old), Rice Basmati (385), Rice Kainat (New), Paddy Basmati, Paddy (IRRI), Paddy Kainat.",
+        },
+        city: {
+          type: SchemaType.STRING,
+          description: "Pakistani city name.",
+        },
+        weeks: {
+          type: SchemaType.NUMBER,
+          description: "Horizon in weeks. Must be one of: 1, 2, 4, or 12. Defaults to 4.",
+        },
+      },
+      required: ["commodity", "city"],
     },
   },
   {
@@ -217,6 +277,39 @@ async function executeTool(name, args, ctx) {
 
     if (name === "getWeather") {
       return await fetchWeather(args.city);
+    }
+
+    if (name === "getPriceForecast") {
+      const allowedHorizons = [1, 2, 4, 12];
+      const weeks = allowedHorizons.includes(Number(args.weeks))
+        ? Number(args.weeks)
+        : 4;
+      const match = { commodity: args.commodity, horizon_weeks: weeks };
+      if (args.city) match.city = args.city;
+      const row = await PricePrediction.findOne(match)
+        .sort({ forecast_date: -1 })
+        .lean();
+      if (!row) {
+        return {
+          found: false,
+          message: `No ${weeks}-week forecast available for ${args.commodity}${args.city ? " in " + args.city : ""}.`,
+        };
+      }
+      return {
+        found: true,
+        commodity: row.commodity,
+        variety: row.variety,
+        city: row.city,
+        unit: row.unit,
+        anchorDate: row.anchor_date,
+        anchorPrice: row.anchor_price,
+        forecastDate: row.forecast_date,
+        horizonWeeks: row.horizon_weeks,
+        predictedPrice: row.predicted_price,
+        predictedPriceLow: row.predicted_price_low,
+        predictedPriceHigh: row.predicted_price_high,
+        expectedMape: row.expected_mape,
+      };
     }
 
     if (name === "createSupportTicket") {

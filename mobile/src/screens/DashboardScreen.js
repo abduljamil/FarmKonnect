@@ -12,6 +12,7 @@ import { getMyTransactions } from '../services/transactionService';
 import { getUnreadCount } from '../services/chatService';
 import * as Location from 'expo-location';
 import AnimatedBlobs from '../components/ui/AnimatedBlobs';
+import KisanFAB from '../components/ui/KisanFAB';
 
 // Pick a weather icon from the OpenWeatherMap condition string the backend
 // returns. Falls back to Sun. Previously the dashboard always rendered Sun
@@ -295,6 +296,7 @@ export default function DashboardScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <KisanFAB />
     </SafeAreaView>
   );
 }

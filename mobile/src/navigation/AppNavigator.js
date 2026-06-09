@@ -32,6 +32,7 @@ import TicketDetailScreen from '../screens/profile/TicketDetailScreen';
 import PrivacySecurityScreen from '../screens/profile/PrivacySecurityScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import PriceTrendsScreen from '../screens/marketplace/PriceTrendsScreen';
+import KisanScreen from '../screens/kisan/KisanScreen';
 import AboutUsScreen from '../screens/static/AboutUsScreen';
 import ContactUsScreen from '../screens/static/ContactUsScreen';
 import PrivacyPolicyScreen from '../screens/static/PrivacyPolicyScreen';
@@ -101,6 +102,7 @@ const AppNavigator = () => {
             <Stack.Screen name="PrivacySecurity" component={PrivacySecurityScreen} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
             <Stack.Screen name="PriceTrends" component={PriceTrendsScreen} />
+            <Stack.Screen name="KisanScreen" component={KisanScreen} />
             <Stack.Screen name="AboutUs" component={AboutUsScreen} />
             <Stack.Screen name="ContactUs" component={ContactUsScreen} />
             <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />

@@ -17,6 +17,7 @@ import GlobalNotificationToast from "./components/GlobalNotificationToast";
 import ConnectionStatus from "./components/ConnectionStatus";
 import ScrollToTop from "./components/ScrollToTop";
 import Loader from "./components/Loader";
+import KisanFloatingWidget from "./components/KisanFloatingWidget";
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
@@ -147,6 +148,7 @@ function App() {
                         <meta property="twitter:image" content="/images/hero-farmer.jpg" />
                       </Helmet>
                       <ConnectionStatus />
+                      <KisanFloatingWidget />
                       <Suspense fallback={<PageLoader />}>
                         <Routes>
                           <Route path="/" element={<LandingPage />} />

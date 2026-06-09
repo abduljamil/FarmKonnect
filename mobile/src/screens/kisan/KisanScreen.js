@@ -22,15 +22,16 @@ import {
 } from '../../services/kisanService';
 
 const SUGGESTIONS = [
-  "What's the tomato price in Lahore today?",
-  'Find me wheat seeds under PKR 5000',
-  'Weather forecast for Multan',
-  'How do I treat yellow leaves on wheat?',
+  "What's the wheat price in Lahore today?",
+  'Show me Rice Basmati listings on the marketplace',
+  "What's the 4-week cotton price forecast in Multan?",
+  'Weather in Faisalabad — any farming tips?',
 ];
 
 const TOOL_LABELS = {
   searchListings: 'Searching marketplace',
-  getCommodityPrice: 'Checking prices',
+  getCommodityPrice: 'Checking mandi prices',
+  getPriceForecast: 'Running AI forecast',
   getWeather: 'Fetching weather',
   createSupportTicket: 'Creating ticket',
 };
@@ -291,10 +292,11 @@ function EmptyState({ onPick }) {
       <View style={styles.emptyAvatar}>
         <Sprout color="#fff" size={32} />
       </View>
-      <Text style={styles.emptyTitle}>Hi, I'm Kisan 🌾</Text>
+      <Text style={styles.emptyTitle}>Hi, I'm Kisan AI 🌾</Text>
       <Text style={styles.emptySubtitle}>
-        Ask about market prices, find listings, check weather, or get farming
-        advice. I have live access to FarmKonnect data.
+        How can I help you today? I have live access to FarmKonnect data —
+        mandi prices, marketplace listings, weather, and AI forecasts for
+        Wheat, Rice, Cotton, Sugar & Maize.
       </Text>
       <View style={styles.suggestionsGrid}>
         {SUGGESTIONS.map((s) => (

@@ -13,15 +13,16 @@ import {
 import kisanAPI from "../utils/kisanApi";
 
 const SUGGESTIONS = [
-  "What's the tomato price in Lahore today?",
-  "Find me wheat seeds under PKR 5000",
-  "Weather forecast for Multan",
-  "How do I treat yellow leaves on my wheat crop?",
+  "What's the wheat price in Lahore today?",
+  "Show me Rice Basmati listings on the marketplace",
+  "What's the 4-week cotton price forecast in Multan?",
+  "Weather in Faisalabad — any farming tips?",
 ];
 
 const TOOL_LABELS = {
   searchListings: "Searching marketplace",
-  getCommodityPrice: "Checking prices",
+  getCommodityPrice: "Checking mandi prices",
+  getPriceForecast: "Running AI forecast",
   getWeather: "Fetching weather",
   createSupportTicket: "Creating support ticket",
 };
@@ -306,11 +307,14 @@ function EmptyState({ onPick }) {
         <Sprout className="w-8 h-8" />
       </div>
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-        Hi, I'm Kisan 🌾
+        Hi, I'm Kisan AI 🌾
       </h2>
       <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">
-        Ask about market prices, find listings, check weather, or get farming
-        advice. I have live access to FarmKonnect data.
+        How can I help you today? I have live access to FarmKonnect data —
+        mandi prices, marketplace listings, weather, and AI forecasts for{" "}
+        <span className="font-medium text-green-700 dark:text-green-400">
+          Wheat, Rice, Cotton, Sugar &amp; Maize
+        </span>.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full px-2">
         {SUGGESTIONS.map((s) => (
