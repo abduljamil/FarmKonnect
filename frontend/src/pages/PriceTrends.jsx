@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import Navbar from "../components/Navbar";
 import GuestNavbar from "../components/GuestNavbar";
 import Footer from "../components/Footer";
@@ -46,128 +45,27 @@ const Sparkline = ({ points, up, flat, className = "" }) => {
   );
 };
 
-// ── Horizontal market chip — compact card for the top strip ────────────────
-// Used in place of the old 340px sticky sidebar. Each chip carries the same
-// info (emoji, name, city, price, % change, sparkline) but laid out for a
-// horizontally-scrolling row so the chart underneath can fill the viewport.
-const MarketChip = ({ m, selected, onSelect }) => {
+// ── Simple commodity selector button ─────────────────────────────────────────
+// Used in the top scrollable row. Just a simple logo + name pill.
+const CommoditySelector = ({ m, selected, onSelect }) => {
   const config = getCommodityConfig(m.commodity);
   const isSel = selected === m.commodity;
-  const accent = m.isFlat
-    ? "text-gray-400 dark:text-gray-500"
-    : m.up
-      ? "text-emerald-600 dark:text-emerald-400"
-      : "text-rose-600 dark:text-rose-400";
   return (
     <button
       onClick={() => onSelect(m.commodity)}
-      className={`flex-shrink-0 w-44 sm:w-48 text-left rounded-2xl p-3 transition-all snap-start ${
+      className={`flex items-center gap-2 flex-shrink-0 px-4 py-2.5 rounded-full transition-all whitespace-nowrap snap-start ${
         isSel
-          ? "ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-900/30 shadow-md"
-          : "ring-1 ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-800 hover:ring-primary-300 dark:hover:ring-primary-700 hover:shadow-sm"
+          ? "bg-primary-600 text-white shadow-md shadow-primary-500/25 ring-1 ring-primary-500"
+          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 ring-1 ring-gray-200 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
       }`}
     >
-      <div className="flex items-center gap-2 mb-1.5">
-        <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 grid place-items-center flex-shrink-0 overflow-hidden">
-          {config.image ? (
-            <img src={config.image} alt={m.commodity} className="w-5 h-5 object-contain" />
-          ) : (
-            <span className="text-base">{config.emoji}</span>
-          )}
-        </div>
-        <div className="min-w-0">
-          <p className="text-sm font-bold truncate text-gray-900 dark:text-white leading-tight">{m.commodity}</p>
-          <p className="text-[10px] text-gray-400 truncate leading-tight">{m.city}</p>
-        </div>
-      </div>
-      <div className="flex items-end justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-base font-extrabold tabular-nums text-gray-900 dark:text-white leading-tight">
-            <Ltr>₨{Math.round(m.price).toLocaleString()}</Ltr>
-          </p>
-          <p className={`text-[11px] font-semibold tabular-nums leading-tight ${accent}`}>
-            <Ltr>{m.isFlat ? "—" : `${m.changePct > 0 ? "+" : ""}${m.changePct.toFixed(1)}%`}</Ltr>
-          </p>
-        </div>
-        <Sparkline points={m.spark} up={m.up} flat={m.isFlat} className="w-14 h-7 flex-shrink-0" />
-      </div>
+      {config.image ? (
+        <img src={config.image} alt={m.commodity} className="w-5 h-5 object-contain" />
+      ) : (
+        <span className="text-lg leading-none">{config.emoji}</span>
+      )}
+      <span className="font-bold text-[13px]">{m.commodity}</span>
     </button>
-  );
-};
-
-// ── Horizontal market strip with optional scroll arrows ────────────────────
-// Encapsulates the loading / empty / list states and adds left/right scroll
-// buttons that fade in only when overflow exists. Used at the top of the
-// Price Trends page in place of the old sticky sidebar.
-const MarketStrip = ({ markets, loading, selected, onSelect, title, emptyText }) => {
-  const scrollerRef = useRef(null);
-  const [hasOverflow, setHasOverflow] = useState(false);
-
-  useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const check = () => setHasOverflow(el.scrollWidth > el.clientWidth + 4);
-    check();
-    const ro = new ResizeObserver(check);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [markets.length]);
-
-  const scrollBy = (delta) => {
-    scrollerRef.current?.scrollBy({ left: delta, behavior: "smooth" });
-  };
-
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-3xl dash-card overflow-hidden">
-      <div className="px-4 sm:px-5 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-        <h2 className="font-bold tracking-tight text-gray-900 dark:text-white">{title}</h2>
-        <div className="flex items-center gap-2">
-          {!loading && <span className="text-[11px] font-semibold text-gray-400">{markets.length}</span>}
-          {hasOverflow && (
-            <div className="hidden sm:flex items-center gap-1">
-              <button
-                onClick={() => scrollBy(-280)}
-                aria-label="Scroll markets left"
-                className="w-7 h-7 grid place-items-center rounded-lg bg-gray-100 dark:bg-gray-700/60 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => scrollBy(280)}
-                aria-label="Scroll markets right"
-                className="w-7 h-7 grid place-items-center rounded-lg bg-gray-100 dark:bg-gray-700/60 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div
-        ref={scrollerRef}
-        className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
-      >
-        {loading ? (
-          <div className="flex gap-2 px-4 sm:px-5 py-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 w-44 sm:w-48 h-[88px] bg-gray-100 dark:bg-gray-700/50 rounded-2xl animate-pulse"
-              />
-            ))}
-          </div>
-        ) : markets.length === 0 ? (
-          <p className="p-6 text-center text-sm text-gray-400">{emptyText}</p>
-        ) : (
-          <div className="flex gap-2 px-4 sm:px-5 py-4">
-            {markets.map((m) => (
-              <MarketChip key={m.commodity} m={m} selected={selected} onSelect={onSelect} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
   );
 };
 
@@ -283,20 +181,32 @@ const PriceTrends = () => {
             </div>
           </div>
 
-          {/* Horizontal markets strip — replaces the old 340px sticky
-              sidebar so the chart below can use the full viewport width.
-              Scrolls horizontally on overflow; left/right buttons appear
-              on desktop. snap-x keeps chips aligned when flicking on touch. */}
-          <MarketStrip
-            markets={markets}
-            loading={loading}
-            selected={selected}
-            onSelect={setSelected}
-            title={t("priceTrends.markets")}
-            emptyText={t("priceTrends.noData")}
-          />
+          {/* Simple commodity selector — horizontal row of logo+name buttons.
+              Just lets the user pick which commodity to chart; price/spark/%
+              context lives in the heatmap card below. */}
+          {loading ? (
+            <div className="flex gap-2 overflow-x-auto pb-1 px-0.5 scrollbar-hide">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 h-[58px] w-32 bg-gray-100 dark:bg-gray-700/50 rounded-xl animate-pulse"
+                />
+              ))}
+            </div>
+          ) : markets.length === 0 ? null : (
+            <div className="flex gap-2 overflow-x-auto pb-1 px-0.5 scrollbar-hide snap-x">
+              {markets.map((m) => (
+                <CommoditySelector
+                  key={m.commodity}
+                  m={m}
+                  selected={selected}
+                  onSelect={setSelected}
+                />
+              ))}
+            </div>
+          )}
 
-          {/* Chart card — now full width. Internal chart container in
+          {/* Chart card — full width. Internal chart container in
               PriceChart.jsx scales to ~55vh so the graph dominates the
               visible area without scrolling. */}
           <div>
