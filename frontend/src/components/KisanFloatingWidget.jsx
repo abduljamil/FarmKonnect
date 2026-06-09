@@ -96,7 +96,7 @@ export default function KisanFloatingWidget() {
     try {
       const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}");
       if (saved.conversationId) setConversationId(saved.conversationId);
-    } catch {}
+    } catch { /* ignore malformed storage */ }
   }, [user]);
 
   // Persist conversation id
