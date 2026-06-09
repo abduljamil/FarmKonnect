@@ -295,17 +295,12 @@ export default function KisanFloatingWidget() {
                     <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-green-700 animate-pulse" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="font-bold text-base leading-tight">
-                        Kisan AI
-                      </h2>
-                      <span className="text-[10px] font-semibold bg-white/20 backdrop-blur px-1.5 py-0.5 rounded-md">
-                        BETA
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-green-100 flex items-center gap-1">
+                    <h2 className="font-bold text-base leading-tight">
+                      Kisan AI
+                    </h2>
+                    <p className="text-[11px] text-green-100 flex items-center gap-1.5 mt-0.5">
                       <span className="w-1.5 h-1.5 bg-green-300 rounded-full animate-pulse" />
-                      Online · FarmKonnect Assistant
+                      Online
                     </p>
                   </div>
                 </div>
