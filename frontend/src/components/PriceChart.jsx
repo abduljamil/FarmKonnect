@@ -792,11 +792,29 @@ const PriceChart = ({ user, onLoginRequired, commodityOverride, hideCommodityBut
           unit: d.unit,
         };
       });
-    // Bridge: include `predicted_price` on the last historical row so the
-    // forecast line picks up visually from the actual current price.
-    const anchorPrice = forecastDocs[0].anchor_price;
+    // Bridge: pin `predicted_price` on the LAST HISTORICAL ROW so the orange
+    // dashed forecast line picks up continuously from wherever the green
+    // actual line ends.
+    //
+    // Bug we're fixing: this used to bridge with `forecastDocs[0].anchor_price`,
+    // i.e. the price at the model's anchor week. The model's anchor is usually
+    // a week or two stale relative to the latest scraped price the user sees
+    // on the chart. When anchor_price < latest_actual_price (very common after
+    // a price uptick), the forecast line started BELOW the actual line and
+    // climbed toward the predicted values — so the line VISUALLY went up
+    // while every tooltip value was LESS than the current actual price. Users
+    // read this as "the forecast is going up" while the numbers said the
+    // opposite.
+    //
+    // The model's predicted_price for each horizon is untouched (tooltips
+    // still show the exact model output). Only the bridge connector uses
+    // the latest actual, so the curve makes visual sense end-to-end. Fall
+    // back to anchor_price when the history series is somehow empty.
+    const lastActualPrice =
+      data.length > 0 ? data[data.length - 1].price : null;
+    const bridgeValue = lastActualPrice ?? forecastDocs[0].anchor_price;
     const bridgedHistory = data.map((d, i) =>
-      i === data.length - 1 ? { ...d, predicted_price: anchorPrice } : d
+      i === data.length - 1 ? { ...d, predicted_price: bridgeValue } : d
     );
     return [...bridgedHistory, ...forecastRows];
   }, [data, forecastDocs, selectedDate, days]);
