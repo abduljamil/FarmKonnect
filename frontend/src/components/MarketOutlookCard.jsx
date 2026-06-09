@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { TrendingUp, TrendingDown, Minus, Sparkles, ArrowRight } from "lucide-react";
 import API_URL from "../config";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -32,6 +33,7 @@ const buildSpark = (pts, w = 240, h = 40, pad = 4) => {
 // gracefully: skeleton while loading, soft empty state if no forecast exists.
 const MarketOutlookCard = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null); // { sig, city }
 
@@ -108,8 +110,7 @@ const MarketOutlookCard = () => {
       )
     : null;
 
-  const scrollToChart = () =>
-    document.getElementById("price-chart")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const goToTrends = () => navigate("/price-trends");
 
   return (
     <div className="relative h-full overflow-hidden bg-white dark:bg-gray-800 rounded-3xl dash-card dash-card-hover p-5 flex flex-col">
@@ -199,7 +200,7 @@ const MarketOutlookCard = () => {
 
           {/* CTA */}
           <button
-            onClick={scrollToChart}
+            onClick={goToTrends}
             className="mt-auto pt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 dark:text-primary-400 hover:gap-2 transition-all"
           >
             {t("forecast.viewFull")}

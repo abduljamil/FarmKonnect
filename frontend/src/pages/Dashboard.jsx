@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import GuestNavbar from "../components/GuestNavbar";
 import Footer from "../components/Footer";
-import PriceChart from "../components/PriceChart";
 import PriceTicker from "../components/PriceTicker";
 import Loader from "../components/Loader";
 import DashboardHero from "../components/DashboardHero";
@@ -160,14 +159,6 @@ const Dashboard = () => {
                         <QuickStatsGrid user={user} unreadCount={unreadCount} />
                     </section>
                 </div>
-
-                {/* Full-width Price Chart - breaks out of container */}
-                <section id="price-chart" className="mb-8 px-4 sm:px-6 lg:px-8 animate-fadeIn" style={{ animationDelay: '0.15s' }}>
-                    <PriceChart
-                        user={user}
-                        onLoginRequired={() => navigate("/signin")}
-                    />
-                </section>
 
                 {/* Bottom bento: attention strip + weather / alerts */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-6">
