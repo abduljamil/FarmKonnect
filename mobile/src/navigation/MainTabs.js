@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Store, MessageCircle, User } from 'lucide-react-native';
+import { Home, Store, MessageCircle, User, Sprout } from 'lucide-react-native';
 import { Package } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import DashboardScreen from '../screens/DashboardScreen';
@@ -8,6 +8,7 @@ import MarketplaceScreen from '../screens/marketplace/MarketplaceScreen';
 import ConversationsScreen from '../screens/chat/ConversationsScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import TransactionsScreen from '../screens/transactions/TransactionsScreen';
+import KisanScreen from '../screens/kisan/KisanScreen';
 import { SocketContext } from '../contexts/SocketContext';
 import { getUnreadCount } from '../services/chatService';
 
@@ -71,6 +72,14 @@ export default function MainTabs() {
         options={{
           tabBarLabel: t('mobile.tabs.market'),
           tabBarIcon: ({ color, size }) => <Store color={color} size={size} />
+        }}
+      />
+      <Tab.Screen
+        name="Kisan"
+        component={KisanScreen}
+        options={{
+          tabBarLabel: 'Kisan',
+          tabBarIcon: ({ color, size }) => <Sprout color={color} size={size} />,
         }}
       />
       <Tab.Screen

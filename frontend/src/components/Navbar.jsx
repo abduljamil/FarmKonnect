@@ -24,6 +24,7 @@ import {
   Package,
   Star,
   LifeBuoy,
+  Sprout,
 } from "lucide-react";
 
 const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
@@ -390,6 +391,7 @@ const Navbar = ({ user, onLogout, unreadCount = 0 }) => {
       scrollTo: "price-chart"
     },
     { path: "/listings", label: t("nav.marketplace"), icon: ShoppingBag, show: true },
+    { path: "/kisan", label: "Kisan AI", icon: Sprout, show: !!user },
     {
       path: "/chat",
       label: t("nav.messages"),

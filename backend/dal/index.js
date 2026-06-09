@@ -9,6 +9,8 @@ const messages = require('./repositories/messages');
 const conversations = require('./repositories/conversations');
 const prices = require('./repositories/prices');
 const priceAlerts = require('./repositories/priceAlerts');
+const aiConversations = require('./repositories/aiConversations');
+const aiMessages = require('./repositories/aiMessages');
 
 module.exports = {
   users,
@@ -16,5 +18,7 @@ module.exports = {
   messages,
   conversations,
   prices,
-  priceAlerts
+  priceAlerts,
+  aiConversations,
+  aiMessages
 };

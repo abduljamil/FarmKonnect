@@ -118,6 +118,7 @@ const Support = lazy(() => import("./pages/Support"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const Methodology = lazy(() => import("./pages/Methodology"));
+const Kisan = lazy(() => import("./pages/Kisan"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -179,6 +180,7 @@ function App() {
                           <Route path="/transactions/:id" element={<ProtectedRoute><TransactionDetails /></ProtectedRoute>} />
                           <Route path="/buy/:listingId" element={<ProtectedRoute><CreateTransaction /></ProtectedRoute>} />
                           <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+                          <Route path="/kisan" element={<ProtectedRoute><Kisan /></ProtectedRoute>} />
 
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>

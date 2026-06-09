@@ -17,6 +17,7 @@ const weatherRoutes = require("./routes/weather");
 const priceAlertRoutes = require("./routes/priceAlerts");
 const paymentRoutes = require("./routes/payments");
 const reviewRoutes = require("./routes/reviews");
+const aiChatRoutes = require("./routes/aiChat");
 const initializeSocket = require("./config/socket");
 const { runScraper } = require("./services/scraperService");
 const alertService = require("./services/alertService");
@@ -150,6 +151,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/alerts", priceAlertRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/ai", aiChatRoutes);
 app.use('/api/support', require('./routes/support')); // Merged from current version
 
 app.get("/", (req, res) => {
