@@ -58,10 +58,15 @@ jobs:
             # Phase 8.
             set -euo pipefail
 
-            if command -v docker-compose >/dev/null 2>&1; then
-              COMPOSE_CMD=(docker-compose)
-            elif docker compose version >/dev/null 2>&1; then
+            # Prefer Docker Compose v2 (`docker compose`). The legacy v1
+            # (`docker-compose`, Python) crashes with `KeyError: 'ContainerConfig'`
+            # when recreating containers against Docker Engine 25+/26+, which
+            # dropped that deprecated image-metadata field. Fall back to v1 only
+            # if the v2 plugin is unavailable.
+            if docker compose version >/dev/null 2>&1; then
               COMPOSE_CMD=(docker compose)
+            elif command -v docker-compose >/dev/null 2>&1; then
+              COMPOSE_CMD=(docker-compose)
             else
               echo "❌ Docker Compose is not installed on the EC2 instance."
               exit 1
