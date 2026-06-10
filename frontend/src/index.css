@@ -140,8 +140,10 @@ html.dark input[type="number"]::-webkit-outer-spin-button:hover {
 }
 
 /* Select dropdown arrow - Dark Mode Fix */
-.dark select,
-html.dark select {
+/* Skip selects that opt out via `bg-none` and supply their own chevron icon,
+   otherwise this rule out-specifies `.bg-none` and a second arrow appears. */
+.dark select:not(.bg-none),
+html.dark select:not(.bg-none) {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0.5rem center;
   background-repeat: no-repeat;
@@ -153,7 +155,7 @@ html.dark select {
 }
 
 /* Light mode select arrow */
-select {
+select:not(.bg-none) {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0.5rem center;
   background-repeat: no-repeat;
