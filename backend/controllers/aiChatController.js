@@ -3,7 +3,7 @@ const aiChatService = require("../services/aiChatService");
 exports.startConversation = async (req, res) => {
   try {
     const { firstMessage, language } = req.body;
-    const userId = req.user._id;
+    const userId = req.user ? req.user._id : null;
     const convo = await aiChatService.createConversation(userId, firstMessage, language);
     res.status(201).json({ success: true, data: convo });
   } catch (error) {
@@ -13,6 +13,9 @@ exports.startConversation = async (req, res) => {
 
 exports.listConversations = async (req, res) => {
   try {
+    if (!req.user) {
+      return res.json({ success: true, data: [] });
+    }
     const userId = req.user._id;
     const convos = await aiChatService.listConversations(userId);
     res.json({ success: true, data: convos });
@@ -35,7 +38,7 @@ exports.sendMessage = async (req, res) => {
   try {
     const { conversationId } = req.params;
     const { message, language } = req.body;
-    const userId = req.user._id;
+    const userId = req.user ? req.user._id : null;
 
     if (!message || !message.trim()) {
       return res
@@ -60,7 +63,7 @@ exports.sendMessage = async (req, res) => {
 exports.deleteConversation = async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user ? req.user._id : null;
     await aiChatService.deleteConversation(conversationId, userId);
     res.json({ success: true, message: "Conversation deleted" });
   } catch (error) {

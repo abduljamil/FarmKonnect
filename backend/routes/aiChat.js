@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const aiChatController = require("../controllers/aiChatController");
-const { protect } = require("../middleware/auth");
+const { protect, optionalAuth } = require("../middleware/auth");
 const { writeLimiter } = require("../middleware/limiter");
 
 router.get("/health", aiChatController.health);
 
-router.use(protect);
+router.use(optionalAuth);
 
 router.get("/conversations", aiChatController.listConversations);
 router.post("/conversations", aiChatController.startConversation);

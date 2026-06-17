@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
 import {
   Send,
   X,
@@ -70,6 +71,7 @@ const STORAGE_KEY = "kisan_widget_state_v1";
 
 export default function KisanFloatingWidget() {
   const { user } = useAuth();
+  const { language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -86,13 +88,11 @@ export default function KisanFloatingWidget() {
 
   // Hide widget on auth/landing pages and when not logged in
   const shouldHide =
-    !user ||
     location.pathname === "/" ||
     HIDDEN_PATHS.some((p) => location.pathname.startsWith(p));
 
   // Restore conversation from sessionStorage on mount
   useEffect(() => {
-    if (!user) return;
     try {
       const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}");
       if (saved.conversationId) setConversationId(saved.conversationId);
@@ -174,12 +174,12 @@ export default function KisanFloatingWidget() {
       try {
         let convoId = conversationId;
         if (!convoId) {
-          const startRes = await kisanAPI.startConversation(text);
+          const startRes = await kisanAPI.startConversation(text, language);
           convoId = startRes.data?._id;
           setConversationId(convoId);
         }
 
-        const res = await kisanAPI.sendMessage(convoId, text);
+        const res = await kisanAPI.sendMessage(convoId, text, language);
         const { reply, toolCalls, messageId } = res.data || {};
         setMessages((prev) => [
           ...prev,

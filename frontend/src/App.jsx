@@ -186,7 +186,7 @@ function App() {
                           <Route path="/transactions/:id" element={<ProtectedRoute><TransactionDetails /></ProtectedRoute>} />
                           <Route path="/buy/:listingId" element={<ProtectedRoute><CreateTransaction /></ProtectedRoute>} />
                           <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
-                          <Route path="/kisan" element={<ProtectedRoute><Kisan /></ProtectedRoute>} />
+                          <Route path="/kisan" element={<Kisan />} />
 
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>

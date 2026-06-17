@@ -379,7 +379,7 @@ class AiChatService {
   async deleteConversation(conversationId, userId) {
     const convo = await repos.aiConversations.findById(conversationId);
     if (!convo) throw new Error("Conversation not found");
-    if (convo.user.toString() !== userId.toString())
+    if (convo.user?.toString() !== userId?.toString())
       throw new Error("Not authorized");
     await repos.aiMessages.deleteByConversation(conversationId);
     await repos.aiConversations.deleteById(conversationId);
@@ -391,7 +391,7 @@ class AiChatService {
 
     const convo = await repos.aiConversations.findById(conversationId);
     if (!convo) throw new Error("Conversation not found");
-    if (convo.user.toString() !== userId.toString())
+    if (convo.user?.toString() !== userId?.toString())
       throw new Error("Not authorized");
 
     const priorMessages = await repos.aiMessages.findByConversation(conversationId);
