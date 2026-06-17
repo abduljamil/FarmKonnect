@@ -48,6 +48,11 @@
           ],
           "autoVerify": true
         }
+      ],
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -72,10 +77,18 @@
         }
       ]
     ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a9291ca8-df90-463f-8654-f05abd36530e",
+      "fallbackToCacheTimeout": 5000
+    },
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "a9291ca8-df90-463f-8654-f05abd36530e"
       }
-    }
+    },
+    "owner": "ahtshamadil"
   }
 }

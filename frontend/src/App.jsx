@@ -18,6 +18,7 @@ import ConnectionStatus from "./components/ConnectionStatus";
 import ScrollToTop from "./components/ScrollToTop";
 import Loader from "./components/Loader";
 import KisanFloatingWidget from "./components/KisanFloatingWidget";
+import DownloadApp from "./pages/DownloadApp";
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
@@ -154,6 +155,7 @@ function App() {
                         <Routes>
                           <Route path="/" element={<LandingPage />} />
                           {/* Public routes */}
+                          <Route path="/app" element={<DownloadApp />} />
                           <Route path="/dashboard" element={<Dashboard />} />
                           <Route path="/listings" element={<Marketplace />} />
                           <Route path="/listings/:id" element={<ListingDetails />} />
