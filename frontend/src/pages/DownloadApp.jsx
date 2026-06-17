@@ -3,7 +3,7 @@ import { Download, Smartphone, Apple } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function DownloadApp() {
-  const { t } = useLanguage();
+
   const [deviceOS, setDeviceOS] = useState('Unknown');
 
   const androidApkUrl = "https://farmkonnect.app/farmkonnect.apk"; // Example URL
