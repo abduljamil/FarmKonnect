@@ -1,96 +1,33 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState, useEffect, memo } from 'react';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, ActivityIndicator, Dimensions, Image, Alert, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronDown, Search, Filter, Home, User, X, Check } from 'lucide-react-native';
 // Note: Trending icons and RefreshCw are missing in 1.8.0, so we use text/emojis for now
-import Svg, { Path, LinearGradient, Stop, Defs, Polyline } from 'react-native-svg';
-import { getCommodities, getPriceHistory, getForecast, getVarieties, getCitiesByFilters } from '../../services/priceService';
+import { getCommodities, getPriceHistory, getForecast, getVarieties, getCitiesByFilters, getCoverage } from '../../services/priceService';
 import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
+import PriceChart from '../../components/marketplace/PriceChart';
+import ForecastOutlook from '../../components/marketplace/ForecastOutlook';
+import SegmentedControl from '../../components/ui/SegmentedControl';
 import { TARGET_COMMODITIES } from '../../utils/commodities';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
-// Custom SVG Chart Component — supports an optional forecast tail rendered
-// as a dashed orange polyline picking up from the last historical price.
-const SimpleLineChart = ({ data, forecast = [], color = '#16a34a', forecastColor = '#f97316' }) => {
-  if (!data || data.length < 2) return null;
-
-  const chartHeight = 180;
-  const chartWidth = width - 80;
-
-  // Y-scale spans BOTH history and forecast so the future forecast doesn't
-  // fall off the visible chart when it's significantly higher or lower than
-  // the recent history.
-  const histPrices = data.map(d => Number(d.price)).filter(p => !isNaN(p) && p !== null);
-  const fcPrices = (forecast || []).map(d => Number(d.predicted_price)).filter(p => !isNaN(p));
-  const allPrices = [...histPrices, ...fcPrices];
-  const min = allPrices.length ? Math.min(...allPrices) : 0;
-  const max = allPrices.length ? Math.max(...allPrices) : 0;
-  const range = (max - min) || 1;
-
-  // Total horizontal slots = history + forecast points. Each forecast point
-  // gets its own slot to the right of the last history slot.
-  const totalSlots = (data.length || 0) + (forecast ? forecast.length : 0);
-  const stepX = chartWidth / (totalSlots > 1 ? totalSlots - 1 : 1);
-
-  const histPoints = data.map((d, i) => {
-    const price = Number(d.price) || 0;
-    const x = i * stepX;
-    const y = range === 0 ? chartHeight / 2 : chartHeight - ((price - min) / range) * chartHeight;
-    if (isNaN(x) || isNaN(y)) return '0,0';
-    return `${x},${y}`;
-  }).join(' ');
-
-  // Forecast polyline anchors on the last history point so the lines visually connect.
-  let fcPoints = '';
-  if (forecast && forecast.length > 0 && histPrices.length > 0) {
-    const lastHistPrice = Number(data[data.length - 1].price) || 0;
-    const anchorX = (data.length - 1) * stepX;
-    const anchorY = range === 0 ? chartHeight / 2 : chartHeight - ((lastHistPrice - min) / range) * chartHeight;
-    const future = forecast.map((d, i) => {
-      const price = Number(d.predicted_price) || 0;
-      const x = (data.length + i) * stepX;
-      const y = range === 0 ? chartHeight / 2 : chartHeight - ((price - min) / range) * chartHeight;
-      return `${x},${y}`;
-    }).join(' ');
-    fcPoints = `${anchorX},${anchorY} ${future}`;
-  }
-
-  return (
-    <View style={{ height: chartHeight, width: chartWidth, alignSelf: 'center' }}>
-      <Svg height={chartHeight} width={chartWidth}>
-        <Defs>
-          <LinearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={color} stopOpacity="0.3" />
-            <Stop offset="1" stopColor={color} stopOpacity="0" />
-          </LinearGradient>
-        </Defs>
-        <Path
-          d={`M ${histPoints} L ${(data.length - 1) * stepX},${chartHeight} L 0,${chartHeight} Z`}
-          fill="url(#grad)"
-        />
-        <Polyline
-          points={histPoints}
-          fill="none"
-          stroke={color}
-          strokeWidth="3"
-        />
-        {fcPoints ? (
-          <Polyline
-            points={fcPoints}
-            fill="none"
-            stroke={forecastColor}
-            strokeWidth="3"
-            strokeDasharray="6,4"
-          />
-        ) : null}
-      </Svg>
-    </View>
-  );
-};
+// Time-range options (mirrors web's PriceChart). We only render the ones that
+// actually contain data for the selected series — see `availablePeriods`.
+const TIME_PERIODS = [
+  { label: '1M',  value: 30   },
+  { label: '3M',  value: 90   },
+  { label: '6M',  value: 180  },
+  { label: '1Y',  value: 365  },
+  { label: '5Y',  value: 1825 },
+  { label: 'All', value: 7300 },
+];
 
 export default function PriceTrendsScreen({ navigation, route }) {
   const { initialCommodity = 'Wheat' } = route.params || {};
+  const { t } = useTranslation();
   
   const [commodities, setCommodities] = useState([]);
   const [cities, setCities] = useState([]);
@@ -107,6 +44,24 @@ export default function PriceTrendsScreen({ navigation, route }) {
   // commodity/city combo hasn't been scraped in the last few weeks (was 30,
   // which silently produced an empty chart on stale series).
   const [days, setDays] = useState(180);
+  const [coverage, setCoverage] = useState(null);
+  // Measured inner width of the chart card so PriceChart fits exactly and the
+  // forecast tail no longer overflows the card's right edge. Seeded with a
+  // close estimate (screen minus the screen + card paddings) to avoid a flash.
+  const [chartW, setChartW] = useState(width - 80);
+
+  // Only offer time-ranges that actually contain data: a period of N days can
+  // only show points if the latest datum falls within the last N days, so when
+  // a series' newest data is months old we hide the shorter ranges (mirrors web).
+  const daysSinceLatest = coverage?.maxDate
+    ? Math.max(0, Math.floor((Date.now() - new Date(coverage.maxDate).getTime()) / 86400000))
+    : 0;
+  const availablePeriods =
+    coverage && coverage.count > 0
+      ? (TIME_PERIODS.filter((p) => p.value >= daysSinceLatest).length
+          ? TIME_PERIODS.filter((p) => p.value >= daysSinceLatest)
+          : [TIME_PERIODS[TIME_PERIODS.length - 1]])
+      : TIME_PERIODS;
 
   // Replaced two Alert.alert pickers — Alert only supports ~3 buttons on
   // iOS in practice and was capped to the first 10 cities. These are real
@@ -116,7 +71,7 @@ export default function PriceTrendsScreen({ navigation, route }) {
 
   const showVarietyPicker = () => {
     if (varieties.length === 0) {
-      Alert.alert('No varieties', 'This commodity has no varieties to filter by.');
+      Alert.alert(t('mobile.alerts.noVarieties'), t('mobile.alerts.noVarietiesMsg'));
       return;
     }
     setShowVarietyModal(true);
@@ -188,6 +143,32 @@ export default function PriceTrendsScreen({ navigation, route }) {
     };
     fetchCities();
   }, [selectedCommodity, selectedVariety]);
+
+  // Fetch date-range coverage for the selected series; drives which time-range
+  // buttons are shown and snaps `days` to the shortest range that still has data.
+  useEffect(() => {
+    const fetchCoverage = async () => {
+      if (!selectedCommodity || !selectedCity) { setCoverage(null); return; }
+      try {
+        const params = { commodity: selectedCommodity, city: selectedCity };
+        if (selectedVariety) params.variety = selectedVariety;
+        const res = await getCoverage(params);
+        if (res.data?.success) {
+          const cov = res.data.data || null;
+          setCoverage(cov);
+          if (cov && cov.count > 0 && cov.maxDate) {
+            const dsl = Math.max(0, Math.floor((Date.now() - new Date(cov.maxDate).getTime()) / 86400000));
+            const valid = TIME_PERIODS.filter((p) => p.value >= dsl);
+            const list = valid.length ? valid : [TIME_PERIODS[TIME_PERIODS.length - 1]];
+            setDays((d) => (list.some((p) => p.value === d) ? d : list[0].value));
+          }
+        }
+      } catch {
+        setCoverage(null);
+      }
+    };
+    fetchCoverage();
+  }, [selectedCommodity, selectedVariety, selectedCity]);
 
   const fetchHistory = async () => {
     if (!selectedCommodity || !selectedCity) {
@@ -267,45 +248,50 @@ export default function PriceTrendsScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <AnimatedBlobs />
 
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <ArrowLeft color="#fff" size={24} />
+          <ArrowLeft color={COLORS.white} size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Price Trends</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Commodity Selector */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.commodityList}>
+        {/* Commodity selector — wraps to multiple rows instead of scrolling
+            horizontally, so every crop is visible at a glance on mobile. */}
+        <View style={styles.commodityList}>
           {(commodities || []).map(c => (
             <TouchableOpacity 
               key={c} 
               style={[styles.commodityBtn, selectedCommodity === c && styles.commodityBtnActive]}
               onPress={() => setSelectedCommodity(c)}
             >
-              <Text style={[styles.commodityText, selectedCommodity === c && styles.commodityTextActive]}>{c}</Text>
+              <Text numberOfLines={2} style={[styles.commodityText, selectedCommodity === c && styles.commodityTextActive]}>{c}</Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
 
-        {/* Filters Panel */}
+        {/* Filters Panel — the Variety picker only appears when the selected
+            commodity actually has varieties (mirrors web). Commodities with a
+            single variety show just the City picker, full width. */}
         <View style={styles.filterRow}>
-          <TouchableOpacity style={styles.filterBox} onPress={showVarietyPicker}>
-             <Text style={styles.filterLabel}>Variety</Text>
-             <View style={styles.pickerContainer}>
-               <Text style={styles.pickerText} numberOfLines={1}>{selectedVariety || 'Default'}</Text>
-               <ChevronDown color="#a3a3a3" size={16} />
-             </View>
-          </TouchableOpacity>
+          {varieties.length > 0 && (
+            <TouchableOpacity style={styles.filterBox} onPress={showVarietyPicker}>
+               <Text style={styles.filterLabel}>Variety</Text>
+               <View style={styles.pickerContainer}>
+                 <Text style={styles.pickerText} numberOfLines={1}>{selectedVariety}</Text>
+                 <ChevronDown color={COLORS.textMuted} size={16} />
+               </View>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.filterBox} onPress={showCityPicker}>
              <Text style={styles.filterLabel}>Market City</Text>
              <View style={styles.pickerContainer}>
                <Text style={styles.pickerText} numberOfLines={1}>{selectedCity || 'Select City'}</Text>
-               <ChevronDown color="#a3a3a3" size={16} />
+               <ChevronDown color={COLORS.textMuted} size={16} />
              </View>
           </TouchableOpacity>
         </View>
@@ -320,44 +306,34 @@ export default function PriceTrendsScreen({ navigation, route }) {
             </View>
           </View>
           <View style={[styles.trendBadge, { backgroundColor: priceChange >= 0 ? 'rgba(22, 163, 74, 0.1)' : 'rgba(220, 38, 38, 0.1)' }]}>
-             <Text style={[styles.trendText, { color: priceChange >= 0 ? '#16a34a' : '#dc2626' }]}>
+             <Text style={[styles.trendText, { color: priceChange >= 0 ? COLORS.primary : '#dc2626' }]}>
                {priceChange >= 0 ? '▲' : '▼'} {priceChange.toFixed(1)}%
              </Text>
           </View>
         </View>
 
-        {/* Time-range picker (mirrors web's 1M / 3M / 6M / 1Y / 5Y / All) */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-          {[
-            { label: '1M',  value: 30   },
-            { label: '3M',  value: 90   },
-            { label: '6M',  value: 180  },
-            { label: '1Y',  value: 365  },
-            { label: '5Y',  value: 1825 },
-            { label: 'All', value: 7300 },
-          ].map((opt) => (
-            <TouchableOpacity
-              key={opt.label}
-              style={[styles.rangeBtn, days === opt.value && styles.rangeBtnActive]}
-              onPress={() => setDays(opt.value)}
-            >
-              <Text style={[styles.rangeText, days === opt.value && styles.rangeTextActive]}>{opt.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {/* Time-range picker — only the ranges that actually contain data for
+            this series are shown (e.g. 1M/3M hidden when the latest price is
+            months old), mirroring web. */}
+        <SegmentedControl
+          style={{ marginBottom: 12 }}
+          value={days}
+          onChange={setDays}
+          options={availablePeriods.map((opt) => ({ value: opt.value, label: opt.label }))}
+        />
 
         {/* Chart View */}
         <View style={styles.chartContainer}>
            <View style={styles.chartHeader}>
              <Text style={styles.chartTitle}>Historical Trend (Last {days} Days)</Text>
              <TouchableOpacity style={styles.refreshBtn} onPress={fetchHistory}>
-                <Text style={{ color: '#16a34a', fontSize: 12 }}>REFRESH</Text>
+                <Text style={{ color: COLORS.primary, fontSize: 12 }}>REFRESH</Text>
              </TouchableOpacity>
            </View>
            
            {loading ? (
              <View style={{ height: 200, justifyContent: 'center' }}>
-               <ActivityIndicator color="#16a34a" />
+               <ActivityIndicator color={COLORS.primary} />
              </View>
            ) : error ? (
               <View style={styles.errorContainer}>
@@ -379,30 +355,27 @@ export default function PriceTrendsScreen({ navigation, route }) {
                 </Text>
               </View>
            ) : (
-             <View style={styles.chartSection}>
-                <SimpleLineChart
-                  data={data}
+             <View
+               style={styles.chartSection}
+               onLayout={(e) => {
+                 const w = Math.round(e.nativeEvent.layout.width);
+                 if (w > 0 && w !== chartW) setChartW(w);
+               }}
+             >
+                <PriceChart
+                  history={data}
                   forecast={forecastDocs}
-                  color={priceChange >= 0 ? '#16a34a' : '#dc2626'}
+                  width={chartW}
                 />
                 {forecastDocs.length > 0 && (
                   <View style={styles.forecastLegend}>
                     <View style={styles.legendRow}>
-                      <View style={[styles.legendDot, { backgroundColor: priceChange >= 0 ? '#16a34a' : '#dc2626' }]} />
+                      <View style={[styles.legendDot, { backgroundColor: priceChange >= 0 ? COLORS.primary : '#dc2626' }]} />
                       <Text style={styles.legendText}>Actual</Text>
                       <View style={[styles.legendDot, { backgroundColor: '#f97316', marginLeft: 16 }]} />
                       <Text style={styles.legendText}>Forecast</Text>
                     </View>
-                    {longestForecast && (
-                      <Text style={styles.legendOutlook}>
-                        12-week outlook: <Text style={{ color: '#f97316', fontWeight: '700' }}>
-                          ₨ {Math.round(longestForecast.predicted_price).toLocaleString()}
-                        </Text>
-                        {longestForecast.expected_mape != null
-                          ? ` ± ${longestForecast.expected_mape.toFixed(1)}%`
-                          : ''}
-                      </Text>
-                    )}
+                    <ForecastOutlook docs={forecastDocs} />
                   </View>
                 )}
              </View>
@@ -413,7 +386,7 @@ export default function PriceTrendsScreen({ navigation, route }) {
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Highest</Text>
-            <Text style={[styles.statValue, { color: '#16a34a' }]}>₨ {highPrice.toLocaleString()}</Text>
+            <Text style={[styles.statValue, { color: COLORS.primary }]}>₨ {highPrice.toLocaleString()}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Lowest</Text>
@@ -430,9 +403,9 @@ export default function PriceTrendsScreen({ navigation, route }) {
       <PickerModal
         visible={showVarietyModal}
         title="Select Variety"
-        options={['', ...varieties]}
+        options={varieties}
         selected={selectedVariety}
-        getLabel={(v) => v || 'Default (no variety)'}
+        getLabel={(v) => v}
         onSelect={(v) => { setSelectedVariety(v); setShowVarietyModal(false); }}
         onClose={() => setShowVarietyModal(false)}
       />
@@ -459,7 +432,7 @@ function PickerModal({ visible, title, options, selected, getLabel, onSelect, on
         <View style={pickerStyles.card}>
           <View style={pickerStyles.header}>
             <Text style={pickerStyles.title}>{title}</Text>
-            <TouchableOpacity onPress={onClose}><X color="#a3a3a3" size={22} /></TouchableOpacity>
+            <TouchableOpacity onPress={onClose}><X color={COLORS.textMuted} size={22} /></TouchableOpacity>
           </View>
           <FlatList
             data={options}
@@ -473,7 +446,7 @@ function PickerModal({ visible, title, options, selected, getLabel, onSelect, on
                 <Text style={[pickerStyles.rowText, selected === item && pickerStyles.rowTextActive]}>
                   {getLabel(item)}
                 </Text>
-                {selected === item && <Check color="#16a34a" size={18} />}
+                {selected === item && <Check color={COLORS.primary} size={18} />}
               </TouchableOpacity>
             )}
           />
@@ -485,57 +458,60 @@ function PickerModal({ visible, title, options, selected, getLabel, onSelect, on
 
 const pickerStyles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' },
-  card: { backgroundColor: '#0f1a12', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, borderTopWidth: 1, borderColor: '#224026' },
+  card: { backgroundColor: COLORS.bg, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, borderTopWidth: 1, borderColor: COLORS.border },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  title: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, marginBottom: 6, borderRadius: 10, backgroundColor: 'rgba(26, 46, 29, 0.4)', borderWidth: 1, borderColor: '#224026' },
-  rowActive: { backgroundColor: 'rgba(22, 163, 74, 0.15)', borderColor: '#16a34a' },
+  title: { color: COLORS.white, fontSize: 18, fontWeight: 'bold' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, marginBottom: 6, borderRadius: 10, backgroundColor: 'rgba(26, 46, 29, 0.4)', borderWidth: 1, borderColor: COLORS.border },
+  rowActive: { backgroundColor: 'rgba(22, 163, 74, 0.15)', borderColor: COLORS.primary },
   rowText: { color: '#e5e7eb', fontSize: 14 },
-  rowTextActive: { color: '#16a34a', fontWeight: '600' },
+  rowTextActive: { color: COLORS.primary, fontWeight: '600' },
 });
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
   backBtn: { padding: 4 },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  headerTitle: { color: COLORS.white, fontSize: 20, fontWeight: 'bold' },
   container: { padding: 20, paddingTop: 0 },
-  commodityList: { marginBottom: 20 },
-  commodityBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: 'rgba(26, 46, 29, 0.8)', marginRight: 10, borderWidth: 1, borderColor: '#224026' },
-  commodityBtnActive: { backgroundColor: '#16a34a', borderColor: '#16a34a' },
-  commodityText: { color: '#a3a3a3', fontSize: 14, fontWeight: '600' },
-  commodityTextActive: { color: '#fff' },
-  rangeBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.25)', marginRight: 8, borderWidth: 1, borderColor: '#374151' },
-  rangeBtnActive: { backgroundColor: 'rgba(22, 163, 74, 0.15)', borderColor: '#16a34a' },
-  rangeText: { color: '#a3a3a3', fontSize: 12, fontWeight: '600' },
-  rangeTextActive: { color: '#16a34a' },
+  commodityList: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
+  // Equal-width 3-column grid so every row has the same count and the chips
+  // line up; long names (e.g. "Seed Cotton (Phutti)") wrap inside the cell.
+  commodityBtn: { width: '31%', minHeight: 46, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, paddingVertical: 8, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: COLORS.border },
+  commodityBtnActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  commodityText: { color: COLORS.textMuted, fontSize: 14, fontWeight: '600', textAlign: 'center' },
+  commodityTextActive: { color: COLORS.white },
+  rangeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  rangeBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.25)', borderWidth: 1, borderColor: COLORS.inputBorder },
+  rangeBtnActive: { backgroundColor: 'rgba(22, 163, 74, 0.15)', borderColor: COLORS.primary },
+  rangeText: { color: COLORS.textMuted, fontSize: 12, fontWeight: '600' },
+  rangeTextActive: { color: COLORS.primary },
   filterRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   filterBox: { flex: 1 },
-  filterLabel: { color: '#a3a3a3', fontSize: 12, marginBottom: 6, marginLeft: 4 },
-  pickerContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, height: 44, borderRadius: 12, backgroundColor: 'rgba(26, 46, 29, 0.8)', borderWidth: 1, borderColor: '#224026' },
-  pickerText: { color: '#fff', fontSize: 14, fontWeight: '500', flex: 1 },
-  heroCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: 'rgba(26, 46, 29, 0.8)', borderRadius: 20, borderWidth: 1, borderColor: '#224026', marginBottom: 20 },
-  priceLabel: { color: '#a3a3a3', fontSize: 12, marginBottom: 4 },
-  priceValue: { color: '#fff', fontSize: 28, fontWeight: '900' },
-  unitText: { color: '#6b7280', fontSize: 14, marginLeft: 6, marginBottom: 4 },
+  filterLabel: { color: COLORS.textMuted, fontSize: 12, marginBottom: 6, marginLeft: 4 },
+  pickerContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, height: 44, borderRadius: 12, backgroundColor: 'rgba(26, 46, 29, 0.8)', borderWidth: 1, borderColor: COLORS.border },
+  pickerText: { color: COLORS.white, fontSize: 14, fontWeight: '500', flex: 1 },
+  heroCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: 'rgba(26, 46, 29, 0.8)', borderRadius: 20, borderWidth: 1, borderColor: COLORS.border, marginBottom: 20 },
+  priceLabel: { color: COLORS.textMuted, fontSize: 12, marginBottom: 4 },
+  priceValue: { color: COLORS.white, fontSize: 28, fontWeight: '900' },
+  unitText: { color: COLORS.textFaint, fontSize: 14, marginLeft: 6, marginBottom: 4 },
   priceRow: { flexDirection: 'row', alignItems: 'baseline' },
   trendBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12 },
   trendText: { fontSize: 14, fontWeight: 'bold' },
-  chartContainer: { backgroundColor: 'rgba(26, 46, 29, 0.8)', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#224026', marginBottom: 20 },
+  chartContainer: { backgroundColor: 'rgba(26, 46, 29, 0.8)', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: COLORS.border, marginBottom: 20 },
   chartHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  chartTitle: { color: '#a3a3a3', fontSize: 14, fontWeight: '600' },
+  chartTitle: { color: COLORS.textMuted, fontSize: 14, fontWeight: '600' },
   chartSection: { paddingVertical: 10 },
   forecastLegend: { marginTop: 12, paddingHorizontal: 8 },
   legendRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
-  legendText: { color: '#9ca3af', fontSize: 12 },
-  legendOutlook: { color: '#9ca3af', fontSize: 12 },
+  legendText: { color: COLORS.gray400, fontSize: 12 },
+  legendOutlook: { color: COLORS.gray400, fontSize: 12 },
   errorContainer: { height: 200, justifyContent: 'center', alignItems: 'center' },
-  errorText: { color: '#6b7280', marginTop: 10, textAlign: 'center' },
+  errorText: { color: COLORS.textFaint, marginTop: 10, textAlign: 'center' },
   statsGrid: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  statCard: { flex: 1, padding: 16, backgroundColor: 'rgba(26, 46, 29, 0.8)', borderRadius: 16, borderWidth: 1, borderColor: '#224026' },
-  statLabel: { color: '#a3a3a3', fontSize: 12, marginBottom: 4 },
+  statCard: { flex: 1, padding: 16, backgroundColor: 'rgba(26, 46, 29, 0.8)', borderRadius: 16, borderWidth: 1, borderColor: COLORS.border },
+  statLabel: { color: COLORS.textMuted, fontSize: 12, marginBottom: 4 },
   statValue: { fontSize: 18, fontWeight: 'bold' },
   infoBox: { padding: 16, backgroundColor: 'rgba(59, 130, 246, 0.05)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(59, 130, 246, 0.2)' },
-  infoText: { color: '#9ca3af', fontSize: 12, lineHeight: 18, textAlign: 'center' }
+  infoText: { color: COLORS.gray400, fontSize: 12, lineHeight: 18, textAlign: 'center' }
 });

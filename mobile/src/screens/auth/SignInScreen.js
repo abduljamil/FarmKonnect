@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState, useContext, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
@@ -23,25 +24,12 @@ const GOOGLE_IOS_CLIENT_ID     = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
 const GOOGLE_WEB_CLIENT_ID     = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
-export default function SignInScreen({ navigation }) {
-  const { t } = useTranslation();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+// Mounts the expo-auth-session Google hook. Rendered ONLY when at least one
+// client ID is configured — calling the hook with undefined iosClientId throws
+// on iOS, which is why this is isolated in its own conditionally-mounted child.
+function GoogleButton({ t, onError }) {
+  const { signInWithGoogle } = useContext(AuthContext);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [requiresVerification, setRequiresVerification] = useState(false);
-  const [unverifiedEmail, setUnverifiedEmail] = useState('');
-  const [resending, setResending] = useState(false);
-  const [resendSuccess, setResendSuccess] = useState(false);
-  const { signIn, signInWithGoogle } = useContext(AuthContext);
-
-  // expo-auth-session Google provider — returns an `idToken` we POST to the
-  // backend's /api/auth/google. If the client IDs aren't configured we
-  // short-circuit so the Continue with Google button explains why instead
-  // of opening a broken consent screen.
-  const googleConfigured = !!(GOOGLE_IOS_CLIENT_ID || GOOGLE_ANDROID_CLIENT_ID || GOOGLE_WEB_CLIENT_ID);
   const [googleRequest, googleResponse, promptGoogle] = Google.useIdTokenAuthRequest({
     iosClientId:     GOOGLE_IOS_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
@@ -55,42 +43,81 @@ export default function SignInScreen({ navigation }) {
       if (idToken) {
         setGoogleLoading(true);
         signInWithGoogle(idToken)
-          .then((r) => {
-            if (!r.success) {
-              setError(r.message || t('errors.somethingWrong'));
-            }
-          })
+          .then((r) => { if (!r.success) onError(r.message || t('errors.somethingWrong')); })
           .finally(() => setGoogleLoading(false));
       }
     } else if (googleResponse?.type === 'error') {
-      setError(googleResponse?.error?.message || 'Google sign-in cancelled');
+      onError(googleResponse?.error?.message || 'Google sign-in cancelled');
       setGoogleLoading(false);
     }
   }, [googleResponse]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleGoogleSignIn = async () => {
-    if (!googleConfigured) {
-      Alert.alert(
-        'Not configured',
-        'Google sign-in is not set up yet. Ask the developer to add EXPO_PUBLIC_GOOGLE_* client IDs.'
-      );
-      return;
-    }
+  const handlePress = async () => {
     if (!googleRequest) return; // request still initializing
-    setError('');
+    onError('');
     setGoogleLoading(true);
     try {
-      // promptAsync opens the in-app browser → Google consent → returns
-      // params.id_token. The useEffect above picks the result up.
       await promptGoogle();
     } catch (err) {
-      setError(err.message || t('errors.somethingWrong'));
+      onError(err.message || t('errors.somethingWrong'));
       setGoogleLoading(false);
     }
   };
 
-  // Add useEffect import safety guard — we already used it
-  // unconditionally; just import below.
+  return (
+    <TouchableOpacity
+      style={[styles.googleBtn, googleLoading && styles.btnDisabled]}
+      onPress={handlePress}
+      disabled={googleLoading}
+    >
+      {googleLoading ? (
+        <ActivityIndicator color="white" />
+      ) : (
+        <>
+          <Text style={styles.googleIcon}>G</Text>
+          <Text style={styles.googleText}>{t('auth.signIn.google')}</Text>
+        </>
+      )}
+    </TouchableOpacity>
+  );
+}
+
+// Shown when no Google client IDs are configured — explains the setup step
+// instead of opening a broken consent screen or crashing.
+function GoogleButtonUnconfigured({ t }) {
+  return (
+    <TouchableOpacity
+      style={styles.googleBtn}
+      onPress={() => Alert.alert(
+        'Not configured',
+        'Google sign-in is not set up yet. Ask the developer to add EXPO_PUBLIC_GOOGLE_* client IDs.'
+      )}
+    >
+      <Text style={styles.googleIcon}>G</Text>
+      <Text style={styles.googleText}>{t('auth.signIn.google')}</Text>
+    </TouchableOpacity>
+  );
+}
+
+export default function SignInScreen({ navigation }) {
+  const { t } = useTranslation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [requiresVerification, setRequiresVerification] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const { signIn } = useContext(AuthContext);
+
+  // Google client IDs are optional. expo-auth-session's Google provider throws
+  // synchronously ("iosClientId must be defined") on iOS if its hook runs with
+  // undefined IDs, so the hook lives in <GoogleButton> below, which is only
+  // mounted when at least one client ID is configured. When it isn't, we render
+  // a button that explains the setup step instead of crashing the screen.
+  const googleConfigured = !!(GOOGLE_IOS_CLIENT_ID || GOOGLE_ANDROID_CLIENT_ID || GOOGLE_WEB_CLIENT_ID);
 
   const handleResendVerification = async () => {
     if (!unverifiedEmail) return;
@@ -141,7 +168,7 @@ export default function SignInScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
 
       {/* Animated Background */}
       <AnimatedBlobs />
@@ -166,21 +193,10 @@ export default function SignInScreen({ navigation }) {
             <Text style={styles.title}>{t('auth.signIn.title')}</Text>
             <Text style={styles.subtitle}>{t('auth.signIn.subtitle')}</Text>
 
-            {/* Google Button */}
-            <TouchableOpacity
-              style={[styles.googleBtn, googleLoading && styles.btnDisabled]}
-              onPress={handleGoogleSignIn}
-              disabled={googleLoading}
-            >
-              {googleLoading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <>
-                  <Text style={styles.googleIcon}>G</Text>
-                  <Text style={styles.googleText}>{t('auth.signIn.google')}</Text>
-                </>
-              )}
-            </TouchableOpacity>
+            {/* Google Button — the auth hook only mounts when configured */}
+            {googleConfigured
+              ? <GoogleButton t={t} onError={setError} />
+              : <GoogleButtonUnconfigured t={t} />}
 
             {/* Divider */}
             <View style={styles.dividerRow}>
@@ -218,7 +234,7 @@ export default function SignInScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder={t('auth.signIn.email')}
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={COLORS.textFaint}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -232,7 +248,7 @@ export default function SignInScreen({ navigation }) {
               <TextInput
                 style={styles.passwordInput}
                 placeholder={t('auth.signIn.password')}
-                placeholderTextColor="#6b7280"
+                placeholderTextColor={COLORS.textFaint}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -297,7 +313,7 @@ export default function SignInScreen({ navigation }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0f1a12', alignItems: 'center',
+    backgroundColor: COLORS.bg, alignItems: 'center',
   },
   flex: { flex: 1 },
 
@@ -309,7 +325,7 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: '#16a34a',
+    backgroundColor: COLORS.primary,
     opacity: 0.15,
   },
   blobRight: {
@@ -319,7 +335,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: '#10b981',
+    backgroundColor: COLORS.accent,
     opacity: 0.12,
   },
 
@@ -342,12 +358,12 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4ade80',
+    color: COLORS.primaryLight,
   },
 
   // Card
   card: {
-    backgroundColor: '#1a2e1f',
+    backgroundColor: COLORS.surface,
     borderRadius: 20,
     padding: 24,
     borderWidth: 1,
@@ -356,13 +372,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: COLORS.white,
     textAlign: 'center',
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: COLORS.gray400,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -372,12 +388,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#263a2c',
+    backgroundColor: COLORS.inputBg,
     borderRadius: 12,
     paddingVertical: 14,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#374151',
+    borderColor: COLORS.inputBorder,
   },
   googleIcon: {
     fontSize: 18,
@@ -386,7 +402,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   googleText: {
-    color: '#ffffff',
+    color: COLORS.white,
     fontSize: 15,
     fontWeight: '600',
   },
@@ -403,7 +419,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2d4a35',
   },
   dividerText: {
-    color: '#6b7280',
+    color: COLORS.textFaint,
     fontSize: 12,
     marginHorizontal: 10,
   },
@@ -428,29 +444,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(251, 191, 36, 0.4)',
   },
-  verifyTitle: { color: '#fbbf24', fontSize: 14, fontWeight: '700', marginBottom: 4 },
+  verifyTitle: { color: COLORS.warning, fontSize: 14, fontWeight: '700', marginBottom: 4 },
   verifyDesc:  { color: '#fde68a', fontSize: 12, lineHeight: 18 },
-  verifyLink:  { color: '#fbbf24', fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' },
+  verifyLink:  { color: COLORS.warning, fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' },
 
   // Labels
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#d1d5db',
+    color: COLORS.gray300,
     marginBottom: 8,
   },
-  required: { color: '#ef4444' },
+  required: { color: COLORS.danger },
 
   // Input
   input: {
-    backgroundColor: '#263a2c',
+    backgroundColor: COLORS.inputBg,
     borderWidth: 1,
-    borderColor: '#374151',
+    borderColor: COLORS.inputBorder,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#ffffff',
+    color: COLORS.white,
     marginBottom: 16,
   },
 
@@ -458,9 +474,9 @@ const styles = StyleSheet.create({
   passwordWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#263a2c',
+    backgroundColor: COLORS.inputBg,
     borderWidth: 1,
-    borderColor: '#374151',
+    borderColor: COLORS.inputBorder,
     borderRadius: 12,
     marginBottom: 12,
     paddingHorizontal: 16,
@@ -469,29 +485,29 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#ffffff',
+    color: COLORS.white,
   },
   eyeBtn: { padding: 4 },
   eyeIcon: { fontSize: 18 },
 
   // Forgot
   forgotRow: { alignItems: 'flex-end', marginBottom: 20 },
-  forgotText: { color: '#4ade80', fontSize: 13, fontWeight: '600' },
+  forgotText: { color: COLORS.primaryLight, fontSize: 13, fontWeight: '600' },
 
   // Sign In Button
   signInBtn: {
-    backgroundColor: '#16a34a',
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: '#16a34a',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 6,
   },
-  btnDisabled: { backgroundColor: '#374151' },
+  btnDisabled: { backgroundColor: COLORS.inputBorder },
   signInBtnText: {
     color: 'white',
     fontWeight: 'bold',
@@ -503,8 +519,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
   },
-  footerText: { color: '#9ca3af', fontSize: 14 },
-  footerLink: { color: '#4ade80', fontWeight: 'bold', fontSize: 14 },
+  footerText: { color: COLORS.gray400, fontSize: 14 },
+  footerLink: { color: COLORS.primaryLight, fontWeight: 'bold', fontSize: 14 },
 
   // Badges
   badgesRow: {
@@ -513,12 +529,12 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   badge: {
-    backgroundColor: '#1a2e1f',
+    backgroundColor: COLORS.surface,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderWidth: 1,
     borderColor: '#2d4a35',
   },
-  badgeText: { color: '#4ade80', fontSize: 11, fontWeight: '600' },
+  badgeText: { color: COLORS.primaryLight, fontSize: 11, fontWeight: '600' },
 });

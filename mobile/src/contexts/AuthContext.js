@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api, { setAuthToken, setOnUnauthorized } from '../services/api';
+import { getToken, setToken as persistToken, clearToken } from '../services/tokenStorage';
 import { registerForPushNotificationsAsync, unregisterPushToken } from '../services/pushNotifications';
 
 export const AuthContext = createContext();
@@ -13,12 +14,15 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // M4 perf fix: one round-trip to AsyncStorage instead of two sequential awaits.
+    // Token comes from SecureStore (keychain/keystore); the non-sensitive user
+    // profile stays in AsyncStorage. getToken() also migrates any legacy
+    // plaintext token left behind by pre-SecureStore builds.
     const loadStorageData = async () => {
       try {
-        const pairs = await AsyncStorage.multiGet(['token', 'user']);
-        const storedToken = pairs.find(([k]) => k === 'token')?.[1];
-        const storedUser  = pairs.find(([k]) => k === 'user' )?.[1];
+        const [storedToken, storedUser] = await Promise.all([
+          getToken(),
+          AsyncStorage.getItem('user'),
+        ]);
         setAuthToken(storedToken || null);
         if (storedToken) setToken(storedToken);
         if (storedUser) setUser(JSON.parse(storedUser));
@@ -72,10 +76,9 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: 'Server did not return a session token.' };
       }
 
-      // Single multiSet roundtrip beats two awaits (M4 perf fix).
-      const pairs = [['token', token]];
-      if (user) pairs.push(['user', JSON.stringify(user)]);
-      await AsyncStorage.multiSet(pairs);
+      // Token → SecureStore; user profile → AsyncStorage.
+      await persistToken(token);
+      if (user) await AsyncStorage.setItem('user', JSON.stringify(user));
       setAuthToken(token);
       setToken(token);
       if (user) setUser(user);
@@ -118,7 +121,8 @@ export const AuthProvider = ({ children }) => {
     // on this device. Non-blocking; we still log out on failure.
     try { await unregisterPushToken(); } catch { /* non-fatal */ }
     try {
-      await AsyncStorage.multiRemove(['token', 'user']);
+      await clearToken();
+      await AsyncStorage.removeItem('user');
     } catch {
       // Storage failure is non-fatal; state still clears.
     }
@@ -141,9 +145,8 @@ export const AuthProvider = ({ children }) => {
       if (!token) {
         return { success: false, message: 'Server did not return a session token.' };
       }
-      const pairs = [['token', token]];
-      if (u) pairs.push(['user', JSON.stringify(u)]);
-      await AsyncStorage.multiSet(pairs);
+      await persistToken(token);
+      if (u) await AsyncStorage.setItem('user', JSON.stringify(u));
       setAuthToken(token);
       setToken(token);
       if (u) setUser(u);

@@ -1,7 +1,9 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { MapPin, Navigation, X } from 'lucide-react-native';
 import * as Location from 'expo-location';
+import { useTranslation } from 'react-i18next';
 
 // Map-free location picker. The web version uses Leaflet (react-leaflet),
 // which has no React Native equivalent without a custom dev build
@@ -16,6 +18,7 @@ import * as Location from 'expo-location';
 // so the rest of the listing/transaction backend works unchanged.
 
 export default function LocationPicker({ value, onChange, label = 'Location', placeholder = 'e.g. Multan, Punjab' }) {
+  const { t } = useTranslation();
   const [resolving, setResolving] = useState(false);
   const text = value?.address || (typeof value === 'string' ? value : '');
 
@@ -24,7 +27,7 @@ export default function LocationPicker({ value, onChange, label = 'Location', pl
     try {
       const perm = await Location.requestForegroundPermissionsAsync();
       if (perm.status !== 'granted') {
-        Alert.alert('Permission denied', 'Allow location access to auto-fill your address.');
+        Alert.alert(t('mobile.alerts.permissionDenied'), t('mobile.alerts.locationPermission'));
         return;
       }
       const loc = await Location.getCurrentPositionAsync({});
@@ -43,7 +46,7 @@ export default function LocationPicker({ value, onChange, label = 'Location', pl
 
       onChange?.({ address, latitude: lat, longitude: lng });
     } catch (err) {
-      Alert.alert('Error', err.message || 'Could not get current location');
+      Alert.alert(t('common.error'), err.message || t('mobile.alerts.locationError'));
     } finally {
       setResolving(false);
     }
@@ -66,24 +69,24 @@ export default function LocationPicker({ value, onChange, label = 'Location', pl
     <View style={styles.wrap}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.inputRow}>
-        <MapPin color="#16a34a" size={18} />
+        <MapPin color={COLORS.primary} size={18} />
         <TextInput
           style={styles.input}
           value={text}
           onChangeText={handleType}
           placeholder={placeholder}
-          placeholderTextColor="#6b7280"
+          placeholderTextColor={COLORS.textFaint}
         />
         {text ? (
           <TouchableOpacity onPress={handleClear}>
-            <X color="#6b7280" size={18} />
+            <X color={COLORS.textFaint} size={18} />
           </TouchableOpacity>
         ) : null}
       </View>
       <TouchableOpacity style={styles.useCurrentBtn} onPress={handleUseCurrent} disabled={resolving}>
         {resolving
-          ? <ActivityIndicator color="#16a34a" />
-          : (<><Navigation color="#16a34a" size={16} /><Text style={styles.useCurrentText}>Use my current location</Text></>)}
+          ? <ActivityIndicator color={COLORS.primary} />
+          : (<><Navigation color={COLORS.primary} size={16} /><Text style={styles.useCurrentText}>Use my current location</Text></>)}
       </TouchableOpacity>
       {value?.latitude && value?.longitude ? (
         <Text style={styles.coordHint}>
@@ -96,10 +99,10 @@ export default function LocationPicker({ value, onChange, label = 'Location', pl
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: 16 },
-  label: { color: '#fff', fontSize: 14, fontWeight: '600', marginBottom: 8 },
-  inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(26, 46, 29, 0.8)', borderWidth: 1, borderColor: '#224026', borderRadius: 12, paddingHorizontal: 14, gap: 10 },
-  input: { flex: 1, height: 50, color: '#fff', fontSize: 15 },
+  label: { color: COLORS.white, fontSize: 14, fontWeight: '600', marginBottom: 8 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(26, 46, 29, 0.8)', borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 14, gap: 10 },
+  input: { flex: 1, height: 50, color: COLORS.white, fontSize: 15 },
   useCurrentBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginTop: 8, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 10, backgroundColor: 'rgba(22, 163, 74, 0.1)', borderWidth: 1, borderColor: 'rgba(22, 163, 74, 0.3)' },
-  useCurrentText: { color: '#16a34a', fontSize: 13, fontWeight: '600' },
-  coordHint: { color: '#6b7280', fontSize: 11, marginTop: 6 },
+  useCurrentText: { color: COLORS.primary, fontSize: 13, fontWeight: '600' },
+  coordHint: { color: COLORS.textFaint, fontSize: 11, marginTop: 6 },
 });

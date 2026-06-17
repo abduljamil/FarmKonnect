@@ -32,7 +32,7 @@ exports.getProfile = async (req, res) => {
 // Update user profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, phone, location, bio, avatar } = req.body;
+    const { name, phone, location, bio, avatar, jazzcashNumber } = req.body;
 
     const updateData = {};
     if (name) updateData.name = name;
@@ -40,6 +40,7 @@ exports.updateProfile = async (req, res) => {
     if (location !== undefined) updateData.location = location;
     if (bio !== undefined) updateData.bio = bio;
     if (avatar !== undefined) updateData.avatar = avatar;
+    if (jazzcashNumber !== undefined) updateData.jazzcashNumber = jazzcashNumber;
 
     const user = await User.findByIdAndUpdate(
       req.user._id,

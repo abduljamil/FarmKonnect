@@ -1,10 +1,16 @@
+import { COLORS } from '../../constants/colors';
 ﻿import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, Switch, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import Constants from 'expo-constants';
 import { AuthContext } from '../../contexts/AuthContext';
 import { Bell, ChevronLeft, Globe, ExternalLink } from 'lucide-react-native';
 import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
+import { useTheme, useColors } from '../../contexts/ThemeContext';
+
+// Real app version from the Expo config instead of a hardcoded "Build 42".
+const APP_VERSION = Constants.expoConfig?.version || '1.0.0';
 
 // Settings screen — previously had three fake toggles (dark mode, push
 // notifications, location services) that maintained local React state but
@@ -21,16 +27,18 @@ import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
 export default function SettingsScreen({ navigation }) {
   const { logout } = useContext(AuthContext);
   const { i18n, t } = useTranslation();
+  const { mode, toggleTheme } = useTheme();
+  const C = useColors();
   const [isUrdu, setIsUrdu] = useState(i18n.language === 'ur');
 
-  // Hard-styled dark palette — the rest of the app uses these colors too.
+  // Active theme palette — flips live with the Dark Mode toggle below.
   const theme = {
-    bg: '#0f1a12',
-    cardBg: 'rgba(26, 46, 31, 0.8)',
-    text: '#ffffff',
-    textMuted: '#a3a3a3',
-    border: '#224026',
-    iconColor: '#16a34a',
+    bg: C.bg,
+    cardBg: C.surfaceAlt,
+    text: C.text,
+    textMuted: C.textMuted,
+    border: C.border,
+    iconColor: C.primary,
   };
 
   useEffect(() => {
@@ -55,7 +63,7 @@ export default function SettingsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      <StatusBar barStyle={mode === 'light' ? 'dark-content' : 'light-content'} backgroundColor={theme.bg} />
       <AnimatedBlobs />
 
       <View style={[styles.navHeader, { backgroundColor: theme.bg }]}>
@@ -82,11 +90,27 @@ export default function SettingsScreen({ navigation }) {
               <Switch
                 value={isUrdu}
                 onValueChange={toggleLanguage}
-                trackColor={{ false: '#224026', true: '#16a34a' }}
-                thumbColor={'#ffffff'}
+                trackColor={{ false: COLORS.border, true: COLORS.primary }}
+                thumbColor={COLORS.white}
               />
               <Text style={[styles.langText, isUrdu && styles.langActive, { color: isUrdu ? theme.iconColor : theme.textMuted }]}>UR</Text>
             </View>
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+          {/* Dark Mode toggle — flips the app theme live (persisted). */}
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Text style={{ fontSize: 20, marginRight: 12 }}>{mode === 'light' ? '☀️' : '🌙'}</Text>
+              <Text style={[styles.label, { color: theme.text }]}>{t('mobile.settings.darkMode')}</Text>
+            </View>
+            <Switch
+              value={mode === 'dark'}
+              onValueChange={toggleTheme}
+              trackColor={{ false: C.inputBorder, true: C.primary }}
+              thumbColor={C.white}
+            />
           </View>
         </View>
 
@@ -120,7 +144,7 @@ export default function SettingsScreen({ navigation }) {
           <Text style={styles.logoutText}>{t('mobile.settings.logOut')}</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.versionText, { color: theme.textMuted }]}>{t('mobile.settings.version')}</Text>
+        <Text style={[styles.versionText, { color: theme.textMuted }]}>Version {APP_VERSION}</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -136,7 +160,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, fontWeight: 'bold' },
   container: { padding: 24, paddingBottom: 60 },
   sectionTitle: { fontSize: 15, fontWeight: '600', textTransform: 'uppercase', marginBottom: 12, marginTop: 8, letterSpacing: 1 },
-  section: { borderRadius: 20, padding: 16, borderWidth: 1, marginBottom: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  section: { borderRadius: 20, padding: 16, borderWidth: 1, marginBottom: 24, shadowColor: COLORS.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
   rowLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   label: { fontSize: 16, fontWeight: '500', marginLeft: 12 },
@@ -145,6 +169,6 @@ const styles = StyleSheet.create({
   langText: { fontSize: 13, fontWeight: '600', marginHorizontal: 6 },
   langActive: { fontWeight: '700' },
   logoutButton: { borderWidth: 1, padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 12 },
-  logoutText: { color: '#ef4444', fontWeight: 'bold', fontSize: 16, letterSpacing: 0.5 },
+  logoutText: { color: COLORS.danger, fontWeight: 'bold', fontSize: 16, letterSpacing: 0.5 },
   versionText: { textAlign: 'center', fontSize: 13, marginTop: 40 }
 });

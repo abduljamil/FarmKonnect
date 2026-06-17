@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState, useContext, useMemo } from 'react';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -69,12 +70,12 @@ export default function CreateTransactionScreen({ navigation, route }) {
       return;
     }
     if (!deliveryAddress || deliveryAddress.trim().length < 10) {
-      Alert.alert(t('common.error'), 'Please provide a delivery address of at least 10 characters');
+      Alert.alert(t('common.error'), t('mobile.alerts.deliveryAddressMin'));
       return;
     }
     const phoneRegex = /^03[0-9]{9}$/;
     if (!buyerPhone || !phoneRegex.test(buyerPhone)) {
-      Alert.alert(t('common.error'), 'Please enter a valid Pakistani phone number (03XXXXXXXXX)');
+      Alert.alert(t('common.error'), t('mobile.alerts.validPhone'));
       return;
     }
 
@@ -109,13 +110,13 @@ export default function CreateTransactionScreen({ navigation, route }) {
           setPendingTxId(txId);
           setJcModalOpen(true);
         } else {
-          Alert.alert(t('common.success'), 'Order placed.', [
+          Alert.alert(t('common.success'), t('mobile.alerts.orderPlaced'), [
             { text: t('common.ok'), onPress: () => navigation.replace('TransactionDetail', { id: txId }) }
           ]);
         }
       }
     } catch (error) {
-      console.error('Failed to place order:', error);
+      console.log('Failed to place order:', error);
       Alert.alert(t('common.error'), error.response?.data?.message || t('errors.somethingWrong'));
     } finally {
       setLoading(false);
@@ -124,7 +125,7 @@ export default function CreateTransactionScreen({ navigation, route }) {
 
   const handleJazzCashSubmit = async () => {
     if (!/^03[0-9]{9}$/.test(jcMobile)) {
-      Alert.alert(t('common.error'), 'JazzCash mobile must be 03XXXXXXXXX');
+      Alert.alert(t('common.error'), t('mobile.alerts.jazzcashMobileFormat'));
       return;
     }
     setJcSubmitting(true);
@@ -135,11 +136,11 @@ export default function CreateTransactionScreen({ navigation, route }) {
         paymentIdempotencyKey: `pay_${pendingTxId}_${Date.now()}`,
       });
       setJcModalOpen(false);
-      Alert.alert(t('common.success'), 'Payment processed successfully.', [
+      Alert.alert(t('common.success'), t('mobile.alerts.paymentProcessed'), [
         { text: t('common.ok'), onPress: () => navigation.replace('TransactionDetail', { id: pendingTxId }) }
       ]);
     } catch (err) {
-      Alert.alert(t('common.error'), err.response?.data?.message || 'Payment failed');
+      Alert.alert(t('common.error'), err.response?.data?.message || t('mobile.alerts.paymentFailed'));
     } finally {
       setJcSubmitting(false);
     }
@@ -147,27 +148,27 @@ export default function CreateTransactionScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <ArrowLeft color="#fff" size={24} />
+          <ArrowLeft color={COLORS.white} size={24} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Checkout</Text>
+        <Text style={styles.headerTitle}>{t('mobile.checkout.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : null}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Item Summary</Text>
+            <Text style={styles.sectionTitle}>{t('mobile.checkout.itemSummary')}</Text>
             <View style={styles.summaryRow}>
               <Text style={styles.itemName}>{item.title}</Text>
               <Text style={styles.itemPrice}>₨ {item.price?.toLocaleString()}</Text>
             </View>
-            <Text style={styles.itemMeta}>per {item.unit || 'unit'} • Sold by {item.createdBy?.name || 'Seller'}</Text>
+            <Text style={styles.itemMeta}>{t('mobile.checkout.perUnitSoldBy', { unit: item.unit || 'unit', seller: item.createdBy?.name || 'Seller' })}</Text>
             
             <View style={styles.qtyRow}>
-              <Text style={styles.qtyLabel}>Quantity ({item.unit || 'units'})</Text>
+              <Text style={styles.qtyLabel}>{t('mobile.checkout.quantityLabel', { unit: item.unit || 'units' })}</Text>
               <View style={styles.qtyInputBox}>
                 <TextInput 
                   style={styles.qtyInput} 
@@ -180,20 +181,20 @@ export default function CreateTransactionScreen({ navigation, route }) {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Delivery Information</Text>
+            <Text style={styles.sectionTitle}>{t('mobile.checkout.deliveryInfo')}</Text>
             <LocationPicker
-              label="Delivery Address *"
-              placeholder="Full delivery address..."
+              label={t('mobile.checkout.deliveryAddress')}
+              placeholder={t('mobile.checkout.deliveryAddressPlaceholder')}
               value={deliveryLocation}
               onChange={setDeliveryLocation}
             />
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Phone Number*</Text>
+              <Text style={styles.inputLabel}>{t('mobile.checkout.phoneNumber')}</Text>
               <TextInput 
                 style={styles.textInput} 
                 placeholder="03XXXXXXXXX" 
-                placeholderTextColor="#6b7280"
+                placeholderTextColor={COLORS.textFaint}
                 keyboardType="phone-pad"
                 value={buyerPhone}
                 onChangeText={setBuyerPhone}
@@ -202,11 +203,11 @@ export default function CreateTransactionScreen({ navigation, route }) {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Delivery Notes (Optional)</Text>
-              <TextInput 
-                style={styles.textInput} 
-                placeholder="Special instructions for delivery..." 
-                placeholderTextColor="#6b7280"
+              <Text style={styles.inputLabel}>{t('mobile.checkout.deliveryNotes')}</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder={t('mobile.checkout.deliveryNotesPlaceholder')}
+                placeholderTextColor={COLORS.textFaint}
                 value={deliveryNotes}
                 onChangeText={setDeliveryNotes}
               />
@@ -214,20 +215,20 @@ export default function CreateTransactionScreen({ navigation, route }) {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('priceAlerts.form.commodity') /* placeholder, payment label */}</Text>
+            <Text style={styles.sectionTitle}>{t('mobile.checkout.paymentMethod')}</Text>
 
             <TouchableOpacity
               style={[styles.paymentOption, paymentMethod === 'cod' && styles.paymentActive]}
               onPress={() => setPaymentMethod('cod')}
             >
               <View style={styles.paymentLeft}>
-                <Truck color={paymentMethod === 'cod' ? '#16a34a' : '#a3a3a3'} size={24} />
+                <Truck color={paymentMethod === 'cod' ? COLORS.primary : COLORS.textMuted} size={24} />
                 <View>
-                  <Text style={[styles.paymentText, paymentMethod === 'cod' && styles.paymentTextActive]}>Cash on Delivery</Text>
-                  <Text style={styles.paymentSubtext}>Pay when the order arrives</Text>
+                  <Text style={[styles.paymentText, paymentMethod === 'cod' && styles.paymentTextActive]}>{t('mobile.checkout.cod')}</Text>
+                  <Text style={styles.paymentSubtext}>{t('mobile.checkout.codDesc')}</Text>
                 </View>
               </View>
-              {paymentMethod === 'cod' ? <CheckCircle2 color="#16a34a" size={20} /> : <Circle color="#374151" size={20} />}
+              {paymentMethod === 'cod' ? <CheckCircle2 color={COLORS.primary} size={20} /> : <Circle color={COLORS.inputBorder} size={20} />}
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -235,13 +236,13 @@ export default function CreateTransactionScreen({ navigation, route }) {
               onPress={() => setPaymentMethod('jazzcash')}
             >
               <View style={styles.paymentLeft}>
-                <CreditCard color={paymentMethod === 'jazzcash' ? '#16a34a' : '#a3a3a3'} size={24} />
+                <CreditCard color={paymentMethod === 'jazzcash' ? COLORS.primary : COLORS.textMuted} size={24} />
                 <View>
-                  <Text style={[styles.paymentText, paymentMethod === 'jazzcash' && styles.paymentTextActive]}>JazzCash Escrow</Text>
-                  <Text style={styles.paymentSubtext}>You'll be prompted for mobile + CNIC after order is placed</Text>
+                  <Text style={[styles.paymentText, paymentMethod === 'jazzcash' && styles.paymentTextActive]}>{t('mobile.checkout.jazzcash')}</Text>
+                  <Text style={styles.paymentSubtext}>{t('mobile.checkout.jazzcashDesc')}</Text>
                 </View>
               </View>
-              {paymentMethod === 'jazzcash' ? <CheckCircle2 color="#16a34a" size={20} /> : <Circle color="#374151" size={20} />}
+              {paymentMethod === 'jazzcash' ? <CheckCircle2 color={COLORS.primary} size={20} /> : <Circle color={COLORS.inputBorder} size={20} />}
             </TouchableOpacity>
 
             {/* EasyPaisa removed — listed as a payment method in the backend
@@ -250,25 +251,25 @@ export default function CreateTransactionScreen({ navigation, route }) {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>{t('listingDetails.specifications') || 'Order Total'}</Text>
+            <Text style={styles.sectionTitle}>{t('mobile.checkout.orderTotal')}</Text>
             <View style={styles.priceRow}>
               <Text style={styles.priceLabel}>{item.title}</Text>
               <Text style={styles.priceValue}>₨ {unitPrice.toLocaleString()} × {qty}</Text>
             </View>
             <View style={styles.divider} />
             <View style={[styles.priceRow, { marginBottom: 0 }]}>
-              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalLabel}>{t('mobile.checkout.total')}</Text>
               <Text style={styles.totalValue}>₨ {total.toLocaleString()}</Text>
             </View>
           </View>
 
           <View style={styles.escrowNotice}>
-            <ShieldCheck color="#16a34a" size={20} />
-            <Text style={styles.escrowNoticeText}>FarmKonnect holds your payment safely until you confirm delivery. You're 100% protected.</Text>
+            <ShieldCheck color={COLORS.primary} size={20} />
+            <Text style={styles.escrowNoticeText}>{t('mobile.checkout.escrowNotice')}</Text>
           </View>
 
           <TouchableOpacity style={styles.checkoutBtn} onPress={handleCheckout} disabled={loading}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.checkoutBtnText}>Confirm Order</Text>}
+            {loading ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.checkoutBtnText}>{t('mobile.checkout.confirmOrder')}</Text>}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -278,15 +279,15 @@ export default function CreateTransactionScreen({ navigation, route }) {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Pay with JazzCash</Text>
+              <Text style={styles.modalTitle}>{t('mobile.checkout.payWithJazzcash')}</Text>
               <TouchableOpacity onPress={() => setJcModalOpen(false)} disabled={jcSubmitting}>
-                <X color="#a3a3a3" size={22} />
+                <X color={COLORS.textMuted} size={22} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalHelper}>
-              We'll charge ₨ {total.toLocaleString()} to your JazzCash mobile wallet.
+              {t('mobile.checkout.chargeNotice', { amount: total.toLocaleString() })}
             </Text>
-            <Text style={styles.modalLabel}>JazzCash Mobile Number *</Text>
+            <Text style={styles.modalLabel}>{t('mobile.checkout.jazzcashMobile')}</Text>
             <TextInput
               style={styles.modalInput}
               value={jcMobile}
@@ -294,10 +295,10 @@ export default function CreateTransactionScreen({ navigation, route }) {
               keyboardType="phone-pad"
               maxLength={11}
               placeholder="03XXXXXXXXX"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={COLORS.textFaint}
               editable={!jcSubmitting}
             />
-            <Text style={styles.modalLabel}>Last 6 digits of CNIC (optional)</Text>
+            <Text style={styles.modalLabel}>{t('mobile.checkout.cnicOptional')}</Text>
             <TextInput
               style={styles.modalInput}
               value={jcCnic}
@@ -305,17 +306,17 @@ export default function CreateTransactionScreen({ navigation, route }) {
               keyboardType="numeric"
               maxLength={6}
               placeholder="123456"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={COLORS.textFaint}
               editable={!jcSubmitting}
             />
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.modalCancel} onPress={() => setJcModalOpen(false)} disabled={jcSubmitting}>
-                <Text style={styles.modalCancelText}>Cancel</Text>
+                <Text style={styles.modalCancelText}>{t('mobile.buttons.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalSubmit} onPress={handleJazzCashSubmit} disabled={jcSubmitting}>
                 {jcSubmitting
-                  ? <ActivityIndicator color="#fff" />
-                  : <Text style={styles.modalSubmitText}>Pay ₨ {total.toLocaleString()}</Text>}
+                  ? <ActivityIndicator color={COLORS.white} />
+                  : <Text style={styles.modalSubmitText}>{t('mobile.checkout.pay', { amount: total.toLocaleString() })}</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -326,54 +327,54 @@ export default function CreateTransactionScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  headerTitle: { color: COLORS.white, fontSize: 20, fontWeight: 'bold' },
   backBtn: { padding: 4 },
   container: { padding: 20, paddingTop: 0 },
   section: { marginBottom: 24 },
-  sectionTitle: { color: '#a3a3a3', fontSize: 14, fontWeight: '600', marginBottom: 16, textTransform: 'uppercase' },
-  card: { backgroundColor: 'rgba(26, 46, 29, 0.4)', borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#224026' },
+  sectionTitle: { color: COLORS.textMuted, fontSize: 14, fontWeight: '600', marginBottom: 16, textTransform: 'uppercase' },
+  card: { backgroundColor: 'rgba(26, 46, 29, 0.4)', borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: COLORS.border },
   inputGroup: { marginBottom: 16 },
   inputLabel: { color: '#e5e7eb', fontSize: 14, fontWeight: '500', marginBottom: 8 },
-  textInput: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, borderWidth: 1, borderColor: '#374151', color: '#fff', padding: 12, fontSize: 16 },
-  textArea: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, borderWidth: 1, borderColor: '#374151', color: '#fff', padding: 12, fontSize: 16, textAlignVertical: 'top', minHeight: 80 },
+  textInput: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, borderWidth: 1, borderColor: COLORS.inputBorder, color: COLORS.white, padding: 12, fontSize: 16 },
+  textArea: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, borderWidth: 1, borderColor: COLORS.inputBorder, color: COLORS.white, padding: 12, fontSize: 16, textAlignVertical: 'top', minHeight: 80 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  itemName: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  itemPrice: { color: '#4ade80', fontSize: 16, fontWeight: 'bold' },
-  itemMeta: { color: '#a3a3a3', fontSize: 13, marginBottom: 16 },
-  qtyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderColor: '#224026', paddingTop: 16 },
+  itemName: { color: COLORS.white, fontSize: 16, fontWeight: 'bold' },
+  itemPrice: { color: COLORS.primaryLight, fontSize: 16, fontWeight: 'bold' },
+  itemMeta: { color: COLORS.textMuted, fontSize: 13, marginBottom: 16 },
+  qtyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderColor: COLORS.border, paddingTop: 16 },
   qtyLabel: { color: '#e5e7eb', fontSize: 15 },
-  qtyInputBox: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 8, borderWidth: 1, borderColor: '#374151', width: 80, height: 40 },
-  qtyInput: { color: '#fff', fontSize: 16, textAlign: 'center', flex: 1 },
-  paymentOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(26, 46, 29, 0.8)', padding: 16, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: '#224026' },
-  paymentActive: { borderColor: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.1)' },
+  qtyInputBox: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 8, borderWidth: 1, borderColor: COLORS.inputBorder, width: 80, height: 40 },
+  qtyInput: { color: COLORS.white, fontSize: 16, textAlign: 'center', flex: 1 },
+  paymentOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(26, 46, 29, 0.8)', padding: 16, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border },
+  paymentActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(22, 163, 74, 0.1)' },
   paymentLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   paymentText: { color: '#e5e7eb', fontSize: 16, fontWeight: '500' },
-  paymentTextActive: { color: '#16a34a', fontWeight: 'bold' },
-  paymentSubtext: { color: '#a3a3a3', fontSize: 12, marginTop: 2 },
+  paymentTextActive: { color: COLORS.primary, fontWeight: 'bold' },
+  paymentSubtext: { color: COLORS.textMuted, fontSize: 12, marginTop: 2 },
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  priceLabel: { color: '#a3a3a3', fontSize: 14 },
+  priceLabel: { color: COLORS.textMuted, fontSize: 14 },
   priceValue: { color: '#e5e7eb', fontSize: 14, fontWeight: '600' },
-  divider: { height: 1, backgroundColor: '#224026', marginVertical: 12 },
-  totalLabel: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  totalValue: { color: '#4ade80', fontSize: 18, fontWeight: 'bold' },
-  escrowNotice: { flexDirection: 'row', backgroundColor: 'rgba(22, 163, 74, 0.1)', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#16a34a', marginBottom: 24, gap: 12, alignItems: 'center' },
-  escrowNoticeText: { color: '#16a34a', flex: 1, fontSize: 13, lineHeight: 20 },
-  checkoutBtn: { backgroundColor: '#16a34a', height: 56, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 40 },
-  checkoutBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  divider: { height: 1, backgroundColor: COLORS.border, marginVertical: 12 },
+  totalLabel: { color: COLORS.white, fontSize: 16, fontWeight: 'bold' },
+  totalValue: { color: COLORS.primaryLight, fontSize: 18, fontWeight: 'bold' },
+  escrowNotice: { flexDirection: 'row', backgroundColor: 'rgba(22, 163, 74, 0.1)', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: COLORS.primary, marginBottom: 24, gap: 12, alignItems: 'center' },
+  escrowNoticeText: { color: COLORS.primary, flex: 1, fontSize: 13, lineHeight: 20 },
+  checkoutBtn: { backgroundColor: COLORS.primary, height: 56, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 40 },
+  checkoutBtnText: { color: COLORS.white, fontSize: 18, fontWeight: 'bold' },
 
   // JazzCash modal
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', padding: 24 },
-  modalCard: { backgroundColor: '#0f1a12', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#224026' },
+  modalCard: { backgroundColor: COLORS.bg, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: COLORS.border },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  modalTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-  modalHelper: { color: '#a3a3a3', fontSize: 13, marginBottom: 16 },
-  modalLabel: { color: '#a3a3a3', fontSize: 12, fontWeight: '600', textTransform: 'uppercase', marginBottom: 6 },
-  modalInput: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 10, borderWidth: 1, borderColor: '#374151', color: '#fff', padding: 12, fontSize: 14, marginBottom: 16 },
+  modalTitle: { color: COLORS.white, fontSize: 20, fontWeight: 'bold' },
+  modalHelper: { color: COLORS.textMuted, fontSize: 13, marginBottom: 16 },
+  modalLabel: { color: COLORS.textMuted, fontSize: 12, fontWeight: '600', textTransform: 'uppercase', marginBottom: 6 },
+  modalInput: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 10, borderWidth: 1, borderColor: COLORS.inputBorder, color: COLORS.white, padding: 12, fontSize: 14, marginBottom: 16 },
   modalActions: { flexDirection: 'row', gap: 12, marginTop: 8 },
   modalCancel: { flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', padding: 14, borderRadius: 12, alignItems: 'center' },
-  modalCancelText: { color: '#a3a3a3', fontWeight: '600' },
-  modalSubmit: { flex: 1, backgroundColor: '#16a34a', padding: 14, borderRadius: 12, alignItems: 'center' },
-  modalSubmitText: { color: '#fff', fontWeight: 'bold' },
+  modalCancelText: { color: COLORS.textMuted, fontWeight: '600' },
+  modalSubmit: { flex: 1, backgroundColor: COLORS.primary, padding: 14, borderRadius: 12, alignItems: 'center' },
+  modalSubmitText: { color: COLORS.white, fontWeight: 'bold' },
 });

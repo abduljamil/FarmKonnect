@@ -2,9 +2,9 @@ const aiChatService = require("../services/aiChatService");
 
 exports.startConversation = async (req, res) => {
   try {
-    const { firstMessage } = req.body;
+    const { firstMessage, language } = req.body;
     const userId = req.user._id;
-    const convo = await aiChatService.createConversation(userId, firstMessage);
+    const convo = await aiChatService.createConversation(userId, firstMessage, language);
     res.status(201).json({ success: true, data: convo });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -34,7 +34,7 @@ exports.getMessages = async (req, res) => {
 exports.sendMessage = async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const { message } = req.body;
+    const { message, language } = req.body;
     const userId = req.user._id;
 
     if (!message || !message.trim()) {
@@ -47,6 +47,7 @@ exports.sendMessage = async (req, res) => {
       conversationId,
       userId,
       userMessage: message.trim(),
+      language,
     });
 
     res.json({ success: true, data: result });

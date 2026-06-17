@@ -1,10 +1,13 @@
+import { COLORS } from '../../constants/colors';
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Edit2, Trash2, Eye, EyeOff, CheckCircle } from 'lucide-react-native';
 import { getMyListings, deleteListing, updateListingStatus } from '../../services/listingService';
+import { useTranslation } from 'react-i18next';
 
 export default function MyListingsScreen({ navigation }) {
+  const { t } = useTranslation();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -17,7 +20,7 @@ export default function MyListingsScreen({ navigation }) {
       }
     } catch (error) {
       console.error('Failed to fetch my listings', error);
-      Alert.alert('Error', 'Failed to fetch your listings');
+      Alert.alert(t('common.error'), t('mobile.alerts.fetchListingsFailed'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -47,7 +50,7 @@ export default function MyListingsScreen({ navigation }) {
               await deleteListing(id);
               setListings(prev => prev.filter(l => l._id !== id));
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete listing');
+              Alert.alert(t('common.error'), t('mobile.alerts.deleteListingFailed'));
             }
           }
         }
@@ -64,13 +67,13 @@ export default function MyListingsScreen({ navigation }) {
       await updateListingStatus(item._id, next);
       setListings(prev => prev.map(l => l._id === item._id ? { ...l, status: next } : l));
     } catch (err) {
-      Alert.alert('Error', err.response?.data?.message || 'Failed to update status');
+      Alert.alert(t('common.error'), err.response?.data?.message || t('mobile.alerts.statusUpdateFailed'));
     }
   };
 
   const markSold = async (item) => {
     if (item.status === 'sold') return;
-    Alert.alert('Mark as Sold?', 'Buyers will no longer see this listing.', [
+    Alert.alert(t('mobile.alerts.markSoldTitle'), t('mobile.alerts.markSoldMsg'), [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Mark Sold',
@@ -79,7 +82,7 @@ export default function MyListingsScreen({ navigation }) {
             await updateListingStatus(item._id, 'sold');
             setListings(prev => prev.map(l => l._id === item._id ? { ...l, status: 'sold' } : l));
           } catch (err) {
-            Alert.alert('Error', err.response?.data?.message || 'Failed to mark sold');
+            Alert.alert(t('common.error'), err.response?.data?.message || t('mobile.alerts.markSoldFailed'));
           }
         }
       }
@@ -102,7 +105,7 @@ export default function MyListingsScreen({ navigation }) {
             onPress={() => navigation.navigate('EditListing', { id: item._id })}
             accessibilityLabel="Edit listing"
           >
-            <Edit2 color="#16a34a" size={20} />
+            <Edit2 color={COLORS.primary} size={20} />
           </TouchableOpacity>
           {item.status !== 'sold' && (
             <TouchableOpacity
@@ -111,8 +114,8 @@ export default function MyListingsScreen({ navigation }) {
               accessibilityLabel={item.status === 'active' ? 'Hide listing' : 'Show listing'}
             >
               {item.status === 'active'
-                ? <EyeOff color="#fbbf24" size={20} />
-                : <Eye color="#a3a3a3" size={20} />}
+                ? <EyeOff color={COLORS.warning} size={20} />
+                : <Eye color={COLORS.textMuted} size={20} />}
             </TouchableOpacity>
           )}
           {item.status === 'active' && (
@@ -121,7 +124,7 @@ export default function MyListingsScreen({ navigation }) {
               onPress={() => markSold(item)}
               accessibilityLabel="Mark as sold"
             >
-              <CheckCircle color="#3b82f6" size={20} />
+              <CheckCircle color={COLORS.info} size={20} />
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -129,7 +132,7 @@ export default function MyListingsScreen({ navigation }) {
             onPress={() => handleDelete(item._id)}
             accessibilityLabel="Delete listing"
           >
-            <Trash2 color="#ef4444" size={20} />
+            <Trash2 color={COLORS.danger} size={20} />
           </TouchableOpacity>
         </View>
       </View>
@@ -149,7 +152,7 @@ export default function MyListingsScreen({ navigation }) {
       </View>
       
       {loading ? (
-        <ActivityIndicator size="large" color="#16a34a" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
       ) : listings.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>You haven't created any listings yet.</Text>
@@ -160,7 +163,7 @@ export default function MyListingsScreen({ navigation }) {
           keyExtractor={item => item._id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         />
       )}
     </SafeAreaView>
@@ -168,20 +171,20 @@ export default function MyListingsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, paddingTop: 10 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  createBtn: { backgroundColor: '#16a34a', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
-  createBtnText: { color: '#fff', fontWeight: '600' },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: COLORS.white },
+  createBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
+  createBtnText: { color: COLORS.white, fontWeight: '600' },
   listContainer: { padding: 20, paddingTop: 0 },
-  card: { flexDirection: 'row', backgroundColor: 'rgba(26, 46, 29, 0.8)', borderRadius: 12, marginBottom: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#224026' },
+  card: { flexDirection: 'row', backgroundColor: 'rgba(26, 46, 29, 0.8)', borderRadius: 12, marginBottom: 16, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border },
   image: { width: 100, height: 100 },
   cardBody: { flex: 1, padding: 12, justifyContent: 'center' },
-  title: { color: '#fff', fontSize: 16, fontWeight: '600', marginBottom: 4 },
-  price: { color: '#4ade80', fontSize: 15, fontWeight: 'bold', marginBottom: 4 },
-  status: { color: '#a3a3a3', fontSize: 13, marginBottom: 8, textTransform: 'capitalize' },
-  actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: -20 },
+  title: { color: COLORS.white, fontSize: 16, fontWeight: '600', marginBottom: 4 },
+  price: { color: COLORS.primaryLight, fontSize: 15, fontWeight: 'bold', marginBottom: 4 },
+  status: { color: COLORS.textMuted, fontSize: 13, marginBottom: 8, textTransform: 'capitalize' },
+  actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 },
   actionBtn: { padding: 6, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 8 },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { color: '#a3a3a3', fontSize: 16 }
+  emptyText: { color: COLORS.textMuted, fontSize: 16 }
 });

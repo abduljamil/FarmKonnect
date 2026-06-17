@@ -56,7 +56,26 @@
     "plugins": [
       "expo-web-browser",
       "expo-localization",
-      "expo-status-bar"
-    ]
+      "expo-secure-store",
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FarmKonnect needs access to your photos so you can add pictures to your listings.",
+          "cameraPermission": "FarmKonnect needs camera access so you can take photos for your listings."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "FarmKonnect uses your location to auto-fill your address and show local weather and prices."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
   }
 }

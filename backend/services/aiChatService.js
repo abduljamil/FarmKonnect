@@ -386,7 +386,7 @@ class AiChatService {
     return { success: true };
   }
 
-  async sendMessage({ conversationId, userId, userMessage }) {
+  async sendMessage({ conversationId, userId, userMessage, language }) {
     if (!this.model) throw new Error("AI service not initialized — check GEMINI_API_KEY");
 
     const convo = await repos.aiConversations.findById(conversationId);
@@ -404,7 +404,13 @@ class AiChatService {
 
     const chat = this.model.startChat({ history: buildHistory(priorMessages) });
     const toolCallsLog = [];
-    let result = await chat.sendMessage(userMessage);
+    
+    let finalMessage = userMessage;
+    if (language === 'ur') {
+      finalMessage = `[SYSTEM INSTRUCTION: You MUST respond to this message EXCLUSIVELY in the Urdu language using the Urdu script.]\n\n${userMessage}`;
+    }
+
+    let result = await chat.sendMessage(finalMessage);
 
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
       const calls = result.response.functionCalls?.() || [];

@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, StatusBar, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -56,11 +57,11 @@ export default function ResetPasswordScreen({ navigation, route }) {
   if (success) {
     return (
       <View style={styles.root}>
-        <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
         <AnimatedBlobs />
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
-            <CheckCircle color="#16a34a" size={48} />
+            <CheckCircle color={COLORS.primary} size={48} />
           </View>
           <Text style={styles.title}>Password updated</Text>
           <Text style={styles.subtitle}>
@@ -76,17 +77,17 @@ export default function ResetPasswordScreen({ navigation, route }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <AnimatedBlobs />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()}>
-            <ArrowLeft color="#a3a3a3" size={20} />
+            <ArrowLeft color={COLORS.textMuted} size={20} />
             <Text style={styles.backLink}>{t('common.back')}</Text>
           </TouchableOpacity>
 
           <View style={styles.iconWrap}>
-            <Lock color="#16a34a" size={40} />
+            <Lock color={COLORS.primary} size={40} />
           </View>
           <Text style={styles.title}>Reset your password</Text>
           <Text style={styles.subtitle}>Choose a new password (minimum 6 characters).</Text>
@@ -103,7 +104,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
             value={password}
             onChangeText={(v) => { setPassword(v); setError(''); }}
             placeholder={t('errors.weakPassword')}
-            placeholderTextColor="#6b7280"
+            placeholderTextColor={COLORS.textFaint}
             secureTextEntry
             editable={!loading}
           />
@@ -114,7 +115,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
             value={confirmPassword}
             onChangeText={(v) => { setConfirmPassword(v); setError(''); }}
             placeholder={t('auth.signUp.confirmPassword')}
-            placeholderTextColor="#6b7280"
+            placeholderTextColor={COLORS.textFaint}
             secureTextEntry
             editable={!loading}
           />
@@ -125,7 +126,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
             disabled={loading}
           >
             {loading
-              ? <ActivityIndicator color="#fff" />
+              ? <ActivityIndicator color={COLORS.white} />
               : <Text style={styles.primaryBtnText}>Update password</Text>}
           </TouchableOpacity>
         </ScrollView>
@@ -135,19 +136,19 @@ export default function ResetPasswordScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   container: { padding: 24, paddingTop: 60, flexGrow: 1 },
   backRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 24 },
-  backLink: { color: '#a3a3a3', fontSize: 14, fontWeight: '500' },
+  backLink: { color: COLORS.textMuted, fontSize: 14, fontWeight: '500' },
   iconWrap: { width: 80, height: 80, borderRadius: 24, backgroundColor: 'rgba(22, 163, 74, 0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 24, borderWidth: 1, borderColor: 'rgba(22, 163, 74, 0.3)' },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 8 },
-  subtitle: { color: '#a3a3a3', fontSize: 14, marginBottom: 24, lineHeight: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', color: COLORS.white, marginBottom: 8 },
+  subtitle: { color: COLORS.textMuted, fontSize: 14, marginBottom: 24, lineHeight: 20 },
   errorBox: { backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.3)', borderWidth: 1, padding: 12, borderRadius: 8, marginBottom: 16 },
-  errorText: { color: '#ef4444', fontSize: 13 },
-  label: { color: '#fff', fontSize: 14, fontWeight: '500', marginBottom: 8 },
-  input: { backgroundColor: 'rgba(26, 46, 31, 0.8)', borderWidth: 1, borderColor: '#224026', borderRadius: 12, color: '#fff', padding: 14, fontSize: 16, marginBottom: 16 },
-  primaryBtn: { backgroundColor: '#16a34a', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 8 },
-  primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  errorText: { color: COLORS.danger, fontSize: 13 },
+  label: { color: COLORS.white, fontSize: 14, fontWeight: '500', marginBottom: 8 },
+  input: { backgroundColor: 'rgba(26, 46, 31, 0.8)', borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, color: COLORS.white, padding: 14, fontSize: 16, marginBottom: 16 },
+  primaryBtn: { backgroundColor: COLORS.primary, padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 8 },
+  primaryBtnText: { color: COLORS.white, fontSize: 16, fontWeight: 'bold' },
   successContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
   successIcon: { width: 96, height: 96, borderRadius: 48, backgroundColor: 'rgba(22, 163, 74, 0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
 });

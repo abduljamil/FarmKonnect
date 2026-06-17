@@ -1,5 +1,7 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState, useEffect, useCallback, useContext } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, StatusBar, TextInput, ActivityIndicator, RefreshControl, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, TextInput, ActivityIndicator, RefreshControl, Alert } from 'react-native';
+import Avatar from '../../components/ui/Avatar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, Trash2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -107,16 +109,16 @@ export default function ConversationsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <AnimatedBlobs />
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('chat.title')}</Text>
         <View style={styles.searchBar}>
-          <Search color="#a3a3a3" size={20} />
+          <Search color={COLORS.textMuted} size={20} />
           <TextInput
             placeholder={t('common.search')}
-            placeholderTextColor="#a3a3a3"
+            placeholderTextColor={COLORS.textMuted}
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -125,7 +127,7 @@ export default function ConversationsScreen({ navigation }) {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#16a34a" style={{ marginTop: 50 }} />
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 50 }} />
       ) : (
         <FlatList
           data={filteredConversations}
@@ -133,10 +135,10 @@ export default function ConversationsScreen({ navigation }) {
           contentContainerStyle={styles.container}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
           }
           ListEmptyComponent={
-            <Text style={{ textAlign: 'center', color: '#a3a3a3', marginTop: 20 }}>{t('chat.noConversations')}</Text>
+            <Text style={{ textAlign: 'center', color: COLORS.textMuted, marginTop: 20 }}>{t('chat.noConversations')}</Text>
           }
           renderItem={({ item: chat }) => {
             const otherUser = getOtherParticipant(chat);
@@ -166,10 +168,10 @@ export default function ConversationsScreen({ navigation }) {
                   otherUserId: otherUser.otherUserId,
                 })}
               >
-                <Image source={otherUser.avatar ? { uri: otherUser.avatar } : require('../../../assets/icon.png')} style={styles.avatar} />
+                <Avatar uri={otherUser.avatar} size={56} style={{ marginRight: 16 }} />
                 <View style={styles.chatInfo}>
                   <View style={styles.topRow}>
-                    <Text style={styles.chatName}>{otherUser.name}</Text>
+                    <Text style={styles.chatName} numberOfLines={1}>{otherUser.name}</Text>
                     <Text style={[styles.chatTime, unreadCount > 0 && styles.activeTime]}>
                       {timeStr}
                     </Text>
@@ -186,7 +188,7 @@ export default function ConversationsScreen({ navigation }) {
                         style={styles.deleteBtn}
                         onPress={() => handleDelete(chat._id, otherUser.name)}
                       >
-                        <Trash2 color="#ef4444" size={18} />
+                        <Trash2 color={COLORS.danger} size={18} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -201,23 +203,23 @@ export default function ConversationsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { padding: 20, paddingTop: 10, zIndex: 1 },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#fff', marginBottom: 16 },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(26, 46, 29, 0.8)', borderRadius: 12, paddingHorizontal: 16, height: 50, borderWidth: 1, borderColor: '#224026' },
-  searchInput: { flex: 1, marginLeft: 12, color: '#fff', fontSize: 16 },
+  headerTitle: { fontSize: 28, fontWeight: 'bold', color: COLORS.white, marginBottom: 16 },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(26, 46, 29, 0.8)', borderRadius: 12, paddingHorizontal: 16, height: 50, borderWidth: 1, borderColor: COLORS.border },
+  searchInput: { flex: 1, marginLeft: 12, color: COLORS.white, fontSize: 16 },
   container: { paddingHorizontal: 20, paddingBottom: 20 },
-  chatCard: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: 'rgba(26, 46, 29, 0.6)', borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: '#224026' },
+  chatCard: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: 'rgba(26, 46, 29, 0.6)', borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border },
   avatar: { width: 56, height: 56, borderRadius: 28, marginRight: 16 },
   chatInfo: { flex: 1, justifyContent: 'center' },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   bottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  chatName: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  chatTime: { color: '#a3a3a3', fontSize: 12, fontWeight: '500' },
-  activeTime: { color: '#16a34a', fontWeight: 'bold' },
-  chatMessage: { color: '#a3a3a3', fontSize: 14, flex: 1, paddingRight: 10 },
-  unreadMessage: { color: '#fff', fontWeight: '600' },
-  unreadBadge: { backgroundColor: '#16a34a', minWidth: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  unreadText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
+  chatName: { color: COLORS.white, fontSize: 16, fontWeight: 'bold', flex: 1, marginRight: 8 },
+  chatTime: { color: COLORS.textMuted, fontSize: 12, fontWeight: '500', flexShrink: 0 },
+  activeTime: { color: COLORS.primary, fontWeight: 'bold' },
+  chatMessage: { color: COLORS.textMuted, fontSize: 14, flex: 1, paddingRight: 10 },
+  unreadMessage: { color: COLORS.white, fontWeight: '600' },
+  unreadBadge: { backgroundColor: COLORS.primary, minWidth: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+  unreadText: { color: COLORS.white, fontSize: 12, fontWeight: 'bold' },
   deleteBtn: { padding: 4 }
 });

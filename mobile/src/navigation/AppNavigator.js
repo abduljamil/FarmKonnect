@@ -1,3 +1,4 @@
+import { COLORS } from '../constants/colors';
 import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -12,6 +13,8 @@ import SignInScreen from '../screens/auth/SignInScreen';
 import SignUpScreen from '../screens/auth/SignUpScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import ResetPasswordScreen from '../screens/auth/ResetPasswordScreen';
+import VerifyEmailScreen from '../screens/auth/VerifyEmailScreen';
+import EmailSentScreen from '../screens/auth/EmailSentScreen';
 
 // Main App Screens
 import MainTabs from './MainTabs';
@@ -30,6 +33,7 @@ import SupportScreen from '../screens/profile/SupportScreen';
 import MyTicketsScreen from '../screens/profile/MyTicketsScreen';
 import TicketDetailScreen from '../screens/profile/TicketDetailScreen';
 import PrivacySecurityScreen from '../screens/profile/PrivacySecurityScreen';
+import MyReviewsScreen from '../screens/profile/MyReviewsScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import PriceTrendsScreen from '../screens/marketplace/PriceTrendsScreen';
 import KisanScreen from '../screens/kisan/KisanScreen';
@@ -37,6 +41,7 @@ import AboutUsScreen from '../screens/static/AboutUsScreen';
 import ContactUsScreen from '../screens/static/ContactUsScreen';
 import PrivacyPolicyScreen from '../screens/static/PrivacyPolicyScreen';
 import TermsOfServiceScreen from '../screens/static/TermsOfServiceScreen';
+import MethodologyScreen from '../screens/static/MethodologyScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -55,6 +60,7 @@ const linkingConfig = {
   config: {
     screens: {
       ResetPassword: 'reset-password/:token',
+      VerifyEmail: 'verify-email/:token',
       // verify-email lives on the web side; tapping it on a device with the
       // app installed will route here so we can show a friendly screen.
       // For now we let the OS fall through to the browser if the user is
@@ -74,7 +80,7 @@ const AppNavigator = () => {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#16a34a" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
@@ -100,8 +106,10 @@ const AppNavigator = () => {
             <Stack.Screen name="MyTickets" component={MyTicketsScreen} />
             <Stack.Screen name="TicketDetail" component={TicketDetailScreen} />
             <Stack.Screen name="PrivacySecurity" component={PrivacySecurityScreen} />
+            <Stack.Screen name="MyReviews" component={MyReviewsScreen} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
             <Stack.Screen name="PriceTrends" component={PriceTrendsScreen} />
+            <Stack.Screen name="Methodology" component={MethodologyScreen} />
             <Stack.Screen name="KisanScreen" component={KisanScreen} />
             <Stack.Screen name="AboutUs" component={AboutUsScreen} />
             <Stack.Screen name="ContactUs" component={ContactUsScreen} />
@@ -111,6 +119,7 @@ const AppNavigator = () => {
                 who tap a reset link while still signed in are routed
                 correctly. */}
             <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+            <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
           </>
         ) : (
           <>
@@ -119,6 +128,8 @@ const AppNavigator = () => {
             <Stack.Screen name="SignUp" component={SignUpScreen} />
             <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
             <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+            <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+            <Stack.Screen name="EmailSent" component={EmailSentScreen} />
             {/* Public static pages so they're reachable from SignIn /
                 Welcome footer / ForgotPassword too. */}
             <Stack.Screen name="AboutUs" component={AboutUsScreen} />

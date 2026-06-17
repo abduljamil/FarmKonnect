@@ -30,7 +30,7 @@ export default function ListingDetailScreen({ navigation, route }) {
     setReviewsLoading(true);
     try {
       const res = await getUserReviews(listing.createdBy._id);
-      setReviews(res.data?.data || []);
+      setReviews(res.data?.data?.reviews || []);
     } catch {
       setReviews([]);
     } finally {
@@ -170,19 +170,34 @@ export default function ListingDetailScreen({ navigation, route }) {
           </View>
 
           <TouchableOpacity style={styles.sellerCard} onPress={openReviews} activeOpacity={0.8}>
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>{sellerName.charAt(0).toUpperCase()}</Text>
-            </View>
+            {listing.createdBy?.avatar ? (
+              <Image source={{ uri: listing.createdBy.avatar }} style={styles.avatarPlaceholder} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>{sellerName.charAt(0).toUpperCase()}</Text>
+              </View>
+            )}
             <View style={styles.sellerInfo}>
-              <Text style={styles.sellerName}>
-                {sellerName} {listing.createdBy?.isEmailVerified && <CheckCircle color="#16a34a" size={14} />}
+              <View style={styles.sellerNameRow}>
+                <Text style={styles.sellerName} numberOfLines={1}>{sellerName}</Text>
+                {listing.createdBy?.isEmailVerified && <CheckCircle color="#16a34a" size={16} style={{ marginLeft: 6 }} />}
+              </View>
+              <Text style={styles.sellerMeta} numberOfLines={1}>
+                {t('profile.memberSince')} {sellerJoined}
               </Text>
-              <Text style={styles.sellerMeta}>
-                {t('profile.memberSince')} {sellerJoined} • ⭐ {sellerRating}
-                {listing.createdBy?.rating?.count > 0 ? ` (${listing.createdBy.rating.count})` : ''}
-              </Text>
+              <View style={styles.ratingRow}>
+                <Star color="#fbbf24" size={14} fill="#fbbf24" />
+                <Text style={styles.ratingText}>
+                  {Number(typeof sellerRating === 'object' ? (sellerRating.average || 0) : sellerRating).toFixed(1)}
+                </Text>
+                <Text style={styles.ratingCount}>
+                  ({listing.createdBy?.rating?.count || 0} {t('profile.reviews')})
+                </Text>
+              </View>
             </View>
-            <Text style={styles.reviewsLink}>{t('profile.reviews')} →</Text>
+            <View style={styles.reviewsLinkBtn}>
+              <Text style={styles.reviewsLink}>{t('common.view')}</Text>
+            </View>
           </TouchableOpacity>
 
           <View style={styles.section}>
@@ -290,11 +305,17 @@ const styles = StyleSheet.create({
   reviewerName: { color: '#fff', fontWeight: '600', fontSize: 14 },
   starRow: { flexDirection: 'row', gap: 2 },
   reviewComment: { color: '#d4d4d4', fontSize: 13, lineHeight: 18 },
-  avatarPlaceholder: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#16a34a', justifyContent: 'center', alignItems: 'center' },
-  avatarText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  avatarPlaceholder: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#16a34a', justifyContent: 'center', alignItems: 'center' },
+  avatarText: { color: '#fff', fontSize: 22, fontWeight: 'bold' },
   sellerInfo: { marginLeft: 16, flex: 1 },
-  sellerName: { color: '#fff', fontSize: 16, fontWeight: '600', marginBottom: 4 },
-  sellerMeta: { color: '#a3a3a3', fontSize: 13 },
+  sellerNameRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
+  sellerName: { color: '#fff', fontSize: 16, fontWeight: '700', flexShrink: 1 },
+  sellerMeta: { color: '#a3a3a3', fontSize: 12, marginBottom: 6 },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  ratingText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  ratingCount: { color: '#888', fontSize: 13 },
+  reviewsLinkBtn: { backgroundColor: 'rgba(22, 163, 74, 0.1)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, marginLeft: 8 },
+  reviewsLink: { color: '#16a34a', fontSize: 12, fontWeight: 'bold' },
   section: { marginBottom: 24 },
   sectionTitle: { fontSize: 18, fontWeight: '600', color: '#fff', marginBottom: 12 },
   description: { color: '#d4d4d4', fontSize: 15, lineHeight: 24 },
@@ -303,7 +324,7 @@ const styles = StyleSheet.create({
   trustDesc: { color: '#a3a3a3', fontSize: 13 },
   footer: { flexDirection: 'row', padding: 16, backgroundColor: '#0a110c', borderTopWidth: 1, borderColor: '#224026', paddingBottom: 32 },
   chatBtn: { flex: 1, flexDirection: 'row', backgroundColor: 'rgba(26, 46, 29, 0.8)', height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 12, borderWidth: 1, borderColor: '#224026' },
-  chatText: { color: '#fff', fontSize: 16, fontWeight: '600', marginLeft: 8 },
-  buyBtn: { flex: 2, backgroundColor: '#16a34a', height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  chatText: { color: '#fff', fontSize: 14, fontWeight: '600', marginLeft: 6 },
+  buyBtn: { flex: 1, backgroundColor: '#16a34a', height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   buyText: { color: '#fff', fontSize: 16, fontWeight: '600' }
 });

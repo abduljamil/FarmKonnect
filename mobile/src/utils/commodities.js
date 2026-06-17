@@ -9,7 +9,6 @@ export const TARGET_COMMODITIES = [
   'Maize',
   'Sugar',
   'Flour',
-  'Cotton',
   'Rice',
   // Rice varieties (each is its own commodity in the DB, variety=null)
   'Rice (IRRI)',

@@ -14,7 +14,7 @@ export const sendMessage = (conversationId, content) =>
   api.post('/chat/messages', { conversationId, content });
 
 export const startConversation = (listingId, recipientId) =>
-  api.post('/chat/conversations', { listingId, recipientId });
+  api.post('/chat/conversations', { productId: listingId, sellerId: recipientId });
 
 export const deleteConversation = (conversationId) =>
   api.delete(`/chat/conversations/${conversationId}`);

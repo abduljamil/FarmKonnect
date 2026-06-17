@@ -1,5 +1,7 @@
+import { COLORS } from '../constants/colors';
 import React, { useContext, useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Store, MessageCircle, User } from 'lucide-react-native';
 import { Package } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +18,7 @@ const Tab = createBottomTabNavigator();
 export default function MainTabs() {
   const { t } = useTranslation();
   const socket = useContext(SocketContext);
+  const insets = useSafeAreaInsets();
 
   // Live unread-message badge on the Chat tab — mirrors the web Navbar's
   // unreadCount pill. Re-fetches whenever a `new_message` arrives so the
@@ -46,15 +49,19 @@ export default function MainTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        // Add the bottom safe-area inset so the bar clears the home indicator
+        // on notched phones (iPhone 13 Pro etc.). The taller height + bottom
+        // padding give the labels room so they're not clipped at the edge.
         tabBarStyle: {
-          backgroundColor: '#0f1a12',
-          borderTopColor: '#224026',
-          height: 65,
-          paddingBottom: 10,
-          paddingTop: 10
+          backgroundColor: COLORS.bg,
+          borderTopColor: COLORS.border,
+          height: 74 + insets.bottom,
+          paddingBottom: 14 + insets.bottom,
+          paddingTop: 8,
         },
-        tabBarActiveTintColor: '#16a34a',
-        tabBarInactiveTintColor: '#6b7280',
+        tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginTop: 2 },
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.gray400,
       }}
     >
       <Tab.Screen
@@ -85,7 +92,7 @@ export default function MainTabs() {
           tabBarLabel: t('mobile.tabs.chat'),
           tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} />,
           tabBarBadge: unread > 0 ? (unread > 9 ? '9+' : unread) : undefined,
-          tabBarBadgeStyle: { backgroundColor: '#ef4444', color: '#fff', fontSize: 10 },
+          tabBarBadgeStyle: { backgroundColor: COLORS.danger, color: COLORS.white, fontSize: 10 },
         }}
       />
       <Tab.Screen

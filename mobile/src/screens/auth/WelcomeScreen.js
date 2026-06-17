@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 ﻿import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, PanResponder, Dimensions, StatusBar, TouchableOpacity } from 'react-native';
 import { ChevronUp } from 'lucide-react-native';
@@ -82,7 +83,7 @@ export default function WelcomeScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <AnimatedBlobs />
       
       <Animated.View
@@ -100,7 +101,7 @@ export default function WelcomeScreen({ navigation }) {
             <Animated.View style={[styles.chevronGroup, { transform: [{ translateY: arrowAnim }] }]}>
               <ChevronUp color="rgba(255,255,255,0.4)" fill="none" size={24} style={{ marginBottom: -10 }} />
               <ChevronUp color="rgba(255,255,255,0.7)" fill="none" size={28} style={{ marginBottom: -10 }} />
-              <ChevronUp color="#16a34a" fill="none" size={32} />
+              <ChevronUp color={COLORS.primary} fill="none" size={32} />
             </Animated.View>
             <Text style={styles.swipeText}>Tap or Swipe up to begin</Text>
           </Animated.View>
@@ -113,7 +114,7 @@ export default function WelcomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0f1a12',
+    backgroundColor: COLORS.bg,
     overflow: 'hidden',
   },
   blobLeft: {
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 42,
     fontWeight: '900',
-    color: '#ffffff',
+    color: COLORS.white,
     letterSpacing: 1.2,
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: 0, height: 4 },
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#a3a3a3',
+    color: COLORS.textMuted,
     marginTop: 8,
     fontWeight: '500',
     letterSpacing: 0.5,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   swipeText: {
-    color: '#a3a3a3',
+    color: COLORS.textMuted,
     fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',

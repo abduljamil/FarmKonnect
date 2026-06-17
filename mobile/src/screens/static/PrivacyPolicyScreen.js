@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -57,10 +58,10 @@ const SECTIONS = [
 export default function PrivacyPolicyScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <ArrowLeft color="#fff" size={24} />
+          <ArrowLeft color={COLORS.white} size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Privacy Policy</Text>
         <View style={{ width: 24 }} />
@@ -86,16 +87,16 @@ export default function PrivacyPolicyScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  headerTitle: { color: COLORS.white, fontSize: 20, fontWeight: 'bold' },
   backBtn: { padding: 4 },
   container: { padding: 20, paddingTop: 0, paddingBottom: 60 },
-  lastUpdated: { color: '#6b7280', fontSize: 12, marginBottom: 24 },
+  lastUpdated: { color: COLORS.textFaint, fontSize: 12, marginBottom: 24 },
   section: { marginBottom: 24 },
-  sectionTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
+  sectionTitle: { color: COLORS.white, fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
   body: { color: '#d4d4d4', fontSize: 14, lineHeight: 21 },
   bulletRow: { flexDirection: 'row', marginTop: 6, gap: 8, paddingRight: 12 },
-  bulletDot: { color: '#16a34a', fontSize: 14, lineHeight: 21 },
+  bulletDot: { color: COLORS.primary, fontSize: 14, lineHeight: 21 },
   bulletText: { color: '#d4d4d4', fontSize: 14, lineHeight: 21, flex: 1 },
 });

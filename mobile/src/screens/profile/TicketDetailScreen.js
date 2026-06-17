@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -50,7 +51,7 @@ export default function TicketDetailScreen({ navigation, route }) {
   if (loading || !ticket) {
     return (
       <SafeAreaView style={[styles.root, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#16a34a" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </SafeAreaView>
     );
   }
@@ -59,10 +60,10 @@ export default function TicketDetailScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <ArrowLeft color="#fff" size={24} />
+          <ArrowLeft color={COLORS.white} size={24} />
         </TouchableOpacity>
         <View style={{ flex: 1, marginLeft: 8 }}>
           <Text style={styles.headerTitle} numberOfLines={1}>{ticket.subject}</Text>
@@ -89,7 +90,7 @@ export default function TicketDetailScreen({ navigation, route }) {
               >
                 {isSystem ? (
                   <View style={styles.systemBubble}>
-                    <Shield color="#9ca3af" size={14} />
+                    <Shield color={COLORS.gray400} size={14} />
                     <Text style={styles.systemText}>{m.content}</Text>
                   </View>
                 ) : (
@@ -117,12 +118,12 @@ export default function TicketDetailScreen({ navigation, route }) {
               value={reply}
               onChangeText={setReply}
               placeholder="Type your reply..."
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={COLORS.textFaint}
               multiline
               editable={!sending}
             />
             <TouchableOpacity style={styles.sendBtn} onPress={handleSend} disabled={sending || !reply.trim()}>
-              {sending ? <ActivityIndicator color="#fff" /> : <Send color="#fff" size={18} />}
+              {sending ? <ActivityIndicator color={COLORS.white} /> : <Send color={COLORS.white} size={18} />}
             </TouchableOpacity>
           </View>
         )}
@@ -132,10 +133,10 @@ export default function TicketDetailScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', padding: 20 },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  headerSub: { color: '#a3a3a3', fontSize: 12, marginTop: 2, textTransform: 'capitalize' },
+  headerTitle: { color: COLORS.white, fontSize: 18, fontWeight: 'bold' },
+  headerSub: { color: COLORS.textMuted, fontSize: 12, marginTop: 2, textTransform: 'capitalize' },
   backBtn: { padding: 4 },
   container: { padding: 20, paddingTop: 0, paddingBottom: 20 },
   bubbleRow: { marginBottom: 12, flexDirection: 'row' },
@@ -145,14 +146,14 @@ const styles = StyleSheet.create({
   bubble: { maxWidth: '85%', padding: 12, borderRadius: 14 },
   bubbleLeft: { backgroundColor: 'rgba(59, 130, 246, 0.12)', borderColor: 'rgba(59, 130, 246, 0.3)', borderWidth: 1 },
   bubbleRight: { backgroundColor: 'rgba(22, 163, 74, 0.15)', borderColor: 'rgba(22, 163, 74, 0.4)', borderWidth: 1 },
-  bubbleSender: { color: '#9ca3af', fontSize: 11, fontWeight: '600', marginBottom: 4 },
-  bubbleText: { color: '#fff', fontSize: 14, lineHeight: 20 },
-  bubbleTime: { color: '#6b7280', fontSize: 10, marginTop: 6 },
+  bubbleSender: { color: COLORS.gray400, fontSize: 11, fontWeight: '600', marginBottom: 4 },
+  bubbleText: { color: COLORS.white, fontSize: 14, lineHeight: 20 },
+  bubbleTime: { color: COLORS.textFaint, fontSize: 10, marginTop: 6 },
   systemBubble: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: 'rgba(107, 114, 128, 0.15)' },
-  systemText: { color: '#9ca3af', fontSize: 12 },
-  closedBar: { padding: 16, borderTopWidth: 1, borderColor: '#224026', alignItems: 'center' },
-  closedText: { color: '#9ca3af', fontSize: 13, textAlign: 'center' },
-  composer: { flexDirection: 'row', padding: 12, borderTopWidth: 1, borderColor: '#224026', gap: 10, alignItems: 'flex-end' },
-  composerInput: { flex: 1, maxHeight: 100, color: '#fff', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, borderWidth: 1, borderColor: '#374151' },
-  sendBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#16a34a', alignItems: 'center', justifyContent: 'center' },
+  systemText: { color: COLORS.gray400, fontSize: 12 },
+  closedBar: { padding: 16, borderTopWidth: 1, borderColor: COLORS.border, alignItems: 'center' },
+  closedText: { color: COLORS.gray400, fontSize: 13, textAlign: 'center' },
+  composer: { flexDirection: 'row', padding: 12, borderTopWidth: 1, borderColor: COLORS.border, gap: 10, alignItems: 'flex-end' },
+  composerInput: { flex: 1, maxHeight: 100, color: COLORS.white, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, borderWidth: 1, borderColor: COLORS.inputBorder },
+  sendBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
 });

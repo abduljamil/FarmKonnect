@@ -1,7 +1,20 @@
+import { COLORS } from '../constants/colors';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import api from './api';
+
+// EAS project id is required by getExpoPushTokenAsync() on standalone/EAS
+// builds (it throws "No projectId found" without it). `eas init` writes this
+// into app.json's extra.eas.projectId; we read it at runtime and pass it
+// through. In Expo Go / dev it can be absent, so we only pass it when present.
+const projectId =
+  Constants?.expoConfig?.extra?.eas?.projectId ??
+  Constants?.easConfig?.projectId ??
+  undefined;
+
+const pushTokenOptions = projectId ? { projectId } : undefined;
 
 // Default foreground-handling: show alert + play sound even when the app is
 // in the foreground. Without this, Expo silently swallows pushes that
@@ -30,7 +43,7 @@ export async function registerForPushNotificationsAsync() {
         name: 'default',
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#16a34a',
+        lightColor: COLORS.primary,
       });
     }
 
@@ -42,7 +55,7 @@ export async function registerForPushNotificationsAsync() {
     }
     if (status !== 'granted') return null;
 
-    const tokenResp = await Notifications.getExpoPushTokenAsync();
+    const tokenResp = await Notifications.getExpoPushTokenAsync(pushTokenOptions);
     const token = tokenResp?.data;
     if (!token) return null;
 
@@ -69,7 +82,7 @@ export async function registerForPushNotificationsAsync() {
 export async function unregisterPushToken() {
   try {
     if (!Device.isDevice) return;
-    const tokenResp = await Notifications.getExpoPushTokenAsync().catch(() => null);
+    const tokenResp = await Notifications.getExpoPushTokenAsync(pushTokenOptions).catch(() => null);
     const token = tokenResp?.data;
     if (!token) return;
     await api.delete('/user/push-token', { data: { token } });

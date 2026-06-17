@@ -1,3 +1,4 @@
+import { COLORS } from '../constants/colors';
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,11 +15,11 @@ import { SocketContext } from '../contexts/SocketContext';
 
 const getIcon = (type) => {
   switch (type) {
-    case 'price_alert': return <TrendingUp color="#3b82f6" size={24} />;
+    case 'price_alert': return <TrendingUp color={COLORS.info} size={24} />;
     case 'message':     return <MessageCircle color="#a855f7" size={24} />;
-    case 'escrow':      return <CheckCircle color="#16a34a" size={24} />;
-    case 'system':      return <Bell color="#fbbf24" size={24} />;
-    default:            return <Bell color="#a3a3a3" size={24} />;
+    case 'escrow':      return <CheckCircle color={COLORS.primary} size={24} />;
+    case 'system':      return <Bell color={COLORS.warning} size={24} />;
+    default:            return <Bell color={COLORS.textMuted} size={24} />;
   }
 };
 
@@ -136,17 +137,17 @@ export default function NotificationsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <ArrowLeft color="#fff" size={24} />
+          <ArrowLeft color={COLORS.white} size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
         <View style={{ width: 24 }} />
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#16a34a" style={{ marginTop: 60 }} />
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 60 }} />
       ) : (
         <FlatList
           data={notifications}
@@ -154,10 +155,10 @@ export default function NotificationsScreen({ navigation }) {
           renderItem={renderItem}
           contentContainerStyle={styles.container}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <AlertTriangle color="#6b7280" size={48} />
+              <AlertTriangle color={COLORS.textFaint} size={48} />
               <Text style={styles.emptyTitle}>No notifications yet</Text>
               <Text style={styles.emptySubtitle}>
                 You'll see alerts here when your price targets are hit or when there's activity on your account.
@@ -171,22 +172,22 @@ export default function NotificationsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  headerTitle: { color: COLORS.white, fontSize: 20, fontWeight: 'bold' },
   backBtn: { padding: 4 },
   container: { padding: 20, paddingTop: 0 },
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(26, 46, 29, 0.4)', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#224026' },
-  cardUnread: { backgroundColor: 'rgba(26, 46, 29, 0.8)', borderColor: '#16a34a' },
+  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(26, 46, 29, 0.4)', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border },
+  cardUnread: { backgroundColor: 'rgba(26, 46, 29, 0.8)', borderColor: COLORS.primary },
   iconBox: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
   textContent: { flex: 1, paddingRight: 8 },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   title: { color: '#d4d4d4', fontSize: 16, fontWeight: '500' },
-  titleUnread: { color: '#fff', fontWeight: 'bold' },
-  time: { color: '#6b7280', fontSize: 12 },
-  message: { color: '#a3a3a3', fontSize: 14, lineHeight: 20 },
-  unreadDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#16a34a' },
+  titleUnread: { color: COLORS.white, fontWeight: 'bold' },
+  time: { color: COLORS.textFaint, fontSize: 12 },
+  message: { color: COLORS.textMuted, fontSize: 14, lineHeight: 20 },
+  unreadDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.primary },
   empty: { alignItems: 'center', padding: 40, marginTop: 40 },
-  emptyTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginTop: 16 },
-  emptySubtitle: { color: '#a3a3a3', fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 20 },
+  emptyTitle: { color: COLORS.white, fontSize: 18, fontWeight: 'bold', marginTop: 16 },
+  emptySubtitle: { color: COLORS.textMuted, fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 20 },
 });

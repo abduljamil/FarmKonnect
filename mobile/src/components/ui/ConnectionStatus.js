@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { setOnConnectionChange } from '../../services/api';
@@ -30,5 +31,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     alignItems: 'center',
   },
-  text: { color: '#fff', fontSize: 12, fontWeight: '600' },
+  text: { color: COLORS.white, fontSize: 12, fontWeight: '600' },
 });

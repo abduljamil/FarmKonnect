@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, Image, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -66,7 +67,7 @@ export default function EditProfileScreen({ navigation }) {
   const handlePickAvatar = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert(t('common.error'), 'Permission to access photos is required.');
+      Alert.alert(t('common.error'), t('mobile.alerts.photoPermissionRequired'));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -92,7 +93,7 @@ export default function EditProfileScreen({ navigation }) {
         setAvatar(url);
       }
     } catch (err) {
-      Alert.alert(t('common.error'), err.response?.data?.message || 'Avatar upload failed');
+      Alert.alert(t('common.error'), err.response?.data?.message || t('mobile.alerts.avatarUploadFailed'));
     } finally {
       setUploadingAvatar(false);
     }
@@ -105,7 +106,7 @@ export default function EditProfileScreen({ navigation }) {
     }
     // JazzCash number is optional but must be a valid Pakistani mobile if set.
     if (jazzcashNumber && !/^03[0-9]{9}$/.test(jazzcashNumber)) {
-      Alert.alert(t('common.error'), 'JazzCash number must be 03XXXXXXXXX');
+      Alert.alert(t('common.error'), t('mobile.alerts.jazzcashNumberFormat'));
       return;
     }
     setSaving(true);
@@ -138,7 +139,7 @@ export default function EditProfileScreen({ navigation }) {
   if (loading) {
     return (
       <SafeAreaView style={[styles.root, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#16a34a" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </SafeAreaView>
     );
   }
@@ -147,10 +148,10 @@ export default function EditProfileScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <ArrowLeft color="#fff" size={24} />
+          <ArrowLeft color={COLORS.white} size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('profile.editProfile')}</Text>
         <View style={{ width: 24 }} />
@@ -166,14 +167,14 @@ export default function EditProfileScreen({ navigation }) {
                 <View style={styles.avatarPlaceholder}><Text style={styles.avatarText}>{initial}</Text></View>
               )}
               <TouchableOpacity style={styles.cameraBtn} onPress={handlePickAvatar} disabled={uploadingAvatar}>
-                {uploadingAvatar ? <ActivityIndicator color="#fff" size="small" /> : <Camera color="#fff" size={16} />}
+                {uploadingAvatar ? <ActivityIndicator color={COLORS.white} size="small" /> : <Camera color={COLORS.white} size={16} />}
               </TouchableOpacity>
             </View>
           </View>
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>{t('profile.name')}</Text>
-            <TextInput style={styles.input} value={name} onChangeText={setName} placeholderTextColor="#6b7280" />
+            <TextInput style={styles.input} value={name} onChangeText={setName} placeholderTextColor={COLORS.textFaint} />
           </View>
 
           <View style={styles.formGroup}>
@@ -182,7 +183,7 @@ export default function EditProfileScreen({ navigation }) {
               style={[styles.input, styles.inputDisabled]}
               value={email}
               editable={false}
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={COLORS.textFaint}
             />
             <Text style={styles.helperText}>Email cannot be changed.</Text>
           </View>
@@ -195,7 +196,7 @@ export default function EditProfileScreen({ navigation }) {
               onChangeText={setPhone}
               keyboardType="phone-pad"
               placeholder="03XXXXXXXXX"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={COLORS.textFaint}
             />
           </View>
 
@@ -207,7 +208,7 @@ export default function EditProfileScreen({ navigation }) {
               onChangeText={setJazzcashNumber}
               keyboardType="phone-pad"
               placeholder={t('profile.jazzcashPlaceholder')}
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={COLORS.textFaint}
             />
           </View>
 
@@ -218,7 +219,7 @@ export default function EditProfileScreen({ navigation }) {
               value={location}
               onChangeText={setLocation}
               placeholder="e.g. Lahore, Punjab"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={COLORS.textFaint}
             />
           </View>
 
@@ -229,7 +230,7 @@ export default function EditProfileScreen({ navigation }) {
               value={bio}
               onChangeText={setBio}
               placeholder={t('profile.bioPlaceholder')}
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={COLORS.textFaint}
               multiline
               numberOfLines={4}
             />
@@ -237,8 +238,8 @@ export default function EditProfileScreen({ navigation }) {
 
           <TouchableOpacity style={[styles.saveBtn, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
             {saving
-              ? <ActivityIndicator color="#fff" />
-              : (<><Check color="#fff" size={20} /><Text style={styles.saveBtnText}>{t('settings.saveChanges')}</Text></>)}
+              ? <ActivityIndicator color={COLORS.white} />
+              : (<><Check color={COLORS.white} size={20} /><Text style={styles.saveBtnText}>{t('settings.saveChanges')}</Text></>)}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -247,23 +248,23 @@ export default function EditProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  headerTitle: { color: COLORS.white, fontSize: 20, fontWeight: 'bold' },
   backBtn: { padding: 4 },
   container: { padding: 20, paddingTop: 0 },
   avatarSection: { alignItems: 'center', marginBottom: 32, marginTop: 10 },
   avatarContainer: { position: 'relative' },
-  avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#16a34a', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
-  avatarImage: { width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: '#fff' },
-  avatarText: { color: '#fff', fontSize: 40, fontWeight: 'bold' },
-  cameraBtn: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#3b82f6', width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#0f1a12' },
+  avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: COLORS.white },
+  avatarImage: { width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: COLORS.white },
+  avatarText: { color: COLORS.white, fontSize: 40, fontWeight: 'bold' },
+  cameraBtn: { position: 'absolute', bottom: 0, right: 0, backgroundColor: COLORS.info, width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: COLORS.bg },
   formGroup: { marginBottom: 20 },
-  label: { color: '#a3a3a3', fontSize: 14, fontWeight: '600', marginBottom: 8 },
-  input: { backgroundColor: 'rgba(26, 46, 29, 0.8)', borderWidth: 1, borderColor: '#224026', borderRadius: 12, paddingHorizontal: 16, height: 50, color: '#fff', fontSize: 15 },
-  inputDisabled: { backgroundColor: 'rgba(0,0,0,0.3)', color: '#6b7280' },
-  helperText: { color: '#6b7280', fontSize: 12, marginTop: 6 },
+  label: { color: COLORS.textMuted, fontSize: 14, fontWeight: '600', marginBottom: 8 },
+  input: { backgroundColor: 'rgba(26, 46, 29, 0.8)', borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 16, height: 50, color: COLORS.white, fontSize: 15 },
+  inputDisabled: { backgroundColor: 'rgba(0,0,0,0.3)', color: COLORS.textFaint },
+  helperText: { color: COLORS.textFaint, fontSize: 12, marginTop: 6 },
   textArea: { height: 100, textAlignVertical: 'top', paddingTop: 16 },
-  saveBtn: { flexDirection: 'row', backgroundColor: '#16a34a', height: 56, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 12, marginBottom: 40, gap: 8 },
-  saveBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' }
+  saveBtn: { flexDirection: 'row', backgroundColor: COLORS.primary, height: 56, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 12, marginBottom: 40, gap: 8 },
+  saveBtnText: { color: COLORS.white, fontSize: 18, fontWeight: 'bold' }
 });

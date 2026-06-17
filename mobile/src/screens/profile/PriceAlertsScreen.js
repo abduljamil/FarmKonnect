@@ -1,8 +1,10 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, Switch, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Bell, TrendingDown, TrendingUp, Save } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+
 import { getPriceAlerts, createPriceAlert, deletePriceAlert, getPrices } from '../../services/priceService';
 
 export default function PriceAlertsScreen({ navigation }) {
@@ -10,6 +12,7 @@ export default function PriceAlertsScreen({ navigation }) {
   const [prices, setPrices] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCity, setSelectedCity] = useState(null);
 
   const [savingState, setSavingState] = useState(false);
 
@@ -29,9 +32,6 @@ export default function PriceAlertsScreen({ navigation }) {
 
         setPrices(fetchedPrices);
 
-        // Map UI state over fetched arrays. Each row supports either an
-        // "above" or "below" condition (previously hardcoded to below — half
-        // of what the backend / web allow).
         const uiAlerts = fetchedPrices.map(p => {
           const existingAlert = fetchedAlerts.find(a =>
             a.commodity === p.commodity && a.variety === p.variety && a.city === p.city
@@ -60,7 +60,6 @@ export default function PriceAlertsScreen({ navigation }) {
     const isCurrentlyEnabled = item.enabled;
     const newTarget = item.target;
 
-    // Disabling alert
     if (isCurrentlyEnabled) {
       setSavingState(true);
       try {
@@ -72,15 +71,14 @@ export default function PriceAlertsScreen({ navigation }) {
         setAlerts(newAlerts);
       } catch (err) {
         console.error('Failed to loop and delete', err);
-        Alert.alert('Error', 'Failed to disable alert');
+        Alert.alert(t('common.error'), t('mobile.alerts.alertDisableFailed'));
       } finally {
         setSavingState(false);
       }
     } 
-    // Enabling Alert (requires target)
     else {
       if (!newTarget || isNaN(newTarget)) {
-        Alert.alert('Required', 'Please enter a valid target price first.');
+        Alert.alert(t('mobile.alerts.required'), t('mobile.alerts.enterValidTarget'));
         return;
       }
       setSavingState(true);
@@ -97,7 +95,7 @@ export default function PriceAlertsScreen({ navigation }) {
         setAlerts(newAlerts);
       } catch (err) {
         console.error('Failed to create alert', err);
-        Alert.alert('Error', 'Failed to save alert');
+        Alert.alert(t('common.error'), t('mobile.alerts.alertSaveFailed'));
       } finally {
         setSavingState(false);
       }
@@ -119,7 +117,7 @@ export default function PriceAlertsScreen({ navigation }) {
   const saveEditedAlert = async (index, item) => {
     if (!item.enabled) return;
     if (!item.target || isNaN(item.target)) {
-       Alert.alert('Invalid', 'Target must be a number.');
+       Alert.alert(t('mobile.alerts.invalid'), t('mobile.alerts.targetMustBeNumber'));
        return;
     }
     setSavingState(true);
@@ -137,10 +135,10 @@ export default function PriceAlertsScreen({ navigation }) {
       const newAlerts = [...alerts];
       newAlerts[index].alertId = res.data.data._id;
       setAlerts(newAlerts);
-      Alert.alert('Saved', `${item.commodity} alert updated!`);
+      Alert.alert(t('mobile.alerts.saved'), t('mobile.alerts.alertUpdated', { commodity: item.commodity }));
     } catch(err) {
       console.error(err);
-      Alert.alert('Error', 'Could not update alert.');
+      Alert.alert(t('common.error'), t('mobile.alerts.alertUpdateFailed'));
     } finally {
       setSavingState(false);
     }
@@ -148,21 +146,21 @@ export default function PriceAlertsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <ArrowLeft color="#fff" size={24} />
+          <ArrowLeft color={COLORS.white} size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('priceAlerts.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#16a34a" style={{ marginTop: 50 }} />
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 50 }} />
       ) : (
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.banner}>
-            <Bell color="#fbbf24" size={28} />
+            <Bell color={COLORS.warning} size={28} />
             <View style={styles.bannerTextCol}>
               <Text style={styles.bannerTitle}>Stay Market Ready</Text>
               <Text style={styles.bannerDesc}>Get instantly notified when a commodity drops below your target price.</Text>
@@ -170,41 +168,62 @@ export default function PriceAlertsScreen({ navigation }) {
           </View>
 
           <Text style={styles.sectionTitle}>Set Target Prices</Text>
+
+          {alerts.length > 0 && (
+            <View style={styles.cityFilterContainer}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cityFilterRow}>
+                <TouchableOpacity
+                  style={[styles.cityPill, !selectedCity && styles.cityPillActive]}
+                  onPress={() => setSelectedCity(null)}
+                >
+                  <Text style={[styles.cityPillText, !selectedCity && styles.cityPillTextActive]}>{t('common.all', 'All')}</Text>
+                </TouchableOpacity>
+                {[...new Set(alerts.map(a => a.city))].filter(Boolean).sort().map((city, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[styles.cityPill, selectedCity === city && styles.cityPillActive]}
+                    onPress={() => setSelectedCity(city)}
+                  >
+                    <Text style={[styles.cityPillText, selectedCity === city && styles.cityPillTextActive]}>{city}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
           
-          {alerts.map((item, index) => (
-            <View key={index} style={[styles.card, item.enabled && styles.cardActive]}>
+          {(selectedCity ? alerts.filter(a => a.city === selectedCity) : alerts).map((item, index) => {
+            const originalIndex = alerts.findIndex(a => a.commodity === item.commodity && a.variety === item.variety && a.city === item.city);
+            return (
+            <View key={originalIndex} style={[styles.card, item.enabled && styles.cardActive]}>
               <View style={styles.cardHeader}>
                 <View>
-                  <Text style={styles.itemName}>{item.commodity}</Text>
+                  <Text style={styles.itemName}>{item.commodity} • <Text style={styles.itemCity}>{item.city}</Text></Text>
                   <Text style={styles.currentPrice}>Current: ₨ {item.price} / {item.unit}</Text>
                 </View>
                 <Switch
-                  trackColor={{ false: '#374151', true: 'rgba(22, 163, 74, 0.5)' }}
-                  thumbColor={item.enabled ? '#16a34a' : '#f4f3f4'}
-                  onValueChange={() => toggleSwitch(index, item)}
+                  trackColor={{ false: COLORS.inputBorder, true: 'rgba(22, 163, 74, 0.5)' }}
+                  thumbColor={item.enabled ? COLORS.primary : '#f4f3f4'}
+                  onValueChange={() => toggleSwitch(originalIndex, item)}
                   value={item.enabled}
                   disabled={savingState}
                 />
               </View>
               
-              {/* Condition toggle: above / below — matches web's PriceAlertsPanel.
-                  Both web and backend support both conditions; mobile used to
-                  hardcode "below" so users couldn't alert on price rises. */}
               <View style={styles.conditionRow}>
                 <TouchableOpacity
                   style={[styles.conditionBtn, (item.condition || 'below') === 'below' && styles.conditionBtnActive]}
-                  onPress={() => updateCondition(index, 'below')}
+                  onPress={() => updateCondition(originalIndex, 'below')}
                 >
-                  <TrendingDown color={(item.condition || 'below') === 'below' ? '#16a34a' : '#a3a3a3'} size={14} />
+                  <TrendingDown color={(item.condition || 'below') === 'below' ? COLORS.primary : COLORS.textMuted} size={14} />
                   <Text style={[styles.conditionText, (item.condition || 'below') === 'below' && styles.conditionTextActive]}>
                     {t('priceAlerts.form.below')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.conditionBtn, item.condition === 'above' && styles.conditionBtnActive]}
-                  onPress={() => updateCondition(index, 'above')}
+                  onPress={() => updateCondition(originalIndex, 'above')}
                 >
-                  <TrendingUp color={item.condition === 'above' ? '#16a34a' : '#a3a3a3'} size={14} />
+                  <TrendingUp color={item.condition === 'above' ? COLORS.primary : COLORS.textMuted} size={14} />
                   <Text style={[styles.conditionText, item.condition === 'above' && styles.conditionTextActive]}>
                     {t('priceAlerts.form.above')}
                   </Text>
@@ -217,23 +236,23 @@ export default function PriceAlertsScreen({ navigation }) {
                   style={styles.targetInput}
                   keyboardType="numeric"
                   placeholder="0"
-                  placeholderTextColor="#6b7280"
+                  placeholderTextColor={COLORS.textFaint}
                   value={item.target}
-                  onChangeText={(val) => updateTarget(index, val)}
+                  onChangeText={(val) => updateTarget(originalIndex, val)}
                   editable={!savingState}
                 />
 
                 {item.enabled && (
-                  <TouchableOpacity onPress={() => saveEditedAlert(index, item)} disabled={savingState} style={{ marginLeft: 8 }}>
-                    <Save color="#16a34a" size={20} />
+                  <TouchableOpacity onPress={() => saveEditedAlert(originalIndex, item)} disabled={savingState} style={{ marginLeft: 8 }}>
+                    <Save color={COLORS.primary} size={20} />
                   </TouchableOpacity>
                 )}
               </View>
             </View>
-          ))}
+          )})}
 
           {alerts.length === 0 && (
-            <Text style={{ textAlign: 'center', color: '#a3a3a3', marginTop: 20 }}>No commodities available to monitor.</Text>
+            <Text style={{ textAlign: 'center', color: COLORS.textMuted, marginTop: 20 }}>No commodities available to monitor.</Text>
           )}
         </ScrollView>
       )}
@@ -242,27 +261,34 @@ export default function PriceAlertsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  headerTitle: { color: COLORS.white, fontSize: 20, fontWeight: 'bold' },
   backBtn: { padding: 4 },
   container: { padding: 20, paddingTop: 0 },
-  banner: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(251, 191, 36, 0.1)', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#fbbf24', marginBottom: 24 },
+  banner: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(251, 191, 36, 0.1)', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: COLORS.warning, marginBottom: 24 },
   bannerTextCol: { marginLeft: 16, flex: 1 },
-  bannerTitle: { color: '#fbbf24', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  bannerTitle: { color: COLORS.warning, fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
   bannerDesc: { color: '#f3f4f6', fontSize: 13, lineHeight: 20 },
-  sectionTitle: { color: '#a3a3a3', fontSize: 14, fontWeight: '600', marginBottom: 16, textTransform: 'uppercase' },
-  card: { backgroundColor: 'rgba(26, 46, 29, 0.4)', padding: 16, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: '#224026' },
-  cardActive: { borderColor: '#16a34a', backgroundColor: 'rgba(26, 46, 29, 0.8)' },
+  sectionTitle: { color: COLORS.textMuted, fontSize: 14, fontWeight: '600', marginBottom: 16, textTransform: 'uppercase' },
+  card: { backgroundColor: 'rgba(26, 46, 29, 0.4)', padding: 16, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border },
+  cardActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(26, 46, 29, 0.8)' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  itemName: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-  currentPrice: { color: '#a3a3a3', fontSize: 13 },
+  itemName: { color: COLORS.white, fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  itemCity: { color: COLORS.primaryLight, fontSize: 14, fontWeight: '500' },
+  currentPrice: { color: COLORS.textMuted, fontSize: 13 },
   targetRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 8 },
   targetLabel: { color: '#d4d4d4', fontSize: 13, flex: 1 },
-  targetInput: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 8, borderWidth: 1, borderColor: '#374151', width: 90, height: 36, color: '#fff', textAlign: 'center', fontSize: 14 },
-  conditionRow: { flexDirection: 'row', gap: 8, marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderColor: '#224026' },
-  conditionBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.2)', borderWidth: 1, borderColor: '#374151' },
-  conditionBtnActive: { backgroundColor: 'rgba(22, 163, 74, 0.15)', borderColor: '#16a34a' },
-  conditionText: { color: '#a3a3a3', fontSize: 12, fontWeight: '500' },
-  conditionTextActive: { color: '#16a34a', fontWeight: '600' },
+  targetInput: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 8, borderWidth: 1, borderColor: COLORS.inputBorder, width: 90, height: 36, color: COLORS.white, textAlign: 'center', fontSize: 14 },
+  conditionRow: { flexDirection: 'row', gap: 8, marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderColor: COLORS.border },
+  conditionBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.2)', borderWidth: 1, borderColor: COLORS.inputBorder },
+  conditionBtnActive: { backgroundColor: 'rgba(22, 163, 74, 0.15)', borderColor: COLORS.primary },
+  conditionText: { color: COLORS.textMuted, fontSize: 12, fontWeight: '500' },
+  conditionTextActive: { color: COLORS.primary, fontWeight: '600' },
+  cityFilterContainer: { marginBottom: 16 },
+  cityFilterRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 4 },
+  cityPill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: COLORS.border },
+  cityPillActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  cityPillText: { color: COLORS.textMuted, fontWeight: '500', fontSize: 14 },
+  cityPillTextActive: { color: COLORS.white, fontWeight: 'bold' },
 });

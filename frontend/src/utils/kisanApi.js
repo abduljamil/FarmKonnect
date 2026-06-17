@@ -45,19 +45,19 @@ export const kisanAPI = {
 
   listConversations: () => apiCall("/ai/conversations"),
 
-  startConversation: (firstMessage) =>
+  startConversation: (firstMessage, language) =>
     apiCall("/ai/conversations", {
       method: "POST",
-      body: JSON.stringify({ firstMessage }),
+      body: JSON.stringify({ firstMessage, language }),
     }),
 
   getMessages: (conversationId) =>
     apiCall(`/ai/conversations/${conversationId}/messages`),
 
-  sendMessage: (conversationId, message) =>
+  sendMessage: (conversationId, message, language) =>
     apiCall(`/ai/conversations/${conversationId}/messages`, {
       method: "POST",
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, language }),
     }),
 
   deleteConversation: (conversationId) =>

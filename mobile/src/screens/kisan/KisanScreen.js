@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -13,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, Plus, Wrench, Trash2 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 const BRAND_EMOJI = '🌾';
 import {
@@ -39,6 +41,8 @@ const TOOL_LABELS = {
 };
 
 export default function KisanScreen({ navigation }) {
+  const { i18n } = useTranslation();
+  const language = i18n.language;
   const [conversations, setConversations] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -125,7 +129,7 @@ export default function KisanScreen({ navigation }) {
     try {
       let convoId = activeId;
       if (!convoId) {
-        const startRes = await startConversation(text);
+        const startRes = await startConversation(text, language);
         convoId = startRes.data?.data?._id;
         setActiveId(convoId);
         if (startRes.data?.data) {
@@ -133,7 +137,7 @@ export default function KisanScreen({ navigation }) {
         }
       }
 
-      const res = await sendMessage(convoId, text);
+      const res = await sendMessage(convoId, text, language);
       const { reply, toolCalls, messageId } = res.data?.data || {};
       setMessages((prev) => [
         ...prev,
@@ -164,7 +168,7 @@ export default function KisanScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a110c" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bgDeep} />
 
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -189,7 +193,7 @@ export default function KisanScreen({ navigation }) {
       {historyOpen && (
         <View style={styles.historyPanel}>
           <TouchableOpacity onPress={handleNewChat} style={styles.newChatBtn}>
-            <Plus color="#fff" size={16} />
+            <Plus color={COLORS.white} size={16} />
             <Text style={styles.newChatText}>New chat</Text>
           </TouchableOpacity>
           <ScrollView style={{ maxHeight: 220 }}>
@@ -216,7 +220,7 @@ export default function KisanScreen({ navigation }) {
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => handleDelete(c._id)}>
-                    <Trash2 color="#9ca3af" size={16} />
+                    <Trash2 color={COLORS.gray400} size={16} />
                   </TouchableOpacity>
                 </View>
               ))
@@ -231,7 +235,7 @@ export default function KisanScreen({ navigation }) {
       >
         {loadingMessages ? (
           <View style={styles.loaderWrap}>
-            <ActivityIndicator size="large" color="#16a34a" />
+            <ActivityIndicator size="large" color={COLORS.primary} />
           </View>
         ) : messages.length === 0 ? (
           <EmptyState onPick={(s) => handleSend(s)} />
@@ -248,7 +252,7 @@ export default function KisanScreen({ navigation }) {
             ))}
             {sending && (
               <View style={styles.thinkingRow}>
-                <ActivityIndicator size="small" color="#16a34a" />
+                <ActivityIndicator size="small" color={COLORS.primary} />
                 <Text style={styles.thinkingText}>Kisan is thinking…</Text>
               </View>
             )}
@@ -259,7 +263,7 @@ export default function KisanScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="Ask Kisan about prices, listings, weather…"
-            placeholderTextColor="#6b7280"
+            placeholderTextColor={COLORS.textFaint}
             value={input}
             onChangeText={setInput}
             multiline
@@ -274,9 +278,9 @@ export default function KisanScreen({ navigation }) {
             ]}
           >
             {sending ? (
-              <ActivityIndicator color="#fff" size="small" />
+              <ActivityIndicator color={COLORS.white} size="small" />
             ) : (
-              <Send color="#fff" size={18} />
+              <Send color={COLORS.white} size={18} />
             )}
           </TouchableOpacity>
         </View>
@@ -367,28 +371,28 @@ function MessageRow({ message }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#0a110c',
+    backgroundColor: COLORS.bgDeep,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#224026',
+    borderBottomColor: COLORS.border,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   headerAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#16a34a',
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerAvatarEmoji: { fontSize: 22, lineHeight: 26 },
-  headerTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  headerTitle: { color: COLORS.white, fontSize: 16, fontWeight: 'bold' },
   headerSubtitle: { color: '#86efac', fontSize: 11 },
   iconBtn: { padding: 6 },
   historyToggle: {
@@ -401,20 +405,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a2e1d',
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#224026',
+    borderBottomColor: COLORS.border,
   },
   newChatBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#16a34a',
+    backgroundColor: COLORS.primary,
     paddingVertical: 10,
     borderRadius: 10,
     marginBottom: 10,
   },
-  newChatText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  emptyHistoryText: { color: '#6b7280', fontSize: 13, padding: 8 },
+  newChatText: { color: COLORS.white, fontWeight: '600', fontSize: 14 },
+  emptyHistoryText: { color: COLORS.textFaint, fontSize: 13, padding: 8 },
   historyRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -422,7 +426,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
   },
-  historyTitle: { color: '#d1d5db', fontSize: 13 },
+  historyTitle: { color: COLORS.gray300, fontSize: 13 },
   historyTitleActive: { color: '#86efac', fontWeight: '600' },
 
   loaderWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -430,21 +434,21 @@ const styles = StyleSheet.create({
 
   userRow: { alignItems: 'flex-end', marginBottom: 12 },
   userBubble: {
-    backgroundColor: '#16a34a',
+    backgroundColor: COLORS.primary,
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 18,
     borderBottomRightRadius: 4,
     maxWidth: '85%',
   },
-  userBubbleText: { color: '#fff', fontSize: 14, lineHeight: 20 },
+  userBubbleText: { color: COLORS.white, fontSize: 14, lineHeight: 20 },
 
   botRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   botAvatar: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#16a34a',
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
@@ -456,7 +460,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     backgroundColor: 'rgba(22,163,74,0.15)',
-    borderColor: '#16a34a',
+    borderColor: COLORS.primary,
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -466,7 +470,7 @@ const styles = StyleSheet.create({
 
   botBubble: {
     backgroundColor: 'rgba(26, 46, 29, 0.8)',
-    borderColor: '#224026',
+    borderColor: COLORS.border,
     borderWidth: 1,
     paddingVertical: 10,
     paddingHorizontal: 14,
@@ -480,22 +484,22 @@ const styles = StyleSheet.create({
   botBubbleErrorText: { color: '#fecaca' },
 
   thinkingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  thinkingText: { color: '#9ca3af', fontSize: 13 },
+  thinkingText: { color: COLORS.gray400, fontSize: 13 },
 
   emptyWrap: { padding: 24, alignItems: 'center', justifyContent: 'center' },
   emptyAvatar: {
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: '#16a34a',
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
   },
   emptyAvatarEmoji: { fontSize: 40, lineHeight: 46 },
-  emptyTitle: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 6 },
+  emptyTitle: { color: COLORS.white, fontSize: 22, fontWeight: 'bold', marginBottom: 6 },
   emptySubtitle: {
-    color: '#9ca3af',
+    color: COLORS.gray400,
     fontSize: 13,
     textAlign: 'center',
     maxWidth: 360,
@@ -505,21 +509,21 @@ const styles = StyleSheet.create({
   suggestionsGrid: { width: '100%', gap: 8 },
   suggestionCard: {
     borderWidth: 1,
-    borderColor: '#224026',
+    borderColor: COLORS.border,
     backgroundColor: 'rgba(26, 46, 29, 0.5)',
     borderRadius: 12,
     padding: 12,
   },
-  suggestionText: { color: '#d1d5db', fontSize: 13 },
+  suggestionText: { color: COLORS.gray300, fontSize: 13 },
 
   inputArea: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     padding: 12,
     paddingBottom: 4,
-    backgroundColor: '#0a110c',
+    backgroundColor: COLORS.bgDeep,
     borderTopWidth: 1,
-    borderTopColor: '#224026',
+    borderTopColor: COLORS.border,
   },
   input: {
     flex: 1,
@@ -530,26 +534,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 10,
     paddingBottom: 10,
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 14,
     borderWidth: 1,
-    borderColor: '#224026',
+    borderColor: COLORS.border,
   },
   sendBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#16a34a',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
   },
-  sendBtnDisabled: { backgroundColor: '#224026', opacity: 0.6 },
+  sendBtnDisabled: { backgroundColor: COLORS.border, opacity: 0.6 },
   disclaimer: {
     textAlign: 'center',
-    color: '#6b7280',
+    color: COLORS.textFaint,
     fontSize: 10,
     paddingVertical: 6,
-    backgroundColor: '#0a110c',
+    backgroundColor: COLORS.bgDeep,
   },
 });

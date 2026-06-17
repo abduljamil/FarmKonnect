@@ -64,7 +64,6 @@ export const COMMODITY_CONFIG = {
   Maize:  MAIZE_DISPLAY,
   Sugar:  SUGAR_DISPLAY,
   Flour:  FLOUR_DISPLAY,
-  Cotton: COTTON_DISPLAY,
   Rice:   RICE_DISPLAY,
 
   // Rice variants -- each is its own commodity string in the DB
@@ -132,7 +131,7 @@ export const COMMODITY_FAMILIES = {
     "Paddy (IRRI)",
     "Paddy Kainat",
   ],
-  Cotton: ["Cotton", "Seed Cotton (Phutti)"],
+  Cotton: ["Seed Cotton (Phutti)"],
   Sugar: ["Sugar"],
   Maize: ["Maize"],
   Flour: ["Flour"],

@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState, useContext } from 'react';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, Alert, Image, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,7 +17,7 @@ export default function CreateListingScreen({ navigation }) {
     title: '',
     category: 'crops',
     price: '',
-    unit: '',
+    unit: 'kg',
     quantity: '1',
     location: '',
     description: '',
@@ -25,12 +26,22 @@ export default function CreateListingScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const categories = [
-    { label: 'Crops', value: 'crops' },
-    { label: 'Livestock', value: 'livestock' },
-    { label: 'Equipment', value: 'equipment' },
-    { label: 'Fertilizers', value: 'fertilizers' },
-    { label: 'Seeds', value: 'seeds' },
-    { label: 'Other', value: 'other' }
+    { labelKey: 'mobile.createListing.catCrops', value: 'crops' },
+    { labelKey: 'marketplace.categories.livestock', value: 'livestock' },
+    { labelKey: 'marketplace.categories.equipment', value: 'equipment' },
+    { labelKey: 'marketplace.categories.fertilizers', value: 'fertilizers' },
+    { labelKey: 'marketplace.categories.seeds', value: 'seeds' },
+    { labelKey: 'marketplace.categories.other', value: 'other' }
+  ];
+
+  const units = [
+    { labelKey: 'createListing.units.kg', value: 'kg' },
+    { labelKey: 'createListing.units.quintal', value: 'quintal' },
+    { labelKey: 'createListing.units.ton', value: 'ton' },
+    { labelKey: 'createListing.units.piece', value: 'piece' },
+    { labelKey: 'createListing.units.dozen', value: 'dozen' },
+    { labelKey: 'createListing.units.bag', value: 'bag' },
+    { labelKey: 'createListing.units.liter', value: 'liter' }
   ];
 
   const handlePickImage = async () => {
@@ -77,10 +88,10 @@ export default function CreateListingScreen({ navigation }) {
   };
 
   const handlePhotoOptions = () => {
-    Alert.alert('Add Photos', 'Choose an option', [
-      { text: 'Camera', onPress: handleTakePhoto },
-      { text: 'Photo Library', onPress: handlePickImage },
-      { text: 'Cancel', onPress: () => {}, style: 'cancel' }
+    Alert.alert(t('mobile.alerts.addPhotos'), t('mobile.alerts.chooseOption'), [
+      { text: t('mobile.buttons.camera'), onPress: handleTakePhoto },
+      { text: t('mobile.buttons.photoLibrary'), onPress: handlePickImage },
+      { text: t('mobile.buttons.cancel'), onPress: () => {}, style: 'cancel' }
     ]);
   };
 
@@ -144,10 +155,10 @@ export default function CreateListingScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <ArrowLeft color="#fff" size={24} />
+          <ArrowLeft color={COLORS.white} size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('createListing.title')}</Text>
         <View style={{ width: 24 }} />
@@ -156,7 +167,7 @@ export default function CreateListingScreen({ navigation }) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
         {/* Images Section */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Photos (Max 5) {formData.images.length > 0 && `${formData.images.length}/5`}</Text>
+          <Text style={styles.label}>{t('mobile.createListing.photosMax')} {formData.images.length > 0 && `${formData.images.length}/5`}</Text>
           
           {formData.images.length > 0 && (
             <FlatList
@@ -168,11 +179,11 @@ export default function CreateListingScreen({ navigation }) {
                     style={styles.removeImageBtn}
                     onPress={() => removeImage(index)}
                   >
-                    <X color="#fff" size={20} />
+                    <X color={COLORS.white} size={20} />
                   </TouchableOpacity>
                 </View>
               )}
-              keyExtractor={(item, index) => `image_${index}`}
+              keyExtractor={(item) => item.uri}
               horizontal
               scrollEnabled
               showsHorizontalScrollIndicator={false}
@@ -182,37 +193,37 @@ export default function CreateListingScreen({ navigation }) {
 
           {formData.images.length < 5 && (
             <TouchableOpacity style={styles.imageUploadBox} onPress={handlePhotoOptions}>
-              <Camera color="#16a34a" size={32} />
-              <Text style={styles.imageUploadText}>Tap to add photo</Text>
-              <Text style={styles.imageUploadSubtext}>{formData.images.length}/5 photos added</Text>
+              <Camera color={COLORS.primary} size={32} />
+              <Text style={styles.imageUploadText}>{t('mobile.createListing.tapToAddPhoto')}</Text>
+              <Text style={styles.imageUploadSubtext}>{t('mobile.createListing.photosAdded', { count: formData.images.length })}</Text>
             </TouchableOpacity>
           )}
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Title *</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder="e.g. Premium Wheat 40kg" 
-            placeholderTextColor="#6b7280"
+          <Text style={styles.label}>{t('createListing.form.title')} *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder={t('createListing.form.titlePlaceholder')}
+            placeholderTextColor={COLORS.textFaint}
             value={formData.title}
             onChangeText={(text) => setFormData({ ...formData, title: text })}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Category *</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryRow}>
+          <Text style={styles.label}>{t('createListing.form.category')} *</Text>
+          <View style={styles.categoryRow}>
             {categories.map((cat, idx) => (
               <TouchableOpacity 
                 key={idx} 
                 style={[styles.categoryPill, formData.category === cat.value && styles.categoryPillActive]}
                 onPress={() => setFormData({ ...formData, category: cat.value })}
               >
-                <Text style={[styles.categoryText, formData.category === cat.value && styles.categoryTextActive]}>{cat.label}</Text>
+                <Text style={[styles.categoryText, formData.category === cat.value && styles.categoryTextActive]}>{t(cat.labelKey)}</Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         </View>
 
         <View style={styles.row}>
@@ -222,34 +233,36 @@ export default function CreateListingScreen({ navigation }) {
               style={styles.input} 
               placeholder="4800" 
               keyboardType="numeric" 
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={COLORS.textFaint}
               value={formData.price}
               onChangeText={(text) => setFormData({ ...formData, price: text })}
             />
           </View>
           <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={styles.label}>Unit</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder="e.g. 40kg" 
-              placeholderTextColor="#6b7280"
-              value={formData.unit}
-              onChangeText={(text) => setFormData({ ...formData, unit: text })}
-            />
-          </View>
-        </View>
-
-        <View style={styles.row}>
-          <View style={[styles.formGroup, { flex: 1, marginRight: 12 }]}>
-            <Text style={styles.label}>Quantity</Text>
+            <Text style={styles.label}>{t('createListing.form.quantity')} *</Text>
             <TextInput 
               style={styles.input} 
               placeholder="1" 
               keyboardType="numeric" 
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={COLORS.textFaint}
               value={formData.quantity}
               onChangeText={(text) => setFormData({ ...formData, quantity: text })}
             />
+          </View>
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>{t('createListing.form.unit')} *</Text>
+          <View style={styles.categoryRow}>
+            {units.map((u, idx) => (
+              <TouchableOpacity 
+                key={idx} 
+                style={[styles.categoryPill, formData.unit === u.value && styles.categoryPillActive]}
+                onPress={() => setFormData({ ...formData, unit: u.value })}
+              >
+                <Text style={[styles.categoryText, formData.unit === u.value && styles.categoryTextActive]}>{t(u.labelKey)}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -259,17 +272,17 @@ export default function CreateListingScreen({ navigation }) {
             structured object internally so we can persist the lat/lng if
             the backend schema gains coordinates later. */}
         <LocationPicker
-          label="Location *"
+          label={`${t('createListing.form.location')} *`}
           value={{ address: formData.location }}
           onChange={(loc) => setFormData({ ...formData, location: loc.address || '' })}
         />
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Description *</Text>
-          <TextInput 
-            style={[styles.input, styles.textArea]} 
-            placeholder="Tell buyers about your product..." 
-            placeholderTextColor="#6b7280" 
+          <Text style={styles.label}>{t('createListing.form.description')} *</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder={t('createListing.form.descriptionPlaceholder')}
+            placeholderTextColor={COLORS.textFaint} 
             multiline 
             textAlignVertical="top" 
             value={formData.description}
@@ -278,7 +291,7 @@ export default function CreateListingScreen({ navigation }) {
         </View>
 
         <TouchableOpacity style={styles.submitBtn} onPress={handleCreate} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>{t('createListing.submit')}</Text>}
+          {loading ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.submitBtnText}>{t('createListing.submit')}</Text>}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -286,29 +299,29 @@ export default function CreateListingScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.white },
   container: { padding: 20, paddingBottom: 40 },
-  imageUploadBox: { height: 150, backgroundColor: 'rgba(26, 46, 29, 0.5)', borderRadius: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#224026', borderStyle: 'dashed', marginBottom: 24 },
-  imageUploadText: { color: '#16a34a', marginTop: 12, fontSize: 16, fontWeight: '600' },
-  imageUploadSubtext: { color: '#6b7280', marginTop: 6, fontSize: 13 },
+  imageUploadBox: { height: 150, backgroundColor: 'rgba(26, 46, 29, 0.5)', borderRadius: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border, borderStyle: 'dashed', marginBottom: 24 },
+  imageUploadText: { color: COLORS.primary, marginTop: 12, fontSize: 16, fontWeight: '600' },
+  imageUploadSubtext: { color: COLORS.textFaint, marginTop: 6, fontSize: 13 },
   formGroup: { marginBottom: 20 },
-  label: { color: '#fff', fontSize: 15, fontWeight: '600', marginBottom: 8 },
-  input: { backgroundColor: 'rgba(26, 46, 29, 0.8)', borderWidth: 1, borderColor: '#224026', borderRadius: 12, color: '#fff', padding: 16, fontSize: 16 },
+  label: { color: COLORS.white, fontSize: 15, fontWeight: '600', marginBottom: 8 },
+  input: { backgroundColor: 'rgba(26, 46, 29, 0.8)', borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, color: COLORS.white, padding: 16, fontSize: 16 },
   textArea: { height: 120, textAlignVertical: 'top' },
   row: { flexDirection: 'row', justifyContent: 'space-between' },
-  categoryRow: { flexDirection: 'row', paddingVertical: 4 },
-  categoryPill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: 'rgba(26, 46, 29, 0.8)', borderWidth: 1, borderColor: '#224026', marginRight: 10 },
-  categoryPillActive: { backgroundColor: '#16a34a', borderColor: '#16a34a' },
-  categoryText: { color: '#a3a3a3', fontWeight: '500' },
-  categoryTextActive: { color: '#fff' },
-  submitBtn: { backgroundColor: '#16a34a', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10, marginBottom: 40 },
-  submitBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  categoryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingVertical: 4 },
+  categoryPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: COLORS.border },
+  categoryPillActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  categoryText: { color: COLORS.textMuted, fontWeight: '500' },
+  categoryTextActive: { color: COLORS.white },
+  submitBtn: { backgroundColor: COLORS.primary, padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10, marginBottom: 40 },
+  submitBtnText: { color: COLORS.white, fontSize: 18, fontWeight: 'bold' },
   
   // Image preview styles
   imagePreviewContainer: { position: 'relative', marginRight: 12, marginBottom: 12 },
-  imagePreview: { width: 120, height: 120, borderRadius: 12, backgroundColor: '#1a2e1f' },
+  imagePreview: { width: 120, height: 120, borderRadius: 12, backgroundColor: COLORS.surface },
   removeImageBtn: { 
     position: 'absolute', 
     top: 4, 

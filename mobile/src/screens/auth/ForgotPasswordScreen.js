@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState } from 'react';
 import {
   View,
@@ -63,11 +64,11 @@ export default function ForgotPasswordScreen({ navigation }) {
   if (success) {
     return (
       <View style={styles.root}>
-        <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
         <AnimatedBlobs />
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
-            <CheckCircle color="#16a34a" size={48} />
+            <CheckCircle color={COLORS.primary} size={48} />
           </View>
           <Text style={styles.title}>{t('auth.verifyEmail.title')}</Text>
           <Text style={styles.subtitle}>
@@ -75,7 +76,7 @@ export default function ForgotPasswordScreen({ navigation }) {
           </Text>
           <Text style={styles.emailDisplay}>{email}</Text>
           <TouchableOpacity style={styles.backToSignInBtn} onPress={() => navigation.replace('SignIn')}>
-            <ArrowLeft color="#fff" size={16} />
+            <ArrowLeft color={COLORS.white} size={16} />
             <Text style={styles.backToSignInText}>{t('auth.forgotPassword.backToLogin')}</Text>
           </TouchableOpacity>
         </View>
@@ -85,7 +86,7 @@ export default function ForgotPasswordScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <AnimatedBlobs />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -93,12 +94,12 @@ export default function ForgotPasswordScreen({ navigation }) {
       >
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()}>
-            <ArrowLeft color="#a3a3a3" size={20} />
+            <ArrowLeft color={COLORS.textMuted} size={20} />
             <Text style={styles.backLink}>{t('common.back')}</Text>
           </TouchableOpacity>
 
           <View style={styles.iconWrap}>
-            <Mail color="#16a34a" size={40} />
+            <Mail color={COLORS.primary} size={40} />
           </View>
 
           <Text style={styles.title}>{t('auth.forgotPassword.title')}</Text>
@@ -116,7 +117,7 @@ export default function ForgotPasswordScreen({ navigation }) {
             value={email}
             onChangeText={(v) => { setEmail(v); setError(''); }}
             placeholder={t('auth.signIn.email')}
-            placeholderTextColor="#6b7280"
+            placeholderTextColor={COLORS.textFaint}
             keyboardType="email-address"
             autoCapitalize="none"
             editable={!loading}
@@ -128,7 +129,7 @@ export default function ForgotPasswordScreen({ navigation }) {
             disabled={loading}
           >
             {loading
-              ? <ActivityIndicator color="#fff" />
+              ? <ActivityIndicator color={COLORS.white} />
               : <Text style={styles.submitBtnText}>{t('auth.forgotPassword.button')}</Text>}
           </TouchableOpacity>
 
@@ -142,24 +143,24 @@ export default function ForgotPasswordScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   container: { padding: 24, paddingTop: 60, flexGrow: 1 },
   backRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 24 },
-  backLink: { color: '#a3a3a3', fontSize: 14, fontWeight: '500' },
+  backLink: { color: COLORS.textMuted, fontSize: 14, fontWeight: '500' },
   iconWrap: { width: 80, height: 80, borderRadius: 24, backgroundColor: 'rgba(22, 163, 74, 0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 24, borderWidth: 1, borderColor: 'rgba(22, 163, 74, 0.3)' },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 8 },
-  subtitle: { color: '#a3a3a3', fontSize: 14, marginBottom: 24, lineHeight: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', color: COLORS.white, marginBottom: 8 },
+  subtitle: { color: COLORS.textMuted, fontSize: 14, marginBottom: 24, lineHeight: 20 },
   errorBox: { backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.3)', borderWidth: 1, padding: 12, borderRadius: 8, marginBottom: 16 },
-  errorText: { color: '#ef4444', fontSize: 13 },
-  label: { color: '#fff', fontSize: 14, fontWeight: '500', marginBottom: 8 },
-  input: { backgroundColor: 'rgba(26, 46, 31, 0.8)', borderWidth: 1, borderColor: '#224026', borderRadius: 12, color: '#fff', padding: 14, fontSize: 16, marginBottom: 20 },
-  submitBtn: { backgroundColor: '#16a34a', padding: 16, borderRadius: 12, alignItems: 'center' },
-  submitBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  errorText: { color: COLORS.danger, fontSize: 13 },
+  label: { color: COLORS.white, fontSize: 14, fontWeight: '500', marginBottom: 8 },
+  input: { backgroundColor: 'rgba(26, 46, 31, 0.8)', borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, color: COLORS.white, padding: 14, fontSize: 16, marginBottom: 20 },
+  submitBtn: { backgroundColor: COLORS.primary, padding: 16, borderRadius: 12, alignItems: 'center' },
+  submitBtnText: { color: COLORS.white, fontSize: 16, fontWeight: 'bold' },
   signInRow: { marginTop: 20, alignItems: 'center' },
-  signInRowText: { color: '#16a34a', fontSize: 14, fontWeight: '500' },
+  signInRowText: { color: COLORS.primary, fontSize: 14, fontWeight: '500' },
   successContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
   successIcon: { width: 96, height: 96, borderRadius: 48, backgroundColor: 'rgba(22, 163, 74, 0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-  emailDisplay: { color: '#16a34a', fontSize: 14, fontWeight: '600', marginVertical: 12 },
+  emailDisplay: { color: COLORS.primary, fontSize: 14, fontWeight: '600', marginVertical: 12 },
   backToSignInBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(22, 163, 74, 0.15)', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 24, gap: 8 },
-  backToSignInText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  backToSignInText: { color: COLORS.white, fontSize: 14, fontWeight: '600' },
 });

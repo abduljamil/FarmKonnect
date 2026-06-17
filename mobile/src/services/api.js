@@ -1,9 +1,12 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getToken, clearToken } from './tokenStorage';
 
-// In a real app, this should be in an environment variable or config structure.
-// For local testing on Android emulator, 10.0.2.2 points to host localhost.
-export const API_URL = 'https://farmkonnect.app/api';
+// Base URL is read from the public Expo env var so dev/staging/prod can be
+// switched without editing source (set EXPO_PUBLIC_API_URL in .env / EAS).
+// Falls back to production. For a local Android emulator, point it at
+// http://10.0.2.2:<port>/api (10.0.2.2 maps to the host's localhost).
+export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://farmkonnect.app/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -28,11 +31,7 @@ export const setAuthToken = (token) => {
 api.interceptors.request.use(
   async (config) => {
     if (!hydrated) {
-      try {
-        cachedToken = await AsyncStorage.getItem('token');
-      } catch {
-        cachedToken = null;
-      }
+      cachedToken = await getToken();
       hydrated = true;
     }
     if (cachedToken) {
@@ -74,7 +73,8 @@ api.interceptors.response.use(
     if (error?.response?.status === 401) {
       cachedToken = null;
       hydrated = true;
-      try { await AsyncStorage.multiRemove(['token', 'user']); } catch { /* non-fatal */ }
+      try { await clearToken(); } catch { /* non-fatal */ }
+      try { await AsyncStorage.removeItem('user'); } catch { /* non-fatal */ }
       try { onUnauthorized?.(); } catch { /* non-fatal */ }
     }
     // axios marks network failures with no `error.response` (the request

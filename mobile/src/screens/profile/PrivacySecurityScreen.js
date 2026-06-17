@@ -1,11 +1,15 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
+import { COLORS } from '../../constants/colors';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, Alert, Modal, TextInput, ActivityIndicator, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Lock, Shield, FileText, X } from 'lucide-react-native';
+import { ArrowLeft, Lock, Shield, FileText, X, Eye, Clock } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
+import { getPrivacySettings, updatePrivacySettings, getLoginHistory } from '../../services/userService';
 import api from '../../services/api';
 
 export default function PrivacySecurityScreen({ navigation }) {
+  const { t } = useTranslation();
   const { user } = useContext(AuthContext);
 
   // State for modals
@@ -24,28 +28,78 @@ export default function PrivacySecurityScreen({ navigation }) {
   const [loadingPassword, setLoadingPassword] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
 
-  // PREVIOUSLY this screen called four backend endpoints that don't exist:
-  //   GET  /user/privacy-settings, PUT /user/privacy-settings,
-  //   GET  /user/login-history,    plus a 2FA toggle with no backend handler.
-  // All silently 404'd — the UI looked like it worked but nothing persisted.
-  // Removed until the backend gains those routes; the only real features here
-  // are change-password and delete-account, both of which work.
+  // Privacy settings + login history — these ARE backed by the API
+  // (backend/routes/user.js: privacy-settings + login-history). A previous
+  // version removed them on the wrong assumption they 404'd.
+  const [privacy, setPrivacy] = useState({ isProfilePrivate: false, showOnlineStatus: true });
+  const [privacyLoaded, setPrivacyLoaded] = useState(false);
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [loginHistory, setLoginHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getPrivacySettings();
+        if (cancelled) return;
+        const d = res.data?.data || {};
+        setPrivacy({
+          isProfilePrivate: !!d.isProfilePrivate,
+          showOnlineStatus: d.showOnlineStatus !== false,
+        });
+      } catch {
+        // Non-fatal — keep defaults.
+      } finally {
+        if (!cancelled) setPrivacyLoaded(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const togglePrivacy = async (key, value) => {
+    const prev = privacy;
+    setPrivacy({ ...privacy, [key]: value }); // optimistic
+    setSavingPrivacy(true);
+    try {
+      await updatePrivacySettings({ [key]: value });
+    } catch (error) {
+      setPrivacy(prev); // revert on failure
+      Alert.alert(t('common.error'), error.response?.data?.message || t('mobile.alerts.privacyUpdateFailed'));
+    } finally {
+      setSavingPrivacy(false);
+    }
+  };
+
+  const openLoginHistory = async () => {
+    setShowHistoryModal(true);
+    setLoadingHistory(true);
+    try {
+      const res = await getLoginHistory();
+      setLoginHistory(res.data?.data || []);
+    } catch {
+      setLoginHistory([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   const handleChangePassword = async () => {
     const { currentPassword, newPassword, confirmPassword } = passwordForm;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all password fields');
+      Alert.alert(t('common.error'), t('mobile.alerts.fillAllPasswordFields'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'New passwords do not match');
+      Alert.alert(t('common.error'), t('mobile.alerts.passwordsNoMatch'));
       return;
     }
 
     if (newPassword.length < 6) {
-      Alert.alert('Error', 'New password must be at least 6 characters');
+      Alert.alert(t('common.error'), t('mobile.alerts.passwordMinLength'));
       return;
     }
 
@@ -53,12 +107,12 @@ export default function PrivacySecurityScreen({ navigation }) {
     try {
       const response = await api.put('/user/password', { currentPassword, newPassword });
       if (response.data.success) {
-        Alert.alert('Success', 'Password changed successfully');
+        Alert.alert(t('common.success'), t('mobile.alerts.passwordChanged'));
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
         setShowPasswordModal(false);
       }
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.message || 'Failed to change password');
+      Alert.alert(t('common.error'), error.response?.data?.message || t('mobile.alerts.passwordChangeFailed'));
     } finally {
       setLoadingPassword(false);
     }
@@ -66,7 +120,7 @@ export default function PrivacySecurityScreen({ navigation }) {
 
   const handleDeleteAccount = async () => {
     if (!deletePassword) {
-      Alert.alert('Error', 'Please enter your password to confirm deletion');
+      Alert.alert(t('common.error'), t('mobile.alerts.confirmDeletePassword'));
       return;
     }
 
@@ -74,14 +128,14 @@ export default function PrivacySecurityScreen({ navigation }) {
     try {
       const response = await api.delete('/user/account', { data: { password: deletePassword } });
       if (response.data.success) {
-        Alert.alert('Success', 'Account deleted successfully');
+        Alert.alert(t('common.success'), t('mobile.alerts.accountDeleted'));
         setShowDeleteModal(false);
         setTimeout(() => {
           navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
         }, 1000);
       }
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.message || 'Failed to delete account');
+      Alert.alert(t('common.error'), error.response?.data?.message || t('mobile.alerts.accountDeleteFailed'));
     } finally {
       setLoadingDelete(false);
     }
@@ -89,10 +143,10 @@ export default function PrivacySecurityScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <ArrowLeft color="#fff" size={24} />
+          <ArrowLeft color={COLORS.white} size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Privacy & Security</Text>
         <View style={{ width: 24 }} />
@@ -104,7 +158,7 @@ export default function PrivacySecurityScreen({ navigation }) {
         <View style={styles.section}>
           <TouchableOpacity style={styles.menuItem} onPress={() => setShowPasswordModal(true)}>
             <View style={styles.menuLeft}>
-              <Lock color="#16a34a" size={22} />
+              <Lock color={COLORS.primary} size={22} />
               <View style={styles.menuContent}>
                 <Text style={styles.menuText}>Change Password</Text>
                 <Text style={styles.menuDesc}>Update your login password</Text>
@@ -113,16 +167,64 @@ export default function PrivacySecurityScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
+        {/* Privacy preferences — persisted via /user/privacy-settings */}
+        <Text style={styles.sectionTitle}>🔏 Privacy</Text>
+        <View style={styles.section}>
+          <View style={styles.menuItem}>
+            <View style={styles.menuLeft}>
+              <Eye color={COLORS.primary} size={22} />
+              <View style={styles.menuContent}>
+                <Text style={styles.menuText}>Private Profile</Text>
+                <Text style={styles.menuDesc}>Hide your profile details from other users</Text>
+              </View>
+            </View>
+            <Switch
+              value={privacy.isProfilePrivate}
+              onValueChange={(v) => togglePrivacy('isProfilePrivate', v)}
+              disabled={!privacyLoaded || savingPrivacy}
+              trackColor={{ false: COLORS.border, true: COLORS.primary }}
+              thumbColor={COLORS.white}
+            />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.menuItem}>
+            <View style={styles.menuLeft}>
+              <Shield color={COLORS.primary} size={22} />
+              <View style={styles.menuContent}>
+                <Text style={styles.menuText}>Show Online Status</Text>
+                <Text style={styles.menuDesc}>Let others see when you're active</Text>
+              </View>
+            </View>
+            <Switch
+              value={privacy.showOnlineStatus}
+              onValueChange={(v) => togglePrivacy('showOnlineStatus', v)}
+              disabled={!privacyLoaded || savingPrivacy}
+              trackColor={{ false: COLORS.border, true: COLORS.primary }}
+              thumbColor={COLORS.white}
+            />
+          </View>
+
+          <View style={styles.divider} />
+
+          <TouchableOpacity style={styles.menuItem} onPress={openLoginHistory}>
+            <View style={styles.menuLeft}>
+              <Clock color={COLORS.primary} size={22} />
+              <View style={styles.menuContent}>
+                <Text style={styles.menuText}>Login History</Text>
+                <Text style={styles.menuDesc}>Review recent sign-ins to your account</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Data & Privacy Section */}
         <Text style={styles.sectionTitle}>📋 Data & Privacy</Text>
         <View style={styles.section}>
-          <TouchableOpacity style={styles.menuItem} onPress={() => {
-            Alert.alert('Privacy Policy', 'For full privacy policy, please visit our website at farmkonnect.app/privacy', [
-              { text: 'OK' }
-            ]);
-          }}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PrivacyPolicy')}>
             <View style={styles.menuLeft}>
-              <FileText color="#16a34a" size={22} />
+              <FileText color={COLORS.primary} size={22} />
               <View style={styles.menuContent}>
                 <Text style={styles.menuText}>Privacy Policy</Text>
                 <Text style={styles.menuDesc}>Review our privacy practices</Text>
@@ -132,13 +234,9 @@ export default function PrivacySecurityScreen({ navigation }) {
 
           <View style={styles.divider} />
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => {
-            Alert.alert('Terms of Service', 'For full terms of service, please visit our website at farmkonnect.com', [
-              { text: 'OK' }
-            ]);
-          }}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('TermsOfService')}>
             <View style={styles.menuLeft}>
-              <FileText color="#16a34a" size={22} />
+              <FileText color={COLORS.primary} size={22} />
               <View style={styles.menuContent}>
                 <Text style={styles.menuText}>Terms of Service</Text>
                 <Text style={styles.menuDesc}>Review terms and conditions</Text>
@@ -150,9 +248,9 @@ export default function PrivacySecurityScreen({ navigation }) {
 
           <TouchableOpacity style={styles.menuItem} onPress={() => setShowDeleteModal(true)}>
             <View style={styles.menuLeft}>
-              <Shield color="#ef4444" size={22} />
+              <Shield color={COLORS.danger} size={22} />
               <View style={styles.menuContent}>
-                <Text style={[styles.menuText, { color: '#ef4444' }]}>Delete Account</Text>
+                <Text style={[styles.menuText, { color: COLORS.danger }]}>Delete Account</Text>
                 <Text style={styles.menuDesc}>Permanently delete your FarmKonnect account</Text>
               </View>
             </View>
@@ -174,7 +272,7 @@ export default function PrivacySecurityScreen({ navigation }) {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Change Password</Text>
               <TouchableOpacity onPress={() => setShowPasswordModal(false)}>
-                <X color="#fff" size={24} />
+                <X color={COLORS.white} size={24} />
               </TouchableOpacity>
             </View>
 
@@ -183,7 +281,7 @@ export default function PrivacySecurityScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="Enter current password"
-                placeholderTextColor="#6b7280"
+                placeholderTextColor={COLORS.textFaint}
                 secureTextEntry
                 value={passwordForm.currentPassword}
                 onChangeText={(text) => setPasswordForm({ ...passwordForm, currentPassword: text })}
@@ -193,7 +291,7 @@ export default function PrivacySecurityScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="Enter new password"
-                placeholderTextColor="#6b7280"
+                placeholderTextColor={COLORS.textFaint}
                 secureTextEntry
                 value={passwordForm.newPassword}
                 onChangeText={(text) => setPasswordForm({ ...passwordForm, newPassword: text })}
@@ -203,7 +301,7 @@ export default function PrivacySecurityScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="Confirm new password"
-                placeholderTextColor="#6b7280"
+                placeholderTextColor={COLORS.textFaint}
                 secureTextEntry
                 value={passwordForm.confirmPassword}
                 onChangeText={(text) => setPasswordForm({ ...passwordForm, confirmPassword: text })}
@@ -224,7 +322,7 @@ export default function PrivacySecurityScreen({ navigation }) {
                 disabled={loadingPassword}
               >
                 {loadingPassword ? (
-                  <ActivityIndicator color="#fff" size="small" />
+                  <ActivityIndicator color={COLORS.white} size="small" />
                 ) : (
                   <Text style={styles.submitBtnText}>Change Password</Text>
                 )}
@@ -239,9 +337,9 @@ export default function PrivacySecurityScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: '#ef4444' }]}>Delete Account</Text>
+              <Text style={[styles.modalTitle, { color: COLORS.danger }]}>Delete Account</Text>
               <TouchableOpacity onPress={() => setShowDeleteModal(false)}>
-                <X color="#fff" size={24} />
+                <X color={COLORS.white} size={24} />
               </TouchableOpacity>
             </View>
 
@@ -258,7 +356,7 @@ export default function PrivacySecurityScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your password"
-                placeholderTextColor="#6b7280"
+                placeholderTextColor={COLORS.textFaint}
                 secureTextEntry
                 value={deletePassword}
                 onChangeText={setDeletePassword}
@@ -279,11 +377,57 @@ export default function PrivacySecurityScreen({ navigation }) {
                 disabled={loadingDelete}
               >
                 {loadingDelete ? (
-                  <ActivityIndicator color="#fff" size="small" />
+                  <ActivityIndicator color={COLORS.white} size="small" />
                 ) : (
                   <Text style={styles.submitBtnText}>Delete My Account</Text>
                 )}
               </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Login History Modal */}
+      <Modal visible={showHistoryModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Login History</Text>
+              <TouchableOpacity onPress={() => setShowHistoryModal(false)}>
+                <X color={COLORS.white} size={24} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalBody}>
+              {loadingHistory ? (
+                <ActivityIndicator color={COLORS.primary} style={{ paddingVertical: 24 }} />
+              ) : loginHistory.length === 0 ? (
+                <Text style={styles.emptyText}>No login history available.</Text>
+              ) : (
+                <ScrollView style={styles.historyList}>
+                  {loginHistory.slice().reverse().map((h, i) => {
+                    const when = h.timestamp || h.date || h.loginAt;
+                    const device = h.device || h.userAgent;
+                    const ip = h.ip || h.ipAddress;
+                    const failed = h.success === false;
+                    return (
+                      <View key={i} style={styles.historyItem}>
+                        <View style={styles.historyContent}>
+                          <Text style={styles.historyDate}>
+                            {when ? new Date(when).toLocaleString() : 'Unknown time'}
+                          </Text>
+                          {!!device && <Text style={styles.historyDevice}>{device}</Text>}
+                          {!!ip && <Text style={styles.historyIP}>IP: {ip}</Text>}
+                          <View style={[styles.statusBadge, failed ? styles.failedBadge : styles.successBadge]}>
+                            <Text style={[styles.statusText, failed && { color: COLORS.danger }]}>
+                              {failed ? 'FAILED' : 'SUCCESS'}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </ScrollView>
+              )}
             </View>
           </View>
         </View>
@@ -294,60 +438,60 @@ export default function PrivacySecurityScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1a12' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 },
   backBtn: { padding: 4 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: COLORS.white },
   container: { padding: 20, paddingBottom: 40 },
 
-  sectionTitle: { fontSize: 14, fontWeight: '600', color: '#a3a3a3', marginTop: 24, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
+  sectionTitle: { fontSize: 14, fontWeight: '600', color: COLORS.textMuted, marginTop: 24, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
   
-  section: { backgroundColor: 'rgba(26, 46, 31, 0.6)', borderRadius: 16, borderWidth: 1, borderColor: '#224026', overflow: 'hidden', marginBottom: 20 },
+  section: { backgroundColor: 'rgba(26, 46, 31, 0.6)', borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden', marginBottom: 20 },
   
   menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
   menuLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 },
   menuContent: { flex: 1 },
-  menuText: { color: '#ffffff', fontSize: 16, fontWeight: '500', marginBottom: 4 },
-  menuDesc: { color: '#6b7280', fontSize: 13, lineHeight: 18 },
+  menuText: { color: COLORS.white, fontSize: 16, fontWeight: '500', marginBottom: 4 },
+  menuDesc: { color: COLORS.textFaint, fontSize: 13, lineHeight: 18 },
 
-  divider: { height: 1, backgroundColor: '#224026' },
+  divider: { height: 1, backgroundColor: COLORS.border },
   
   statusIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(22, 163, 74, 0.1)', justifyContent: 'center', alignItems: 'center' },
-  onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#16a34a' },
+  onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.primary },
 
-  infoBox: { backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: 12, padding: 16, marginTop: 24, borderLeftWidth: 4, borderLeftColor: '#3b82f6' },
+  infoBox: { backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: 12, padding: 16, marginTop: 24, borderLeftWidth: 4, borderLeftColor: COLORS.info },
   infoText: { color: '#93c5fd', fontSize: 13, lineHeight: 20, fontWeight: '500' },
 
   // Modal styles
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#1a2e1f', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#224026' },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
+  modalContent: { backgroundColor: COLORS.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.white },
   modalBody: { padding: 20, maxHeight: 400 },
-  modalFooter: { flexDirection: 'row', gap: 12, padding: 20, borderTopWidth: 1, borderTopColor: '#224026' },
+  modalFooter: { flexDirection: 'row', gap: 12, padding: 20, borderTopWidth: 1, borderTopColor: COLORS.border },
 
-  inputLabel: { color: '#a3a3a3', fontSize: 12, fontWeight: '600', marginBottom: 8, marginTop: 16 },
-  input: { backgroundColor: 'rgba(0, 0, 0, 0.3)', borderWidth: 1, borderColor: '#224026', borderRadius: 8, paddingHorizontal: 15, paddingVertical: 12, color: '#fff', fontSize: 14 },
+  inputLabel: { color: COLORS.textMuted, fontSize: 12, fontWeight: '600', marginBottom: 8, marginTop: 16 },
+  input: { backgroundColor: 'rgba(0, 0, 0, 0.3)', borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, paddingHorizontal: 15, paddingVertical: 12, color: COLORS.white, fontSize: 14 },
 
   button: { flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  submitBtn: { backgroundColor: '#16a34a' },
+  submitBtn: { backgroundColor: COLORS.primary },
   cancelBtn: { backgroundColor: '#3f3f3f' },
-  deleteBtn: { backgroundColor: '#ef4444' },
-  submitBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  deleteBtn: { backgroundColor: COLORS.danger },
+  submitBtnText: { color: COLORS.white, fontSize: 14, fontWeight: '600' },
   cancelBtnText: { color: '#e5e7eb', fontSize: 14, fontWeight: '600' },
 
   warningText: { color: '#fca5a5', fontSize: 13, lineHeight: 20, marginBottom: 12 },
   warningListItem: { color: '#fca5a5', fontSize: 12, marginVertical: 4 },
 
   historyList: { maxHeight: 300 },
-  historyItem: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#224026' },
+  historyItem: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   historyContent: { gap: 4 },
-  historyDate: { color: '#fff', fontSize: 13, fontWeight: '600' },
-  historyDevice: { color: '#9ca3af', fontSize: 12 },
-  historyIP: { color: '#6b7280', fontSize: 11 },
+  historyDate: { color: COLORS.white, fontSize: 13, fontWeight: '600' },
+  historyDevice: { color: COLORS.gray400, fontSize: 12 },
+  historyIP: { color: COLORS.textFaint, fontSize: 11 },
   statusBadge: { marginTop: 8, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 4, alignSelf: 'flex-start' },
   successBadge: { backgroundColor: 'rgba(22, 163, 74, 0.2)' },
   failedBadge: { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
-  statusText: { fontSize: 10, fontWeight: '700', color: '#16a34a' },
-  emptyText: { color: '#6b7280', fontSize: 14, textAlign: 'center', paddingVertical: 20 },
+  statusText: { fontSize: 10, fontWeight: '700', color: COLORS.primary },
+  emptyText: { color: COLORS.textFaint, fontSize: 14, textAlign: 'center', paddingVertical: 20 },
 });

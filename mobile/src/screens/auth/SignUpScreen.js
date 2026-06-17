@@ -1,3 +1,4 @@
+import { COLORS } from '../../constants/colors';
 import React, { useState, useContext } from 'react';
 import {
   View, Text, TouchableOpacity,
@@ -44,15 +45,9 @@ const SignUpScreen = ({ navigation }) => {
     setLoading(false);
 
     if (result.success) {
-      // Web flow redirects to /email-sent after signup so users know to check
-      // their inbox. On mobile we drop them on SignIn with a clear instruction
-      // and replace() so back button doesn't return them to the half-filled
-      // signup form.
-      Alert.alert(
-        t('auth.verifyEmail.title'),
-        t('auth.verifyEmail.subtitle'),
-        [{ text: t('common.ok'), onPress: () => navigation.replace('SignIn') }]
-      );
+      // Mirror web's /email-sent page so users know to check their inbox and
+      // can resend. replace() so Back doesn't return to the half-filled form.
+      navigation.replace('EmailSent', { email: email.trim().toLowerCase() });
     } else {
       Alert.alert(t('common.error'), result.message || t('errors.somethingWrong'));
     }
@@ -60,7 +55,7 @@ const SignUpScreen = ({ navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f1a12" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <AnimatedBlobs />
       
       <SafeAreaView style={styles.safeArea}>
@@ -92,7 +87,7 @@ const SignUpScreen = ({ navigation }) => {
                   onChangeText={setName}
                   placeholder={t('auth.signUp.name')}
                   error={errors.name}
-                  leftIcon={<User color="#a3a3a3" size={18} />}
+                  leftIcon={<User color={COLORS.textMuted} size={18} />}
                 />
                 <Input
                   label={t('auth.signUp.email')}
@@ -102,7 +97,7 @@ const SignUpScreen = ({ navigation }) => {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   error={errors.email}
-                  leftIcon={<Mail color="#a3a3a3" size={18} />}
+                  leftIcon={<Mail color={COLORS.textMuted} size={18} />}
                 />
                 <Input
                   label={`${t('auth.signUp.phone')} (${t('common.optional')})`}
@@ -110,7 +105,7 @@ const SignUpScreen = ({ navigation }) => {
                   onChangeText={setPhone}
                   placeholder="03XX-XXXXXXX"
                   keyboardType="phone-pad"
-                  leftIcon={<Phone color="#a3a3a3" size={18} />}
+                  leftIcon={<Phone color={COLORS.textMuted} size={18} />}
                 />
                 <Input
                   label={t('auth.signUp.password')}
@@ -119,7 +114,7 @@ const SignUpScreen = ({ navigation }) => {
                   placeholder={t('errors.weakPassword')}
                   secureTextEntry
                   error={errors.password}
-                  leftIcon={<Lock color="#a3a3a3" size={18} />}
+                  leftIcon={<Lock color={COLORS.textMuted} size={18} />}
                 />
                 <Input
                   label={t('auth.signUp.confirmPassword')}
@@ -128,7 +123,7 @@ const SignUpScreen = ({ navigation }) => {
                   placeholder={t('auth.signUp.confirmPassword')}
                   secureTextEntry
                   error={errors.confirmPassword}
-                  leftIcon={<Lock color="#a3a3a3" size={18} />}
+                  leftIcon={<Lock color={COLORS.textMuted} size={18} />}
                 />
 
                 <Button
@@ -157,7 +152,7 @@ const SignUpScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0f1a12',
+    backgroundColor: COLORS.bg,
     overflow: 'hidden',
   },
   safeArea: {
@@ -190,12 +185,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#ffffff',
+    color: COLORS.white,
     letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 14,
-    color: '#a3a3a3',
+    color: COLORS.textMuted,
     marginTop: 8,
     textAlign: 'center',
   },
@@ -213,11 +208,11 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   footerText: {
-    color: '#a3a3a3',
+    color: COLORS.textMuted,
     fontSize: 14,
   },
   signInLink: {
-    color: '#16a34a',
+    color: COLORS.primary,
     fontSize: 14,
     fontWeight: '600',
   },

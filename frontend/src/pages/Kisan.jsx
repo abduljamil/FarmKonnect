@@ -10,6 +10,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import kisanAPI from "../utils/kisanApi";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const BRAND_EMOJI = "🌾";
 
@@ -31,6 +32,7 @@ const TOOL_LABELS = {
 export default function Kisan() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { language } = useLanguage();
 
   const [conversations, setConversations] = useState([]);
   const [activeId, setActiveId] = useState(null);
@@ -127,13 +129,13 @@ export default function Kisan() {
     try {
       let convoId = activeId;
       if (!convoId) {
-        const startRes = await kisanAPI.startConversation(text);
+        const startRes = await kisanAPI.startConversation(text, language);
         convoId = startRes.data._id;
         setActiveId(convoId);
         setConversations((prev) => [startRes.data, ...prev]);
       }
 
-      const sendRes = await kisanAPI.sendMessage(convoId, text);
+      const sendRes = await kisanAPI.sendMessage(convoId, text, language);
       const { reply, toolCalls, messageId } = sendRes.data;
 
       setMessages((prev) => [
