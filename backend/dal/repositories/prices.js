@@ -46,6 +46,7 @@ class PriceRepository extends BaseRepository {
         { $sort: { timestamp: -1 } },
         { $limit: Number(limit) },
       ])
+      .allowDiskUse(true)
       .exec();
   }
 
@@ -81,6 +82,7 @@ class PriceRepository extends BaseRepository {
         },
         { $sort: { date: 1 } },
       ])
+      .allowDiskUse(true)
       .exec();
   }
 }
