@@ -6,7 +6,7 @@ export const getTransaction       = (id)       => api.get(`/payments/transaction
 export const confirmOrder         = (id)       => api.put(`/payments/transactions/${id}/confirm`);
 export const markDelivered        = (id, data) => api.put(`/payments/transactions/${id}/deliver`, data);
 export const completeTransaction  = (id)       => api.put(`/payments/transactions/${id}/complete`);
-export const cancelTransaction    = (id)       => api.put(`/payments/transactions/${id}/cancel`);
+export const cancelTransaction    = (id, reason = "Cancelled from mobile app") => api.put(`/payments/transactions/${id}/cancel`, { reason });
 export const raiseDispute         = (id, data) => api.put(`/payments/transactions/${id}/dispute`, data);
 // Buyer rejects a delivery (backend: PUT /reject-delivery, body { reason }).
 export const rejectDelivery       = (id, data) => api.put(`/payments/transactions/${id}/reject-delivery`, data);

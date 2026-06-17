@@ -731,7 +731,18 @@
       "pageOf": "صفحہ {current} از {total}"
     },
     "detail": {
-      "backToTransactions": "واپس ٹرانزیکشنز پر جائیں"
+      "backToTransactions": "واپس ٹرانزیکشنز پر جائیں",
+      "title": "ٹرانزیکشن کی تفصیلات",
+      "itemDetails": "آئٹم کی تفصیلات",
+      "quantity": "مقدار",
+      "partiesInvolved": "فریقین",
+      "deliveryProof": "ڈیلیوری کا ثبوت",
+      "proofClickView": "تصاویر دیکھنے کے لیے کلک کریں",
+      "deliveryInfo": "ڈیلیوری کی معلومات",
+      "deliveryAddress": "ڈیلیوری کا پتہ",
+      "deliveryInstructions": "ڈیلیوری کی ہدایات",
+      "pinnedLocation": "پن کی گئی لوکیشن",
+      "havingIssue": "کوئی مسئلہ ہے؟ تنازعہ کھولیں"
     },
     "successPlaced": "آرڈر کامیابی سے دیا گیا!",
     "successConfirmed": "آرڈر کی تصدیق ہو گئی",

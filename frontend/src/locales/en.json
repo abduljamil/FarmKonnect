@@ -731,7 +731,18 @@
       "pageOf": "Page {current} of {total}"
     },
     "detail": {
-      "backToTransactions": "Back to Transactions"
+      "backToTransactions": "Back to Transactions",
+      "title": "Transaction Details",
+      "itemDetails": "Item Details",
+      "quantity": "Quantity",
+      "partiesInvolved": "Parties Involved",
+      "deliveryProof": "Delivery Proof",
+      "proofClickView": "Click to view proof images",
+      "deliveryInfo": "Delivery Information",
+      "deliveryAddress": "Delivery Address",
+      "deliveryInstructions": "Delivery Instructions",
+      "pinnedLocation": "Pinned Location",
+      "havingIssue": "Having an issue? Open a dispute"
     },
     "successPlaced": "Order placed successfully!",
     "successConfirmed": "Order confirmed",

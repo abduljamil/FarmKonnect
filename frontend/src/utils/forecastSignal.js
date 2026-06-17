@@ -6,16 +6,16 @@
  * dashboard Market Outlook card and the full price chart's outlook panel, so
  * the thresholds and styling stay consistent in one place.
  */
-export function computeForecastSignal(docs) {
+export function computeForecastSignal(docs, preferredHorizon = 4) {
   if (!docs || docs.length === 0) return null;
 
   const baseline = docs.find((d) => d.anchor_price != null)?.anchor_price || 0;
   const ordered = [...docs].sort((a, b) => a.horizon_weeks - b.horizon_weeks);
   const pctOf = (p) => (baseline ? ((p - baseline) / baseline) * 100 : 0);
 
-  // Signal anchored on the 1-month (4wk) horizon, else the longest available.
+  // Signal anchored on the preferred horizon, else fallback.
   const signalDoc =
-    ordered.find((d) => d.horizon_weeks === 4) ||
+    ordered.find((d) => d.horizon_weeks === preferredHorizon) ||
     ordered.find((d) => d.horizon_weeks === 12) ||
     ordered[ordered.length - 1];
 

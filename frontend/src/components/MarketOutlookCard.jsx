@@ -67,7 +67,7 @@ const MarketOutlookCard = () => {
         const city = pickDefaultCity(cities) || cities[0] || "";
         if (city) set = set.filter((d) => d.city === city);
 
-        const sig = computeForecastSignal(set);
+        const sig = computeForecastSignal(set, 12);
         setData(sig ? { sig, city } : null);
         setLoading(false);
       } catch {
@@ -156,9 +156,8 @@ const MarketOutlookCard = () => {
             </div>
           </div>
 
-          {/* 1-month predicted price + move */}
           <p className="text-[11px] uppercase tracking-wide text-gray-400 dark:text-gray-500">
-            {t("forecast.h4")} · {t("forecast.vsToday")}
+            {t("forecast.h12")} · {t("forecast.vsToday")}
           </p>
           <div className="flex items-baseline gap-2 mb-2">
             <span className="text-3xl font-bold text-gray-900 dark:text-white tabular-nums">
