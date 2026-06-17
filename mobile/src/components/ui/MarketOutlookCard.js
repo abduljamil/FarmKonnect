@@ -15,15 +15,15 @@ function computeSignal(docs) {
   const baseline = docs.find((d) => d.anchor_price != null)?.anchor_price || 0;
   const ordered = [...docs].sort((a, b) => (a.horizon_weeks || 0) - (b.horizon_weeks || 0));
   const signalDoc =
-    ordered.find((d) => d.horizon_weeks === 4) ||
     ordered.find((d) => d.horizon_weeks === 12) ||
+    ordered.find((d) => d.horizon_weeks === 4) ||
     ordered[ordered.length - 1];
   if (!signalDoc) return null;
   const pct = baseline ? ((signalDoc.predicted_price - baseline) / baseline) * 100 : 0;
   const trend = pct > 2 ? 'rise' : pct < -2 ? 'fall' : 'stable';
   const mape = signalDoc.expected_mape;
   const confKey = mape == null ? null : mape < 7 ? 'confHigh' : mape < 15 ? 'confMod' : 'confLow';
-  return { pct, trend, weeks: signalDoc.horizon_weeks || 4, confKey };
+  return { pct, trend, weeks: signalDoc.horizon_weeks || 12, confKey };
 }
 
 export default function MarketOutlookCard({ navigation }) {
