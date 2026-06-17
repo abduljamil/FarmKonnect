@@ -86,9 +86,8 @@ export default function KisanFloatingWidget() {
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Hide widget on auth/landing pages and when not logged in
+  // Hide widget on auth pages
   const shouldHide =
-    location.pathname === "/" ||
     HIDDEN_PATHS.some((p) => location.pathname.startsWith(p));
 
   // Restore conversation from sessionStorage on mount
