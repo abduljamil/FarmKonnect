@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Download, Smartphone, Apple } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
 
 export default function DownloadApp() {
 

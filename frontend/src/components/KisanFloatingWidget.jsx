@@ -206,7 +206,7 @@ export default function KisanFloatingWidget() {
         setSending(false);
       }
     },
-    [input, sending, conversationId]
+    [input, sending, conversationId, language]
   );
 
   const handleNewChat = () => {
