@@ -42,7 +42,7 @@ jobs:
 
       - name: Publish OTA update
         working-directory: ./mobile
-        run: eas update --branch production --message "Auto-update from ${{ github.sha }}" --non-interactive
+        run: eas update --branch preview --message "Auto-update from ${{ github.sha }}" --non-interactive
 
   # ──────────────────────────────────────────────
   # Job 2: Build APK + Deploy to EC2
