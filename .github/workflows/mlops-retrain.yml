@@ -1,0 +1,127 @@
+name: MLOps Retrain Pipeline
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Run at midnight on the 1st of every month
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: write # Needed to push the retrained models back to the repo
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Need full history to commit back
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: pip install lightgbm scikit-learn pandas pyarrow joblib hijridate
+
+      - name: Prepare EC2 Export (Copy from Docker to /tmp)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            echo "Copying parquets from prediction_service to /tmp..."
+            sudo docker cp farmkonnect_prediction_service_1:/work/data/features_lagged.parquet /tmp/
+            sudo docker cp farmkonnect_prediction_service_1:/work/data/panel.parquet /tmp/
+            sudo docker cp farmkonnect_prediction_service_1:/work/data/features.parquet /tmp/
+            sudo chmod 644 /tmp/*.parquet
+
+      - name: Download Data from EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "/tmp/features_lagged.parquet,/tmp/panel.parquet,/tmp/features.parquet"
+          target: "ml/training/data/"
+          strip_components: 1
+
+      - name: Run ML Training Scripts
+        run: |
+          set -e
+          echo "Running baselines..."
+          python ml/training/baselines/run_baselines.py \
+              --in ml/training/data/features_lagged.parquet \
+              --out-dir ml/training/baselines
+
+          echo "Running Global LGBM..."
+          python ml/training/models/train_lgbm.py \
+              --in ml/training/data/features_lagged.parquet \
+              --out-dir ml/training/models \
+              --baselines ml/training/baselines/baseline_metrics.csv
+
+          echo "Running Per-Commodity Specialists..."
+          python ml/training/models/train_lgbm_per_commodity.py
+
+          echo "Running Quantile LGBM..."
+          python ml/training/models/train_lgbm_quantile.py
+
+          echo "Building Router..."
+          python ml/training/router/build_router.py
+
+      - name: Commit and Push Retrained Models
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          git add ml/training/baselines/baseline_metrics.csv \
+                  ml/training/models/lgbm_*.joblib \
+                  ml/training/models/metrics.csv \
+                  ml/training/models/lgbm_per_commodity_metrics.csv \
+                  ml/training/models/lgbm_quantile_metrics.csv \
+                  ml/training/models/predictions.parquet \
+                  ml/training/models/run_meta.json \
+                  ml/training/models/vs_baselines.csv \
+                  ml/training/router/router_config.json \
+                  ml/training/router/router_summary.csv
+
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes in model weights or metrics. Skipping commit."
+          else
+            git commit -m "chore(ml): automated monthly retrain
+
+            Refreshed LGBM weights and router via MLOps pipeline."
+            git push origin main
+          fi
+
+      - name: Drop Stale Predictions & Restart Service on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd ~/FarmKonnect
+            # Fetch the new code so prediction_service builds with latest joblibs
+            git pull origin main
+            
+            # Restart the service (docker-compose up -d --build will grab the new models)
+            if docker compose version >/dev/null 2>&1; then
+              COMPOSE_CMD=(docker compose)
+            else
+              COMPOSE_CMD=(docker-compose)
+            fi
+            "${COMPOSE_CMD[@]}" up -d --build prediction_service
+
+            echo "Dropping stale pricepredictions collection..."
+            URI=$(grep -E "^MONGODB_URI=" backend/.env | head -1 | sed -E 's/^MONGODB_URI=//; s/^"//; s/"$//')
+            sudo docker run --rm --network host mongo:7 mongosh "$URI" --quiet --eval "db.pricepredictions.drop()"
+
+            echo "Restarting prediction_service to force a full backfill..."
+            sudo docker restart farmkonnect_prediction_service_1

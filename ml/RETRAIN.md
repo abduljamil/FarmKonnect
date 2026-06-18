@@ -161,14 +161,12 @@ ssh ubuntu@13.205.25.250 'sudo docker logs --tail 30 farmkonnect_prediction_serv
 
 ## Future automation
 
-Two clean options if the manual flow becomes annoying:
+This manual process has now been **fully automated** as of Phase 12.B.
+The retrain pipeline runs on the 1st of every month via the `.github/workflows/mlops-retrain.yml` GitHub Action.
 
-1. **GitHub Action on cron** that SSHs to EC2, runs the retrain steps inside
-   the prediction_service container, commits the new joblibs back. ~1 day
-   of work, needs a deploy-key with write access.
-2. **Colab T4 notebook** — same steps, but Colab pulls features from
-   EC2/Atlas, retrains (faster on GPU for LGBM with many estimators),
-   commits via PyGithub. Free, but requires a session to be live monthly.
+To view the logs or trigger a manual retrain:
+1. Go to your GitHub Repository -> Actions tab.
+2. Select **MLOps Retrain Pipeline** on the left.
+3. Click **Run workflow** to trigger it manually, or click on any past run to view its logs.
 
-Neither is built. The manual flow above takes ~30 min once a month, which
-is cheap compared to the risk of an automated retrain shipping a regression.
+The automated pipeline performs all the steps above: downloading features via SSH/SCP, training locally on the GitHub Runner, committing the weights back to the repository, and triggering the backfill on EC2.
