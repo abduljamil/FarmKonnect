@@ -6,6 +6,14 @@ FarmKonnect is a comprehensive, production-ready agricultural technology platfor
 
 ---
 
+## 🌐 Live Platform & Apps
+
+Experience FarmKonnect live in production:
+- **Web Platform:** [https://www.farmkonnect.app](https://www.farmkonnect.app)
+- **Mobile App Download:** [https://www.farmkonnect.app/download](https://www.farmkonnect.app/download) (Download the Expo APK directly)
+
+---
+
 ## 📚 Final Year Project (FYP) Documentation
 
 This repository contains extensive, professional-grade technical documentation detailing every facet of the FarmKonnect system. Please refer to the `docs/` directory for in-depth diagrams, schemas, and architectural breakdowns.
