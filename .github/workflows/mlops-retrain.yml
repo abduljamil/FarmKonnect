@@ -35,9 +35,10 @@ jobs:
           script: |
             set -euo pipefail
             echo "Copying parquets from prediction_service to /tmp..."
-            sudo docker cp farmkonnect_prediction_service_1:/work/data/features_lagged.parquet /tmp/
-            sudo docker cp farmkonnect_prediction_service_1:/work/data/panel.parquet /tmp/
-            sudo docker cp farmkonnect_prediction_service_1:/work/data/features.parquet /tmp/
+            CONTAINER_ID=$(sudo docker ps -qf "name=prediction_service")
+            sudo docker cp $CONTAINER_ID:/work/data/features_lagged.parquet /tmp/
+            sudo docker cp $CONTAINER_ID:/work/data/panel.parquet /tmp/
+            sudo docker cp $CONTAINER_ID:/work/data/features.parquet /tmp/
             sudo chmod 644 /tmp/*.parquet
 
       - name: Download Data from EC2
@@ -124,4 +125,5 @@ jobs:
             sudo docker run --rm --network host mongo:7 mongosh "$URI" --quiet --eval "db.pricepredictions.drop()"
 
             echo "Restarting prediction_service to force a full backfill..."
-            sudo docker restart farmkonnect_prediction_service_1
+            CONTAINER_ID=$(sudo docker ps -qf "name=prediction_service")
+            sudo docker restart $CONTAINER_ID
