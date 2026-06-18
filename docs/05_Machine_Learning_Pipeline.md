@@ -71,3 +71,15 @@ To ensure the models do not silently fail when government policies change (e.g.,
 2. It queries `commodityprices` for the actual price on that date.
 3. It computes the **Mean Absolute Percentage Error (MAPE)**.
 4. If the live rolling MAPE exceeds `1.5x` the router's expected MAPE, a **Drift Alarm** is triggered, alerting administrators that the model needs retraining.
+
+## 5.4 Automated MLOps Retraining
+
+The machine learning models undergo a fully automated retraining process. A GitHub Actions CI/CD pipeline (mlops-retrain.yml) runs on the 1st of every month to:
+
+1. Connect to the EC2 server and extract the latest processed datasets.
+2. Retrain the baseline, global LightGBM, per-commodity specialist, and quantile models.
+3. Rebuild the outer_config.json logic using the latest performance metrics.
+4. Automatically commit the new .joblib model weights back to the repository.
+5. Restart the prediction service on EC2, triggering an immediate 12-week price backfill with the fresh models.
+
+This pipeline ensures that the models adapt to changing macroeconomic conditions and government policies without requiring manual intervention. For more details on the playbook, see ml/RETRAIN.md.
