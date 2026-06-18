@@ -37,8 +37,9 @@ jobs:
             echo "Generating fresh features inside prediction_service..."
             CONTAINER_ID=$(sudo docker ps -qf "name=prediction_service")
             sudo docker exec $CONTAINER_ID python /app/ml/training/build_panel.py
-            sudo docker exec $CONTAINER_ID python /app/ml/training/build_features.py
+            sudo docker exec $CONTAINER_ID python /app/ml/training/features/build_deterministic.py
             sudo docker exec $CONTAINER_ID python /app/ml/training/features/build_lagged.py
+            sudo docker exec $CONTAINER_ID python /app/ml/training/build_features.py
 
             echo "Copying parquets from prediction_service to /tmp..."
             sudo docker cp $CONTAINER_ID:/work/data/features_lagged.parquet /tmp/
