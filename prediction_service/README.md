@@ -1,17 +1,17 @@
-# prediction_service — Phase 8
+# prediction_service
 
 Weekly cron container that produces price forecasts and upserts them into the
 Atlas `pricepredictions` collection. Consumed by the backend `/api/prices/forecast`
-route (Phase 9) and the frontend chart (Phase 10).
+route and the frontend dashboard chart.
 
 ## How it works
 
 A long-running container ticks hourly:
 
-1. Read `router_config.json` + the four `lgbm_h{1,2,4,12}.joblib` bundles into memory at startup.
+1. Read `router_config.json` + the `lgbm_*.joblib` bundles into memory at startup.
 2. On each tick, check Atlas: has a prediction with `forecast_date == this_week_friday` already been written? If yes, sleep an hour and re-check.
 3. If no, run one prediction cycle:
-   - Re-run the Phase 2+3+5 pipeline (`build_panel` → external collectors → `build_features` → `build_lagged`) so the feature frame reflects today's data. **We deliberately reuse the same scripts the training pipeline uses** — see PLAN.md (decision 2026-06-03, "mirror exactly").
+   - Re-run the data pipeline (`build_panel` → external collectors → `build_features` → `build_lagged`) so the feature frame reflects today's data. **We deliberately reuse the same scripts the training pipeline uses** to ensure consistency.
    - For each `(commodity, variety, city)` series, take the last valid row.
    - For each horizon `h ∈ {1, 2, 4, 12}`, look up `cells["{commodity}__h{h}"].model` from the router and dispatch:
      - `persistence` → `y_pred = price`
@@ -32,7 +32,7 @@ A long-running container ticks hourly:
   prediction_service/
     predict_and_upsert.py       ← core prediction logic (--mode live | backfill)
     run_loop.py                 ← scheduler (container entrypoint)
-    monitor.py                  ← Phase 12 rolling-MAPE monitoring (per tick)
+    monitor.py                  ← rolling-MAPE drift monitoring (per tick)
 /work/
   data/                         ← ephemeral; pipeline writes panel/features here
     external/                   ← WB/yfinance/NASA caches (warm across runs in same container lifetime)

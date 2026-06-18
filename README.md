@@ -1,78 +1,54 @@
-# 🌾 FarmKonnect - Mobile App
+# 🌾 FarmKonnect: Digital Agriculture & ML Price Forecasting
 
 **Empowering Agriculture Digitally.**
 
-FarmKonnect is a modern mobile application built with React Native and Expo. It serves as a digital marketplace and real-time communication platform designed to connect farmers, buyers, and agricultural stakeholders seamlessly.
+FarmKonnect is a comprehensive, production-ready agricultural technology platform. It serves as a digital B2B marketplace, a real-time communication hub, and a sophisticated machine learning forecasting engine designed to connect farmers, buyers, and agricultural stakeholders seamlessly.
 
 ---
 
-## ✨ Features
+## 📚 Final Year Project (FYP) Documentation
 
-- **🛍️ Marketplace:** Browse, filter, and discover agricultural listings and commodities with an intuitive animated UI.
-- **💬 Real-Time Chat:** Integrated Socket.io messaging allows direct, instant communication between buyers and sellers.
-- **🌤️ Live Dashboard:** Get real-time weather updates (via device location) and live commodity price tickers.
-- **🔔 Price Alerts:** Set thresholds for commodity prices and receive notifications when market conditions change.
-- **💳 Secure Transactions:** Track orders and securely checkout directly from the marketplace.
-- **🎨 Modern UI/UX:** Features a hardware-accelerated 3D-style animated background that runs smoothly without compromising performance.
+This repository contains extensive, professional-grade technical documentation detailing every facet of the FarmKonnect system. Please refer to the `docs/` directory for in-depth diagrams, schemas, and architectural breakdowns.
 
----
+### 1. [System Architecture & Tech Stack](docs/01_System_Architecture_and_Tech_Stack.md)
+Discover the high-level Dockerized architecture, EC2 deployment strategy, and the specific technologies powering the Frontend, Backend, Mobile, and Machine Learning layers.
 
-## 🛠️ Tech Stack
+### 2. [Database Design & Schema (ERD)](docs/02_Database_Design.md)
+Explore the MongoDB Atlas NoSQL schema, including the Entity Relationship Diagram linking Users, Transactions, AMIS Prices, and ML Predictions.
 
-### Frontend (Mobile)
-- **Framework:** React Native via [Expo](https://expo.dev/)
-- **Navigation:** React Navigation
-- **Styling:** Native StyleSheet & Tailwind (Nativewind)
-- **Animations:** React Native Animated API (`useNativeDriver`)
-- **Real-time:** `socket.io-client`
-- **Location:** `expo-location`
+### 3. [Core Platform Features](docs/03_Core_Platform_Features.md)
+Detailed breakdowns of JWT Authentication, the B2B Marketplace, Admin controls, and the Gemini-powered Multilingual Kisan AI Assistant.
 
-### Backend (Reference)
-- **Server:** Node.js, Express.js
-- **Database:** MongoDB
-- **Real-time:** Socket.io
-- **Storage:** Cloudinary
+### 4. [Transactions & Real-Time Chat](docs/04_Transactions_And_Chat.md)
+Sequence diagrams illustrating the exact lifecycle of an e-commerce order and the Socket.io real-time chat architecture.
+
+### 5. [Machine Learning Pipeline](docs/05_Machine_Learning_Pipeline.md)
+A deep dive into the crown jewel of FarmKonnect: the LightGBM price forecasting engine. Covers AMIS scraping, Weather/WorldBank feature engineering, the dynamic Model Router, and live MAPE drift monitoring.
+
+### 6. [Mobile App & CI/CD Deployment](docs/06_Mobile_And_Deployment.md)
+Learn how the React Native Expo app is distributed via Over-The-Air (OTA) updates and how the GitHub Actions pipeline automates EC2 deployments.
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start Guide
 
 ### Prerequisites
-Make sure you have [Node.js](https://nodejs.org/) and the [Expo CLI](https://expo.dev/) installed.
+Make sure you have [Node.js](https://nodejs.org/), [Docker](https://www.docker.com/), and the [Expo CLI](https://expo.dev/) installed.
 
-### Installation
+### 1. Running the Web Platform (Docker)
+The easiest way to spin up the entire backend, frontend, scraper, and prediction service is via `docker-compose`:
+```bash
+docker-compose up -d --build
+```
+The web app will be available at `http://localhost`.
 
-1. **Clone the repository** (or navigate to the workspace directory):
-   ```bash
-   cd mobile
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment Variables:**
-   Ensure your `.env` file or backend endpoints in `src/services/api.js` are pointing to your local or deployed Express backend.
-
-4. **Run the app:**
-   ```bash
-   npx expo start -c
-   ```
-
-5. **Test the app:**
-   - Scan the generated QR code using the **Expo Go** app on your physical device.
-   - Or press `a` to open in an Android Emulator.
-   - Or press `i` to open in an iOS Simulator.
-
----
-
-## 📱 Troubleshooting Network Connections
-
-If you face a "Request Timed Out" issue while testing on a physical device:
-- Ensure your Phone and PC are on the **exact same Wi-Fi network**.
-- Windows Users: Set your Wi-Fi network profile from *Public* to **Private**.
-- Alternative: Plug your phone into your PC via a USB cable and run the server.
+### 2. Running the Mobile App Locally
+```bash
+cd mobile
+npm install
+npx expo start -c
+```
+Scan the generated QR code using the **Expo Go** app on your physical iOS or Android device.
 
 ---
 
