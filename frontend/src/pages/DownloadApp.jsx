@@ -42,40 +42,38 @@ export default function DownloadApp() {
         </p>
 
         <div className="space-y-4">
-          <a
-            href={androidApkUrl}
-            className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-semibold transition-all ${
-              deviceOS === 'Android' || deviceOS === 'Unknown'
-                ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-green-500/30'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
-          >
-            <Download className="w-5 h-5" />
-            Download for Android (.APK)
-          </a>
+          {(deviceOS === 'Android' || deviceOS === 'Unknown') && (
+            <a
+              href={androidApkUrl}
+              className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-semibold transition-all bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-green-500/30"
+            >
+              <Download className="w-5 h-5" />
+              Download for Android (.APK)
+            </a>
+          )}
 
-          <a
-            href={iosTestflightUrl}
-            className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-semibold transition-all ${
-              deviceOS === 'iOS'
-                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/30'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
-          >
-            <Apple className="w-5 h-5" />
-            Get on iOS (TestFlight)
-          </a>
+          {(deviceOS === 'iOS' || deviceOS === 'Unknown') && (
+            <a
+              href={iosTestflightUrl}
+              className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-semibold transition-all bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/30"
+            >
+              <Apple className="w-5 h-5" />
+              Get on iOS (TestFlight)
+            </a>
+          )}
         </div>
 
-        <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400 text-left">
-          <p className="font-semibold mb-2">Android Installation Guide:</p>
-          <ol className="list-decimal list-inside space-y-1">
-            <li>Tap "Download for Android" above.</li>
-            <li>Open the downloaded `.apk` file.</li>
-            <li>If prompted, tap "Settings" and enable "Allow from this source".</li>
-            <li>Tap "Install" and you're done!</li>
-          </ol>
-        </div>
+        {(deviceOS === 'Android' || deviceOS === 'Unknown') && (
+          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400 text-left">
+            <p className="font-semibold mb-2">Android Installation Guide:</p>
+            <ol className="list-decimal list-inside space-y-1">
+              <li>Tap "Download for Android" above.</li>
+              <li>Open the downloaded `.apk` file.</li>
+              <li>If prompted, tap "Settings" and enable "Allow from this source".</li>
+              <li>Tap "Install" and you're done!</li>
+            </ol>
+          </div>
+        )}
       </div>
     </div>
   );

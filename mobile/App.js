@@ -12,6 +12,7 @@ import ErrorBoundary from './src/components/ui/ErrorBoundary';
 import NotificationToast from './src/components/ui/NotificationToast';
 import { onNotificationTap } from './src/services/pushNotifications';
 import { StatusBar } from 'expo-status-bar';
+import * as Updates from 'expo-updates';
 
 export default function App() {
   // Wire push-notification taps → in-app navigation. When the user taps a
@@ -21,6 +22,23 @@ export default function App() {
   useEffect(() => {
     subRef.current = onNotificationTap((data) => navigateFromPush(data));
     return () => { try { subRef.current?.remove?.(); } catch {} };
+  }, []);
+
+  // Eagerly check for OTA updates on startup instead of waiting for next launch
+  useEffect(() => {
+    async function onFetchUpdateAsync() {
+      if (__DEV__) return;
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        }
+      } catch (error) {
+        console.log(`Error fetching latest Expo update: ${error}`);
+      }
+    }
+    onFetchUpdateAsync();
   }, []);
 
   return (

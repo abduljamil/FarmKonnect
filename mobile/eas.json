@@ -20,7 +20,8 @@
       },
       "ios": {
         "autoIncrement": true
-      }
+      },
+      "channel": "production"
     }
   },
   "submit": {

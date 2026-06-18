@@ -32,39 +32,36 @@ const HIDDEN_PATHS = [
   "/email-sent",
 ];
 
-const QUICK_ACTIONS = [
-  {
-    label: "Wheat price in Lahore",
-    prompt: "What's the wheat price in Lahore right now?",
-    icon: TrendingUp,
-    color: "from-amber-500 to-amber-600",
-  },
-  {
-    label: "Find rice listings",
-    prompt: "Show me Rice Basmati listings on the marketplace",
-    icon: ShoppingBag,
-    color: "from-sky-500 to-sky-600",
-  },
-  {
-    label: "Forecast cotton price",
-    prompt: "What's the 4-week price forecast for Cotton in Multan?",
-    icon: Sparkles,
-    color: "from-purple-500 to-purple-600",
-  },
-  {
-    label: "Weather in Faisalabad",
-    prompt: "What's the weather like in Faisalabad for farming today?",
-    icon: CloudSun,
-    color: "from-cyan-500 to-cyan-600",
-  },
-];
+const QUICK_ACTIONS = {
+  en: [
+    { label: "Wheat price in Lahore", prompt: "What's the wheat price in Lahore right now?", icon: TrendingUp, color: "from-amber-500 to-amber-600" },
+    { label: "Find rice listings", prompt: "Show me Rice Basmati listings on the marketplace", icon: ShoppingBag, color: "from-sky-500 to-sky-600" },
+    { label: "Forecast cotton price", prompt: "What's the 4-week price forecast for Cotton in Multan?", icon: Sparkles, color: "from-purple-500 to-purple-600" },
+    { label: "Weather in Faisalabad", prompt: "What's the weather like in Faisalabad for farming today?", icon: CloudSun, color: "from-cyan-500 to-cyan-600" },
+  ],
+  ur: [
+    { label: "لاہور میں گندم کی قیمت", prompt: "لاہور میں اس وقت گندم کی قیمت کیا ہے؟", icon: TrendingUp, color: "from-amber-500 to-amber-600" },
+    { label: "چاول کی لسٹنگ تلاش کریں", prompt: "مجھے مارکیٹ پلیس پر چاول باسمتی کی لسٹنگ دکھائیں", icon: ShoppingBag, color: "from-sky-500 to-sky-600" },
+    { label: "کپاس کی قیمت کی پیش گوئی", prompt: "ملتان میں کپاس کی 4 ہفتوں کی قیمت کی پیش گوئی کیا ہے؟", icon: Sparkles, color: "from-purple-500 to-purple-600" },
+    { label: "فیصل آباد کا موسم", prompt: "آج فیصل آباد میں کھیتی باڑی کے لیے موسم کیسا ہے؟", icon: CloudSun, color: "from-cyan-500 to-cyan-600" },
+  ]
+};
 
 const TOOL_PRESENTATION = {
-  searchListings: { label: "Searching marketplace", icon: Search },
-  getCommodityPrice: { label: "Checking mandi prices", icon: TrendingUp },
-  getPriceForecast: { label: "Running AI forecast", icon: Sparkles },
-  getWeather: { label: "Fetching weather", icon: CloudSun },
-  createSupportTicket: { label: "Creating support ticket", icon: Wrench },
+  en: {
+    searchListings: { label: "Searching marketplace", icon: Search },
+    getCommodityPrice: { label: "Checking mandi prices", icon: TrendingUp },
+    getPriceForecast: { label: "Running AI forecast", icon: Sparkles },
+    getWeather: { label: "Fetching weather", icon: CloudSun },
+    createSupportTicket: { label: "Creating support ticket", icon: Wrench },
+  },
+  ur: {
+    searchListings: { label: "مارکیٹ پلیس تلاش کر رہا ہے", icon: Search },
+    getCommodityPrice: { label: "منڈی کی قیمتیں چیک کر رہا ہے", icon: TrendingUp },
+    getPriceForecast: { label: "پیش گوئی کر رہا ہے", icon: Sparkles },
+    getWeather: { label: "موسم لا رہا ہے", icon: CloudSun },
+    createSupportTicket: { label: "سپورٹ ٹکٹ بنا رہا ہے", icon: Wrench },
+  }
 };
 
 const STORAGE_KEY = "kisan_widget_state_v1";
@@ -234,8 +231,7 @@ export default function KisanFloatingWidget() {
           {showHint && (
             <div className="kisan-hint-pop relative max-w-[240px] bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 px-4 py-3 mr-1">
               <div className="text-sm text-gray-800 dark:text-gray-200">
-                <span className="font-semibold">Hi 👋</span> I'm Kisan, your
-                FarmKonnect AI. Tap to ask me anything!
+                <span className="font-semibold">{language === "ur" ? "ہائے 👋" : "Hi 👋"}</span> {language === "ur" ? "میں کسان ہوں، آپ کا فارم کنیکٹ AI۔ کچھ بھی پوچھنے کے لیے تھپتھپائیں!" : "I'm Kisan, your FarmKonnect AI. Tap to ask me anything!"}
               </div>
               <button
                 onClick={() => {
@@ -295,11 +291,11 @@ export default function KisanFloatingWidget() {
                   </div>
                   <div>
                     <h2 className="font-bold text-base leading-tight">
-                      Kisan AI
+                      {language === "ur" ? "کسان AI" : "Kisan AI"}
                     </h2>
                     <p className="text-[11px] text-green-100 flex items-center gap-1.5 mt-0.5">
                       <span className="w-1.5 h-1.5 bg-green-300 rounded-full animate-pulse" />
-                      Online
+                      {language === "ur" ? "آن لائن" : "Online"}
                     </p>
                   </div>
                 </div>
@@ -341,7 +337,7 @@ export default function KisanFloatingWidget() {
               className="flex-1 overflow-y-auto px-4 py-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900"
             >
               {messages.length === 0 ? (
-                <WelcomeBlock onPick={(p) => handleSend(p)} />
+                <WelcomeBlock onPick={(p) => handleSend(p)} language={language} />
               ) : (
                 <div className="space-y-3">
                   {messages.map((m, i) => (
@@ -349,6 +345,7 @@ export default function KisanFloatingWidget() {
                       key={m._id}
                       message={m}
                       isFirst={i === 0}
+                      language={language}
                     />
                   ))}
                   {sending && <ThinkingBubble />}
@@ -364,7 +361,7 @@ export default function KisanFloatingWidget() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask about prices, listings, weather…"
+                  placeholder={language === "ur" ? "قیمتوں، لسٹنگ، موسم کے بارے میں پوچھیں..." : "Ask about prices, listings, weather…"}
                   rows={1}
                   disabled={sending}
                   className="flex-1 bg-transparent outline-none resize-none text-sm text-gray-900 dark:text-white placeholder-gray-400 max-h-28 py-1.5"
@@ -384,7 +381,7 @@ export default function KisanFloatingWidget() {
               </div>
               <div className="flex items-center justify-between mt-2 px-1">
                 <p className="text-[10px] text-gray-400">
-                  Powered by Gemini · Verify important info
+                  {language === "ur" ? "Gemini کی طاقت سے چلنے والا · اہم معلومات کی تصدیق کریں" : "Powered by Gemini · Verify important info"}
                 </p>
                 <button
                   onClick={() => {
@@ -393,7 +390,7 @@ export default function KisanFloatingWidget() {
                   }}
                   className="text-[10px] text-green-600 dark:text-green-400 hover:underline font-medium"
                 >
-                  Open full chat →
+                  {language === "ur" ? "مکمل چیٹ کھولیں →" : "Open full chat →"}
                 </button>
               </div>
             </div>
@@ -404,7 +401,10 @@ export default function KisanFloatingWidget() {
   );
 }
 
-function WelcomeBlock({ onPick }) {
+function WelcomeBlock({ onPick, language }) {
+  const isUr = language === "ur";
+  const actions = QUICK_ACTIONS[language] || QUICK_ACTIONS.en;
+
   return (
     <div className="kisan-welcome">
       <div className="flex items-start gap-3 mb-4">
@@ -414,26 +414,26 @@ function WelcomeBlock({ onPick }) {
         <div className="flex-1 min-w-0">
           <div className="inline-block max-w-[90%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gradient-to-br from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-800 border border-green-200/60 dark:border-gray-700">
             <p className="text-sm text-gray-800 dark:text-gray-100 leading-relaxed">
-              <span className="font-semibold">Hi, I'm Kisan AI 🌾</span>
+              <span className="font-semibold">{isUr ? "ہائے، میں کسان AI ہوں 🌾" : "Hi, I'm Kisan AI 🌾"}</span>
               <br />
-              How can I help you today?
+              {isUr ? "آج میں آپ کی کیا مدد کر سکتا ہوں؟" : "How can I help you today?"}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">
-              Ask me about <span className="font-medium text-green-700 dark:text-green-400">mandi prices</span>,{" "}
-              <span className="font-medium text-green-700 dark:text-green-400">marketplace listings</span>,{" "}
-              <span className="font-medium text-green-700 dark:text-green-400">weather</span>, or{" "}
-              <span className="font-medium text-green-700 dark:text-green-400">AI forecasts</span> for
-              Wheat, Rice, Cotton, Sugar &amp; Maize.
+              {isUr ? (
+                <>مجھ سے <span className="font-medium text-green-700 dark:text-green-400">منڈی کی قیمتوں</span>، <span className="font-medium text-green-700 dark:text-green-400">مارکیٹ پلیس کی لسٹنگ</span>، <span className="font-medium text-green-700 dark:text-green-400">موسم</span>، یا گندم، چاول، کپاس، چینی اور مکئی کی <span className="font-medium text-green-700 dark:text-green-400">AI پیش گوئیوں</span> کے بارے میں پوچھیں۔</>
+              ) : (
+                <>Ask me about <span className="font-medium text-green-700 dark:text-green-400">mandi prices</span>, <span className="font-medium text-green-700 dark:text-green-400">marketplace listings</span>, <span className="font-medium text-green-700 dark:text-green-400">weather</span>, or <span className="font-medium text-green-700 dark:text-green-400">AI forecasts</span> for Wheat, Rice, Cotton, Sugar &amp; Maize.</>
+              )}
             </p>
           </div>
         </div>
       </div>
 
       <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-1">
-        ✨ Try asking
+        {isUr ? "✨ یہ پوچھنے کی کوشش کریں" : "✨ Try asking"}
       </p>
       <div className="grid grid-cols-1 gap-2">
-        {QUICK_ACTIONS.map((a, i) => {
+        {actions.map((a, i) => {
           const Icon = a.icon;
           return (
             <button
@@ -458,8 +458,9 @@ function WelcomeBlock({ onPick }) {
   );
 }
 
-function MessageBubble({ message, isFirst }) {
+function MessageBubble({ message, isFirst, language }) {
   const isUser = message.role === "user";
+  const tools = TOOL_PRESENTATION[language] || TOOL_PRESENTATION.en;
 
   if (isUser) {
     return (
@@ -480,7 +481,7 @@ function MessageBubble({ message, isFirst }) {
         {message.toolCalls && message.toolCalls.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-1.5">
             {message.toolCalls.map((tc, i) => {
-              const pres = TOOL_PRESENTATION[tc.name] || {
+              const pres = tools[tc.name] || {
                 label: tc.name,
                 icon: Wrench,
               };

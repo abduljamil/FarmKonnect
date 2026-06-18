@@ -14,19 +14,36 @@ import { useLanguage } from "../contexts/LanguageContext";
 
 const BRAND_EMOJI = "🌾";
 
-const SUGGESTIONS = [
-  "What's the wheat price in Lahore today?",
-  "Show me Rice Basmati listings on the marketplace",
-  "What's the 4-week cotton price forecast in Multan?",
-  "Weather in Faisalabad — any farming tips?",
-];
+const SUGGESTIONS = {
+  en: [
+    "What's the wheat price in Lahore today?",
+    "Show me Rice Basmati listings on the marketplace",
+    "What's the 4-week cotton price forecast in Multan?",
+    "Weather in Faisalabad — any farming tips?",
+  ],
+  ur: [
+    "آج لاہور میں گندم کی قیمت کیا ہے؟",
+    "مجھے مارکیٹ پلیس پر چاول باسمتی کی لسٹنگ دکھائیں",
+    "ملتان میں کپاس کی 4 ہفتوں کی قیمت کی پیش گوئی کیا ہے؟",
+    "فیصل آباد کا موسم — کوئی کھیتی باڑی کے مشورے؟",
+  ]
+};
 
 const TOOL_LABELS = {
-  searchListings: "Searching marketplace",
-  getCommodityPrice: "Checking mandi prices",
-  getPriceForecast: "Running AI forecast",
-  getWeather: "Fetching weather",
-  createSupportTicket: "Creating support ticket",
+  en: {
+    searchListings: "Searching marketplace",
+    getCommodityPrice: "Checking mandi prices",
+    getPriceForecast: "Running AI forecast",
+    getWeather: "Fetching weather",
+    createSupportTicket: "Creating support ticket",
+  },
+  ur: {
+    searchListings: "مارکیٹ پلیس تلاش کر رہا ہے",
+    getCommodityPrice: "منڈی کی قیمتیں چیک کر رہا ہے",
+    getPriceForecast: "پیش گوئی کر رہا ہے",
+    getWeather: "موسم لا رہا ہے",
+    createSupportTicket: "سپورٹ ٹکٹ بنا رہا ہے",
+  }
 };
 
 export default function Kisan() {
@@ -185,16 +202,16 @@ export default function Kisan() {
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-medium transition-all shadow-sm hover:shadow"
             >
               <Plus className="w-4 h-4" />
-              New chat
+              {language === "ur" ? "نئی چیٹ" : "New chat"}
             </button>
 
             <div className="mt-4 flex-1 overflow-y-auto -mx-2 px-2">
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-2">
-                History
+                {language === "ur" ? "تاریخ" : "History"}
               </p>
               {conversations.length === 0 ? (
                 <p className="text-sm text-gray-400 dark:text-gray-500 px-2 py-4">
-                  No conversations yet
+                  {language === "ur" ? "ابھی تک کوئی گفتگو نہیں" : "No conversations yet"}
                 </p>
               ) : (
                 <ul className="space-y-1">
@@ -232,10 +249,10 @@ export default function Kisan() {
                 </div>
                 <div>
                   <h1 className="font-semibold text-gray-900 dark:text-white">
-                    Kisan
+                    {language === "ur" ? "کسان" : "Kisan"}
                   </h1>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Your FarmKonnect AI assistant
+                    {language === "ur" ? "آپ کا فارم کنیکٹ AI اسسٹنٹ" : "Your FarmKonnect AI assistant"}
                   </p>
                 </div>
               </div>
@@ -257,14 +274,14 @@ export default function Kisan() {
                   <Loader2 className="w-6 h-6 animate-spin text-green-500" />
                 </div>
               ) : messages.length === 0 ? (
-                <EmptyState onPick={(s) => handleSend(s)} />
+                <EmptyState onPick={(s) => handleSend(s)} language={language} />
               ) : (
-                messages.map((m) => <MessageRow key={m._id} message={m} />)
+                messages.map((m) => <MessageRow key={m._id} message={m} language={language} />)
               )}
               {sending && (
                 <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 px-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Kisan is thinking…
+                  {language === "ur" ? "کسان سوچ رہا ہے..." : "Kisan is thinking…"}
                 </div>
               )}
             </div>
@@ -275,7 +292,7 @@ export default function Kisan() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask Kisan about prices, listings, weather…"
+                  placeholder={language === "ur" ? "کسان سے قیمتوں، لسٹنگ، موسم کے بارے میں پوچھیں..." : "Ask Kisan about prices, listings, weather…"}
                   rows={1}
                   className="flex-1 bg-transparent resize-none outline-none text-gray-900 dark:text-white placeholder-gray-400 text-sm max-h-32 py-1.5"
                   disabled={sending}
@@ -293,7 +310,7 @@ export default function Kisan() {
                 </button>
               </div>
               <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-2 text-center">
-                Kisan can make mistakes — verify important info.
+                {language === "ur" ? "کسان غلطیاں کر سکتا ہے — اہم معلومات کی تصدیق کریں۔" : "Kisan can make mistakes — verify important info."}
               </p>
             </div>
           </main>
@@ -303,24 +320,27 @@ export default function Kisan() {
   );
 }
 
-function EmptyState({ onPick }) {
+function EmptyState({ onPick, language }) {
+  const isUr = language === "ur";
+  const suggestions = SUGGESTIONS[language] || SUGGESTIONS.en;
+
   return (
     <div className="h-full flex flex-col items-center justify-center text-center py-10">
       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white mb-4 shadow-lg">
         <span className="text-4xl leading-none">{BRAND_EMOJI}</span>
       </div>
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-        Hi, I'm Kisan AI 🌾
+        {isUr ? "ہائے، میں کسان AI ہوں 🌾" : "Hi, I'm Kisan AI 🌾"}
       </h2>
       <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">
-        How can I help you today? I have live access to FarmKonnect data —
-        mandi prices, marketplace listings, weather, and AI forecasts for{" "}
-        <span className="font-medium text-green-700 dark:text-green-400">
-          Wheat, Rice, Cotton, Sugar &amp; Maize
-        </span>.
+        {isUr ? (
+          <>آج میں آپ کی کیا مدد کر سکتا ہوں؟ مجھے فارم کنیکٹ کے ڈیٹا تک لائیو رسائی حاصل ہے — منڈی کی قیمتیں، مارکیٹ پلیس کی لسٹنگ، موسم، اور <span className="font-medium text-green-700 dark:text-green-400">گندم، چاول، کپاس، چینی اور مکئی</span> کے لیے AI پیش گوئیاں۔</>
+        ) : (
+          <>How can I help you today? I have live access to FarmKonnect data — mandi prices, marketplace listings, weather, and AI forecasts for <span className="font-medium text-green-700 dark:text-green-400">Wheat, Rice, Cotton, Sugar &amp; Maize</span>.</>
+        )}
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full px-2">
-        {SUGGESTIONS.map((s) => (
+        {suggestions.map((s) => (
           <button
             key={s}
             onClick={() => onPick(s)}
@@ -334,8 +354,9 @@ function EmptyState({ onPick }) {
   );
 }
 
-function MessageRow({ message }) {
+function MessageRow({ message, language }) {
   const isUser = message.role === "user";
+  const tools = TOOL_LABELS[language] || TOOL_LABELS.en;
   if (isUser) {
     return (
       <div className="flex justify-end">
@@ -360,7 +381,7 @@ function MessageRow({ message }) {
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800"
               >
                 <Wrench className="w-3 h-3" />
-                {TOOL_LABELS[tc.name] || tc.name}
+                {tools[tc.name] || tc.name}
               </span>
             ))}
           </div>
