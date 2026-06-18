@@ -45,14 +45,15 @@ jobs:
             sudo chmod 644 /tmp/*.parquet
 
       - name: Download Data from EC2
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "/tmp/features_lagged.parquet,/tmp/panel.parquet,/tmp/features.parquet"
-          target: "ml/training/data/"
-          strip_components: 1
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+          mkdir -p ml/training/data/
+          scp -i ~/.ssh/id_rsa ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/features_lagged.parquet ml/training/data/
+          scp -i ~/.ssh/id_rsa ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/panel.parquet ml/training/data/
+          scp -i ~/.ssh/id_rsa ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/features.parquet ml/training/data/
 
       - name: Run ML Training Scripts
         run: |
