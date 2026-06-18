@@ -187,6 +187,9 @@ export default function DashboardScreen({ navigation }) {
               {t(greetingKey)}, {user?.name?.split(' ')[0] || t('common.unknown')}!
             </Text>
             <Text style={styles.date}>{formatDate()}</Text>
+            <Text style={{ color: '#a3e635', fontSize: 12, marginTop: 4, fontWeight: 'bold' }}>
+              🚀 OTA Update Test Successful
+            </Text>
           </View>
           <TouchableOpacity style={styles.notificationBtn} onPress={() => navigation.navigate('Notifications')}>
             <Bell color={COLORS.primary} size={24} />
