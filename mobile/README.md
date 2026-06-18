@@ -720,3 +720,5 @@ Proprietary - FarmKonnect © 2025-2026
 ## 🌾 Built for the Future of Agriculture
 
 For questions or support, use the Help & Support feature in the app.
+
+
