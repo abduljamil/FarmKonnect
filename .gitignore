@@ -28,6 +28,7 @@ build/
 *.ntvs*
 *.njsproj
 *.sln
+.claude
 *.sw?
 
 # OS files
