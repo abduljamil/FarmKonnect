@@ -24,7 +24,7 @@
       "package": "app.farmkonnect.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0f1a12"
       },
       "edgeToEdgeEnabled": true,
       "intentFilters": [
