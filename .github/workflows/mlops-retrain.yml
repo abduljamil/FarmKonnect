@@ -34,8 +34,13 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -euo pipefail
-            echo "Copying parquets from prediction_service to /tmp..."
+            echo "Generating fresh features inside prediction_service..."
             CONTAINER_ID=$(sudo docker ps -qf "name=prediction_service")
+            sudo docker exec $CONTAINER_ID python /app/ml/training/build_panel.py
+            sudo docker exec $CONTAINER_ID python /app/ml/training/build_features.py
+            sudo docker exec $CONTAINER_ID python /app/ml/training/features/build_lagged.py
+
+            echo "Copying parquets from prediction_service to /tmp..."
             sudo docker cp $CONTAINER_ID:/work/data/features_lagged.parquet /tmp/
             sudo docker cp $CONTAINER_ID:/work/data/panel.parquet /tmp/
             sudo docker cp $CONTAINER_ID:/work/data/features.parquet /tmp/
