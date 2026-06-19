@@ -542,5 +542,10 @@
     "accuracyLatest": "Latest: predicted {{pred}} vs actual {{actual}} — within {{err}}%.",
     "noOutlook": "Forecast not available yet.",
     "viewFull": "View full forecast"
+  },
+  "mobile": {
+    "actions": {
+      "cancelOrder": "Cancel Order"
+    }
   }
 }
