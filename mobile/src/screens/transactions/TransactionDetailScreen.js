@@ -4,7 +4,6 @@ import { View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, Activi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, CheckCircle, Circle, Truck, CreditCard, Shield, AlertTriangle, X, XCircle, Star, Camera } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { KeyboardAvoidingView, Platform } from 'react-native';
 import { getTransaction, confirmDelivery, confirmOrder, markDelivered, completeTransaction, raiseDispute, confirmPayment, sellerConfirmPayment, rejectDelivery, cancelTransaction } from '../../services/transactionService';
 import { createReview, canReviewTransaction } from '../../services/reviewService';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -426,96 +425,100 @@ export default function TransactionDetailScreen({ navigation, route }) {
           `disputeDescription`. Previously raiseDispute was sent with no body,
           which 400'd on the server. */}
       <Modal visible={disputeOpen} animationType="slide" transparent onRequestClose={() => setDisputeOpen(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalCard}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{t('mobile.order.raiseDisputeTitle')}</Text>
-                <TouchableOpacity onPress={() => setDisputeOpen(false)}>
-                  <X color={COLORS.textMuted} size={22} />
-                </TouchableOpacity>
-              </View>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('mobile.order.raiseDisputeTitle')}</Text>
+              <TouchableOpacity onPress={() => setDisputeOpen(false)}>
+                <X color={COLORS.textMuted} size={22} />
+              </TouchableOpacity>
+            </View>
 
-              <Text style={styles.modalLabel}>{t('mobile.order.reason')}</Text>
-              <ScrollView style={{ maxHeight: 220 }}>
-                {DISPUTE_REASONS.map((r) => (
-                  <TouchableOpacity
-                    key={r.value}
-                    style={[styles.reasonRow, disputeReason === r.value && styles.reasonRowActive]}
-                    onPress={() => setDisputeReason(r.value)}
-                  >
-                    <Text style={[styles.reasonText, disputeReason === r.value && styles.reasonTextActive]}>
-                      {t(r.labelKey)}
-                    </Text>
-                    {disputeReason === r.value && <CheckCircle color={COLORS.primary} size={18} />}
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-
-              <Text style={[styles.modalLabel, { marginTop: 16 }]}>{t('mobile.order.descriptionMin')}</Text>
-              <TextInput
-                style={styles.modalInput}
-                value={disputeDescription}
-                onChangeText={setDisputeDescription}
-                placeholder={t('mobile.order.describePlaceholder')}
-                placeholderTextColor={COLORS.textFaint}
-                multiline
-                maxLength={1000}
-              />
-
-              <View style={styles.modalActions}>
-                <TouchableOpacity style={styles.modalCancel} onPress={() => setDisputeOpen(false)} disabled={disputeSubmitting}>
-                  <Text style={styles.modalCancelText}>{t('mobile.buttons.cancel')}</Text>
+            <Text style={styles.modalLabel}>{t('mobile.order.reason')}</Text>
+            <ScrollView style={{ maxHeight: 220 }}>
+              {DISPUTE_REASONS.map((r) => (
+                <TouchableOpacity
+                  key={r.value}
+                  style={[styles.reasonRow, disputeReason === r.value && styles.reasonRowActive]}
+                  onPress={() => setDisputeReason(r.value)}
+                >
+                  <Text style={[styles.reasonText, disputeReason === r.value && styles.reasonTextActive]}>
+                    {t(r.labelKey)}
+                  </Text>
+                  {disputeReason === r.value && <CheckCircle color={COLORS.primary} size={18} />}
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.modalSubmit} onPress={handleSubmitDispute} disabled={disputeSubmitting}>
-                  {disputeSubmitting
-                    ? <ActivityIndicator color={COLORS.white} />
-                    : <Text style={styles.modalSubmitText}>{t('mobile.order.submit')}</Text>}
-                </TouchableOpacity>
-              </View>
+              ))}
+            </ScrollView>
+
+            <Text style={[styles.modalLabel, { marginTop: 16 }]}>{t('mobile.order.descriptionMin')}</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={disputeDescription}
+              onChangeText={setDisputeDescription}
+              placeholder={t('mobile.order.describePlaceholder')}
+              placeholderTextColor={COLORS.textFaint}
+              multiline
+              maxLength={1000}
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancel} onPress={() => setDisputeOpen(false)} disabled={disputeSubmitting}>
+                <Text style={styles.modalCancelText}>{t('mobile.buttons.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSubmit} onPress={handleSubmitDispute} disabled={disputeSubmitting}>
+                {disputeSubmitting
+                  ? <ActivityIndicator color={COLORS.white} />
+                  : <Text style={styles.modalSubmitText}>{t('mobile.order.submit')}</Text>}
+              </TouchableOpacity>
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </Modal>
 
       {/* Reject-delivery modal */}
       <Modal visible={rejectOpen} animationType="slide" transparent onRequestClose={() => setRejectOpen(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalCard}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{t('mobile.order.rejectTitle')}</Text>
-                <TouchableOpacity onPress={() => setRejectOpen(false)}>
-                  <X color={COLORS.textMuted} size={22} />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.modalLabel}>{t('mobile.order.rejectWhy')}</Text>
-              <TextInput
-                style={styles.modalInput}
-                value={rejectReason}
-                onChangeText={setRejectReason}
-                placeholder={t('mobile.order.rejectPlaceholder')}
-                placeholderTextColor={COLORS.textFaint}
-                multiline
-                maxLength={1000}
-              />
-              <View style={styles.modalActions}>
-                <TouchableOpacity style={styles.modalCancel} onPress={() => setRejectOpen(false)} disabled={rejectSubmitting}>
-                  <Text style={styles.modalCancelText}>{t('mobile.buttons.cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.modalSubmit, { backgroundColor: COLORS.danger }]} onPress={handleSubmitReject} disabled={rejectSubmitting}>
-                  {rejectSubmitting
-                    ? <ActivityIndicator color={COLORS.white} />
-                    : <Text style={styles.modalSubmitText}>{t('mobile.order.rejectDeliveryBtn')}</Text>}
-                </TouchableOpacity>
-              </View>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('mobile.order.rejectTitle')}</Text>
+              <TouchableOpacity onPress={() => setRejectOpen(false)}>
+                <X color={COLORS.textMuted} size={22} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalLabel}>{t('mobile.order.rejectWhy')}</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={rejectReason}
+              onChangeText={setRejectReason}
+              placeholder={t('mobile.order.rejectPlaceholder')}
+              placeholderTextColor={COLORS.textFaint}
+              multiline
+              maxLength={1000}
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancel} onPress={() => setRejectOpen(false)} disabled={rejectSubmitting}>
+                <Text style={styles.modalCancelText}>{t('mobile.buttons.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalSubmit, { backgroundColor: COLORS.danger }]} onPress={handleSubmitReject} disabled={rejectSubmitting}>
+                {rejectSubmitting
+                  ? <ActivityIndicator color={COLORS.white} />
+                  : <Text style={styles.modalSubmitText}>{t('mobile.order.rejectDeliveryBtn')}</Text>}
+              </TouchableOpacity>
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </Modal>
 
       {/* Review modal */}
       <Modal visible={reviewOpen} animationType="slide" transparent onRequestClose={() => setReviewOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('mobile.order.leaveReviewTitle')}</Text>
+              <TouchableOpacity onPress={() => setReviewOpen(false)}>
+                <X color={COLORS.textMuted} size={22} />
+              </TouchableOpacity>
+            </View>
 
             <Text style={styles.modalLabel}>{t('mobile.order.rating')}</Text>
             <View style={styles.starsRow}>
