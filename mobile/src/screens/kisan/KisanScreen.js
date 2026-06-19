@@ -231,7 +231,7 @@ export default function KisanScreen({ navigation }) {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : null}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
       >
         {loadingMessages ? (
           <View style={styles.loaderWrap}>

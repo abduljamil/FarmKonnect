@@ -71,7 +71,7 @@ export default function TicketDetailScreen({ navigation, route }) {
         </View>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : null}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}>
         <ScrollView
           ref={scrollRef}
           contentContainerStyle={styles.container}

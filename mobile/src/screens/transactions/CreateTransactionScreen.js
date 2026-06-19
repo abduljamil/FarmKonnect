@@ -157,7 +157,7 @@ export default function CreateTransactionScreen({ navigation, route }) {
         <View style={{ width: 24 }} />
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : null}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>{t('mobile.checkout.itemSummary')}</Text>
