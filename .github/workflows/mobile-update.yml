@@ -91,7 +91,7 @@ jobs:
 
       - name: Build Android APK
         working-directory: ./mobile
-        run: eas build --platform android --profile preview --non-interactive --wait
+        run: eas build --platform android --profile production-apk --non-interactive --wait
 
       - name: Download APK from EAS
         working-directory: ./mobile
