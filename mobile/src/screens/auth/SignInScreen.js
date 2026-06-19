@@ -6,15 +6,10 @@ import {
   Alert, KeyboardAvoidingView, Platform, StatusBar
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { AuthContext } from '../../contexts/AuthContext';
 import AnimatedBlobs from '../../components/ui/AnimatedBlobs';
 import api from '../../services/api';
-
-// expo-auth-session needs this on first import so it can dismiss the
-// in-app browser once Google returns to our redirect URI.
-WebBrowser.maybeCompleteAuthSession();
 
 // Google client IDs are read from Expo's `extra` config (or a fallback
 // env-injected at build time). Set these in app.json `extra` or via
@@ -24,42 +19,51 @@ const GOOGLE_IOS_CLIENT_ID     = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
 const GOOGLE_WEB_CLIENT_ID     = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
-// Mounts the expo-auth-session Google hook. Rendered ONLY when at least one
-// client ID is configured — calling the hook with undefined iosClientId throws
-// on iOS, which is why this is isolated in its own conditionally-mounted child.
+// Initialize the native Google Sign-In engine.
+// This perfectly reads the Android Client ID natively from the injected google-services.json
+// and uses the Web Client ID to securely request an idToken for the backend.
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  offlineAccess: true, // Forces a refresh token and idToken
+});
+
+// The GoogleButton now triggers the blazing-fast native Android Play Services modal
+// instead of a clunky in-app web browser that Google explicitly blocks.
 function GoogleButton({ t, onError }) {
   const { signInWithGoogle } = useContext(AuthContext);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [googleRequest, googleResponse, promptGoogle] = Google.useIdTokenAuthRequest({
-    iosClientId:     GOOGLE_IOS_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-    webClientId:     GOOGLE_WEB_CLIENT_ID,
-  });
-
-  // When Google returns, hand the id_token to AuthContext.signInWithGoogle.
-  useEffect(() => {
-    if (googleResponse?.type === 'success') {
-      const idToken = googleResponse.params?.id_token || googleResponse.authentication?.idToken;
-      if (idToken) {
-        setGoogleLoading(true);
-        signInWithGoogle(idToken)
-          .then((r) => { if (!r.success) onError(r.message || t('errors.somethingWrong')); })
-          .finally(() => setGoogleLoading(false));
-      }
-    } else if (googleResponse?.type === 'error') {
-      onError(googleResponse?.error?.message || 'Google sign-in cancelled');
-      setGoogleLoading(false);
-    }
-  }, [googleResponse]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePress = async () => {
-    if (!googleRequest) return; // request still initializing
     onError('');
     setGoogleLoading(true);
     try {
-      await promptGoogle();
-    } catch (err) {
-      onError(err.message || t('errors.somethingWrong'));
+      // Ensure Google Play Services are available before launching the UI
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      
+      // Triggers the native Android bottom-sheet account selector!
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo.idToken || userInfo.data?.idToken; // handle different library versions
+      
+      if (idToken) {
+        const r = await signInWithGoogle(idToken);
+        if (!r.success) {
+          onError(r.message || t('errors.somethingWrong'));
+        }
+      } else {
+        onError('No ID token returned from Google');
+      }
+    } catch (error) {
+      console.log('Google Auth Error:', error);
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        onError('Google sign-in cancelled');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // already in progress
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        onError('Google Play Services not available or outdated');
+      } else {
+        onError(error.message || t('errors.somethingWrong'));
+      }
+    } finally {
       setGoogleLoading(false);
     }
   };

@@ -12,7 +12,20 @@
           "package_name": "app.farmkonnect.mobile"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1001537319203-qvvopfd6c5cv518ulgtkbjstiuolcr07.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.farmkonnect.mobile",
+            "certificate_hash": "3C13FAA4FFC581C1411482C0DCDD9F1EE8284B0B"
+          }
+        },
+        {
+          "client_id": "1001537319203-4v72vv8jkdu1cn339vgpru0b76opueev.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDmHX_Of_Me9dQ0OdtYvSJgQCIKuPb13RU"

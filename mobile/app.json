@@ -65,6 +65,7 @@
       "expo-localization",
       "expo-secure-store",
       "expo-notifications",
+      "@react-native-google-signin/google-signin",
       [
         "expo-image-picker",
         {
@@ -77,7 +78,8 @@
         {
           "locationWhenInUsePermission": "FarmKonnect uses your location to auto-fill your address and show local weather and prices."
         }
-      ]
+      ],
+      "@react-native-google-signin/google-signin"
     ],
     "runtimeVersion": {
       "policy": "appVersion"
@@ -93,4 +95,4 @@
     },
     "owner": "ahtshamadil"
   }
-} 
+}
