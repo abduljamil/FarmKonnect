@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "739138675691",
+    "project_id": "farmkonnect-265a3",
+    "storage_bucket": "farmkonnect-265a3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:739138675691:android:f9c6986eec3c26392c6fae",
+        "android_client_info": {
+          "package_name": "app.farmkonnect.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmHX_Of_Me9dQ0OdtYvSJgQCIKuPb13RU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
