@@ -12,7 +12,11 @@
         "buildType": "apk"
       },
       "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "1001537319203-4v72vv8jkdu1cn339vgpru0b76opueev.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "1001537319203-qvvopfd6c5cv518ulgtkbjstiuolcr07.apps.googleusercontent.com"
+      }
     },
     "production": {
       "android": {
