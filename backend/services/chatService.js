@@ -188,6 +188,39 @@ class ChatService {
           },
         },
         { $unwind: { path: "$seller", preserveNullAndEmptyArrays: true } },
+        // Lookup unread messages count
+        {
+          $lookup: {
+            from: "messages",
+            let: { 
+              convId: "$_id",
+              deletedAt: { $arrayElemAt: ["$userDeletion.deletedAt", 0] }
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$conversation", "$$convId"] },
+                      { $ne: ["$sender", userObjectId] },
+                      { $eq: ["$read", false] },
+                      { $gt: ["$createdAt", { $ifNull: ["$$deletedAt", new Date(0)] }] }
+                    ]
+                  }
+                }
+              },
+              { $count: "unreadCount" }
+            ],
+            as: "unreadData"
+          }
+        },
+        {
+          $addFields: {
+            unreadCount: {
+              $ifNull: [{ $arrayElemAt: ["$unreadData.unreadCount", 0] }, 0]
+            }
+          }
+        },
         // Project only needed fields
         {
           $project: {
