@@ -1,7 +1,7 @@
 {
-  "rows_in": 64396,
-  "rows_train": 59708,
-  "rows_test": 4688,
+  "rows_in": 64482,
+  "rows_train": 59786,
+  "rows_test": 4696,
   "n_series": 146,
   "n_features": 81,
   "test_weeks": 52,
