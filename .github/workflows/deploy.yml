@@ -33,8 +33,31 @@ jobs:
         working-directory: ./frontend
         run: npm run lint
 
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      # --legacy-peer-deps matches backend/Dockerfile: multer-storage-cloudinary@4
+      # declares a peer of cloudinary@^1 while the project runs cloudinary@^2.
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci --legacy-peer-deps
+
+      - name: Run Backend Tests
+        working-directory: ./backend
+        run: npm test
+
   deploy:
-    needs: lint-frontend
+    needs: [lint-frontend, test-backend]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
