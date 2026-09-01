@@ -1,8 +1,8 @@
 {
-  "rows_in": 64706,
-  "rows_train": 60015,
-  "rows_test": 4691,
-  "n_series": 146,
+  "rows_in": 64934,
+  "rows_train": 60205,
+  "rows_test": 4729,
+  "n_series": 150,
   "n_features": 81,
   "test_weeks": 52,
   "horizons": [

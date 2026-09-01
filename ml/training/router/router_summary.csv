@@ -1,25 +1,25 @@
 commodity,horizon,chosen,chosen_mape,persistence_mape,edge_pct,reason,n
-Maize,1,persistence,2.2128075598764165,2.2128075598764165,0.0,persistence_is_best,601
-Maize,2,persistence,3.749884899175465,3.749884899175465,0.0,persistence_is_best,588
-Maize,4,persistence,5.680310106676611,5.680310106676611,0.0,persistence_is_best,562
-Maize,12,persistence,9.489401650854337,9.489401650854337,0.0,persistence_is_best,458
+Maize,1,persistence,2.350767543012053,2.350767543012053,0.0,persistence_is_best,602
+Maize,2,persistence,3.761085693585126,3.761085693585126,0.0,persistence_is_best,589
+Maize,4,persistence,5.588022308926409,5.588022308926409,0.0,persistence_is_best,563
+Maize,12,persistence,8.967341221744144,8.967341221744144,0.0,persistence_is_best,459
 Paddy,1,persistence,4.171925512635823,4.171925512635823,0.0,persistence_is_best,437
 Paddy,2,persistence,7.102135724926158,7.102135724926158,0.0,persistence_is_best,413
 Paddy,4,persistence,11.82748243018255,11.82748243018255,0.0,persistence_is_best,370
-Paddy,12,lgbm_quantile_median,18.68863979641776,18.93447699390656,1.2983574754555667,beats_persistence_by_1.3pct,225
-Rice,1,persistence,1.317290855225127,1.317290855225127,0.0,persistence_is_best,2174
-Rice,2,persistence,2.214663860921323,2.214663860921323,0.0,persistence_is_best,2116
-Rice,4,persistence,3.649806053875104,3.649806053875104,0.0,persistence_is_best,2004
-Rice,12,persistence,6.514076975258476,6.514076975258476,0.0,persistence_is_best,1591
+Paddy,12,lgbm_quantile_median,18.223007254465223,18.93447699390656,3.757535735844728,beats_persistence_by_3.8pct,225
+Rice,1,persistence,1.3392446296068476,1.3392446296068476,0.0,persistence_is_best,2202
+Rice,2,persistence,2.2605618449516447,2.2605618449516447,0.0,persistence_is_best,2140
+Rice,4,persistence,3.7292792209764696,3.7292792209764696,0.0,persistence_is_best,2020
+Rice,12,persistence,6.515376651486085,6.515376651486085,0.0,persistence_is_best,1605
 Seed Cotton (Phutti),1,persistence,2.3858225939093014,2.3858225939093014,0.0,persistence_is_best,178
 Seed Cotton (Phutti),2,persistence,4.129179144923249,4.129179144923249,0.0,persistence_is_best,171
-Seed Cotton (Phutti),4,lgbm_per_commodity,6.279122379808641,6.4432460153509,2.5472197577314066,beats_persistence_by_2.5pct,157
+Seed Cotton (Phutti),4,persistence,6.4432460153509,6.4432460153509,0.0,persistence_is_best,157
 Seed Cotton (Phutti),12,persistence,9.651375668812044,9.651375668812044,0.0,persistence_is_best,107
-Sugar,1,persistence,1.3194456749284804,1.3194456749284804,0.0,persistence_is_best,610
-Sugar,2,persistence,2.0313120656107397,2.0313120656107397,0.0,persistence_is_best,596
-Sugar,4,persistence,3.572440794586994,3.572440794586994,0.0,persistence_is_best,568
-Sugar,12,lgbm_quantile_median,7.294505772491139,7.54117929668185,3.2710205458083856,beats_persistence_by_3.3pct,462
-Wheat,1,persistence,2.450401573714949,2.450401573714949,0.0,persistence_is_best,545
-Wheat,2,persistence,4.205384279625403,4.205384279625403,0.0,persistence_is_best,532
-Wheat,4,persistence,7.162818559268071,7.162818559268071,0.0,persistence_is_best,506
-Wheat,12,lgbm_per_commodity,12.460725070888769,14.46300962486402,13.844176322285179,beats_persistence_by_13.8pct,402
+Sugar,1,persistence,1.3678481203731874,1.3678481203731874,0.0,persistence_is_best,611
+Sugar,2,persistence,2.089185626158675,2.089185626158675,0.0,persistence_is_best,597
+Sugar,4,persistence,3.6311920319429927,3.6311920319429927,0.0,persistence_is_best,569
+Sugar,12,lgbm_quantile_median,6.760165736593702,7.478735005389296,9.60816593017109,beats_persistence_by_9.6pct,463
+Wheat,1,persistence,2.2547752330975968,2.2547752330975968,0.0,persistence_is_best,549
+Wheat,2,persistence,3.7669280412111608,3.7669280412111608,0.0,persistence_is_best,536
+Wheat,4,persistence,6.609747412707731,6.609747412707731,0.0,persistence_is_best,510
+Wheat,12,lgbm_per_commodity,11.914894809557609,13.538191012315902,11.990495637722615,beats_persistence_by_12.0pct,406

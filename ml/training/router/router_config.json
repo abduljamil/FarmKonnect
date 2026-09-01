@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-08-01T02:53:13.697438+00:00",
+  "generated_at": "2026-09-01T03:58:17.030206+00:00",
   "horizons": [
     1,
     2,
@@ -27,8 +27,8 @@
       "commodity": "Maize",
       "horizon": 1,
       "model": "persistence",
-      "expected_mape": 2.2128075598764165,
-      "persistence_mape": 2.2128075598764165,
+      "expected_mape": 2.350767543012053,
+      "persistence_mape": 2.350767543012053,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -36,8 +36,8 @@
       "commodity": "Maize",
       "horizon": 2,
       "model": "persistence",
-      "expected_mape": 3.749884899175465,
-      "persistence_mape": 3.749884899175465,
+      "expected_mape": 3.761085693585126,
+      "persistence_mape": 3.761085693585126,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -45,8 +45,8 @@
       "commodity": "Maize",
       "horizon": 4,
       "model": "persistence",
-      "expected_mape": 5.680310106676611,
-      "persistence_mape": 5.680310106676611,
+      "expected_mape": 5.588022308926409,
+      "persistence_mape": 5.588022308926409,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -54,8 +54,8 @@
       "commodity": "Maize",
       "horizon": 12,
       "model": "persistence",
-      "expected_mape": 9.489401650854337,
-      "persistence_mape": 9.489401650854337,
+      "expected_mape": 8.967341221744144,
+      "persistence_mape": 8.967341221744144,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -90,17 +90,17 @@
       "commodity": "Paddy",
       "horizon": 12,
       "model": "lgbm_quantile_median",
-      "expected_mape": 18.68863979641776,
+      "expected_mape": 18.223007254465223,
       "persistence_mape": 18.93447699390656,
-      "edge_pct": 1.2983574754555667,
-      "reason": "beats_persistence_by_1.3pct"
+      "edge_pct": 3.757535735844728,
+      "reason": "beats_persistence_by_3.8pct"
     },
     "Rice__h1": {
       "commodity": "Rice",
       "horizon": 1,
       "model": "persistence",
-      "expected_mape": 1.317290855225127,
-      "persistence_mape": 1.317290855225127,
+      "expected_mape": 1.3392446296068476,
+      "persistence_mape": 1.3392446296068476,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -108,8 +108,8 @@
       "commodity": "Rice",
       "horizon": 2,
       "model": "persistence",
-      "expected_mape": 2.214663860921323,
-      "persistence_mape": 2.214663860921323,
+      "expected_mape": 2.2605618449516447,
+      "persistence_mape": 2.2605618449516447,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -117,8 +117,8 @@
       "commodity": "Rice",
       "horizon": 4,
       "model": "persistence",
-      "expected_mape": 3.649806053875104,
-      "persistence_mape": 3.649806053875104,
+      "expected_mape": 3.7292792209764696,
+      "persistence_mape": 3.7292792209764696,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -126,8 +126,8 @@
       "commodity": "Rice",
       "horizon": 12,
       "model": "persistence",
-      "expected_mape": 6.514076975258476,
-      "persistence_mape": 6.514076975258476,
+      "expected_mape": 6.515376651486085,
+      "persistence_mape": 6.515376651486085,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -152,11 +152,11 @@
     "Seed Cotton (Phutti)__h4": {
       "commodity": "Seed Cotton (Phutti)",
       "horizon": 4,
-      "model": "lgbm_per_commodity",
-      "expected_mape": 6.279122379808641,
+      "model": "persistence",
+      "expected_mape": 6.4432460153509,
       "persistence_mape": 6.4432460153509,
-      "edge_pct": 2.5472197577314066,
-      "reason": "beats_persistence_by_2.5pct"
+      "edge_pct": 0.0,
+      "reason": "persistence_is_best"
     },
     "Seed Cotton (Phutti)__h12": {
       "commodity": "Seed Cotton (Phutti)",
@@ -171,8 +171,8 @@
       "commodity": "Sugar",
       "horizon": 1,
       "model": "persistence",
-      "expected_mape": 1.3194456749284804,
-      "persistence_mape": 1.3194456749284804,
+      "expected_mape": 1.3678481203731874,
+      "persistence_mape": 1.3678481203731874,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -180,8 +180,8 @@
       "commodity": "Sugar",
       "horizon": 2,
       "model": "persistence",
-      "expected_mape": 2.0313120656107397,
-      "persistence_mape": 2.0313120656107397,
+      "expected_mape": 2.089185626158675,
+      "persistence_mape": 2.089185626158675,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -189,8 +189,8 @@
       "commodity": "Sugar",
       "horizon": 4,
       "model": "persistence",
-      "expected_mape": 3.572440794586994,
-      "persistence_mape": 3.572440794586994,
+      "expected_mape": 3.6311920319429927,
+      "persistence_mape": 3.6311920319429927,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -198,17 +198,17 @@
       "commodity": "Sugar",
       "horizon": 12,
       "model": "lgbm_quantile_median",
-      "expected_mape": 7.294505772491139,
-      "persistence_mape": 7.54117929668185,
-      "edge_pct": 3.2710205458083856,
-      "reason": "beats_persistence_by_3.3pct"
+      "expected_mape": 6.760165736593702,
+      "persistence_mape": 7.478735005389296,
+      "edge_pct": 9.60816593017109,
+      "reason": "beats_persistence_by_9.6pct"
     },
     "Wheat__h1": {
       "commodity": "Wheat",
       "horizon": 1,
       "model": "persistence",
-      "expected_mape": 2.450401573714949,
-      "persistence_mape": 2.450401573714949,
+      "expected_mape": 2.2547752330975968,
+      "persistence_mape": 2.2547752330975968,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -216,8 +216,8 @@
       "commodity": "Wheat",
       "horizon": 2,
       "model": "persistence",
-      "expected_mape": 4.205384279625403,
-      "persistence_mape": 4.205384279625403,
+      "expected_mape": 3.7669280412111608,
+      "persistence_mape": 3.7669280412111608,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -225,8 +225,8 @@
       "commodity": "Wheat",
       "horizon": 4,
       "model": "persistence",
-      "expected_mape": 7.162818559268071,
-      "persistence_mape": 7.162818559268071,
+      "expected_mape": 6.609747412707731,
+      "persistence_mape": 6.609747412707731,
       "edge_pct": 0.0,
       "reason": "persistence_is_best"
     },
@@ -234,10 +234,10 @@
       "commodity": "Wheat",
       "horizon": 12,
       "model": "lgbm_per_commodity",
-      "expected_mape": 12.460725070888769,
-      "persistence_mape": 14.46300962486402,
-      "edge_pct": 13.844176322285179,
-      "reason": "beats_persistence_by_13.8pct"
+      "expected_mape": 11.914894809557609,
+      "persistence_mape": 13.538191012315902,
+      "edge_pct": 11.990495637722615,
+      "reason": "beats_persistence_by_12.0pct"
     }
   }
 }
