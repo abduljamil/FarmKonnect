@@ -1,4 +1,11 @@
-
+# Rotate container logs. Without this Docker's json-file logs grow forever —
+# the backend's log hit 4.8 GB during the 2026-09-30 Mongo reconnect storm and
+# filled the 15 GB root disk.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
 
 services:
   frontend:
@@ -14,6 +21,7 @@ services:
     depends_on:
       - backend
     restart: always
+    logging: *default-logging
 
   backend:
     build:
@@ -30,6 +38,7 @@ services:
     env_file:
       - ./backend/.env
     restart: always
+    logging: *default-logging
 
   scraper_service:
     build:
@@ -43,12 +52,14 @@ services:
         - ./backend/.env  # Use backend .env because scrapper needs valid MONGO_URI
         - ./scrapper/.env
     restart: always
+    logging: *default-logging
 
   certbot:
     image: certbot/certbot
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
+    logging: *default-logging
 
   prediction_service:
     # Phase 8 — weekly forecaster. Long-running container, ticks hourly, runs
@@ -66,6 +77,7 @@ services:
       - EARLIEST_RUN_DAY_OFFSET=1   # wait until Saturday UTC before predicting for Fri
       - BACKFILL_WEEKS=12
     restart: always
+    logging: *default-logging
 
 networks:
   default:
