@@ -27,10 +27,16 @@ class PriceRepository extends BaseRepository {
     if (city) match.city = city;
     if (priceType) match.priceType = priceType;
 
+    // The sort must match the { priceType: 1, date: -1, timestamp: -1 } index
+    // (see CommodityPrice.js). Sorting on timestamp alone can't use it, so Mongo
+    // sorts every FQP doc in memory and fails with "Sort exceeded memory limit"
+    // (allowDiskUse is ignored on the shared Atlas tier). Ordering by price date
+    // first is also correct for backfilled history, whose timestamp is the
+    // insert time rather than the price date.
     return await this.model
       .aggregate([
         { $match: match },
-        { $sort: { timestamp: -1 } },
+        { $sort: { date: -1, timestamp: -1 } },
         {
           $group: {
             _id: {
@@ -43,7 +49,7 @@ class PriceRepository extends BaseRepository {
           },
         },
         { $replaceRoot: { newRoot: "$latest" } },
-        { $sort: { timestamp: -1 } },
+        { $sort: { date: -1, timestamp: -1 } },
         { $limit: Number(limit) },
       ])
       .allowDiskUse(true)
