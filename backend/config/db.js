@@ -3,10 +3,40 @@ const mongoose = require('mongoose');
 // Track database connection state
 let isConnected = false;
 let connectionAttempts = 0;
-const MAX_RETRIES = 5;
+let listenersAttached = false;
 const RETRY_INTERVAL = 5000; // 5 seconds
+const MAX_RETRY_INTERVAL = 60000; // cap backoff at 1 minute
+
+// Attach connection event handlers exactly once. They used to be registered
+// inside connectDB(), so every retry added another set, and every
+// 'disconnected' handler scheduled yet another connectDB(). During the
+// 2026-09-30 Atlas DNS outage that doubled each round, exhausted memory and
+// wrote ~4.8 GB of logs. After a drop the MongoDB driver reconnects on its
+// own, so these handlers only track state and log.
+const attachListeners = () => {
+  if (listenersAttached) return;
+  listenersAttached = true;
+
+  mongoose.connection.on('error', (err) => {
+    console.error('❌ MongoDB connection error:', err.message);
+  });
+
+  mongoose.connection.on('disconnected', () => {
+    if (isConnected) {
+      console.log('⚠️ MongoDB disconnected. Driver will reconnect automatically...');
+    }
+    isConnected = false;
+  });
+
+  mongoose.connection.on('reconnected', () => {
+    console.log('✅ MongoDB reconnected');
+    isConnected = true;
+  });
+};
 
 const connectDB = async () => {
+  attachListeners();
+
   try {
     mongoose.set('strictQuery', false);
 
@@ -22,37 +52,15 @@ const connectDB = async () => {
   } catch (error) {
     isConnected = false;
     connectionAttempts++;
-    console.error(`❌ MongoDB Connection Error (Attempt ${connectionAttempts}/${MAX_RETRIES}): ${error.message}`);
 
-    // Retry connection with exponential backoff
-    if (connectionAttempts < MAX_RETRIES) {
-      const retryDelay = RETRY_INTERVAL * connectionAttempts;
-      console.log(`⏳ Retrying connection in ${retryDelay / 1000} seconds...`);
-      setTimeout(connectDB, retryDelay);
-    } else {
-      console.error('❌ Max connection attempts reached. Server will continue without database.');
-      console.error('❌ API requests requiring database will fail until connection is restored.');
-    }
+    // Retry the initial connection with capped exponential backoff. Never give
+    // up: a short Atlas/DNS outage at boot used to leave the API without a
+    // database until the container was restarted by hand.
+    const retryDelay = Math.min(RETRY_INTERVAL * 2 ** (connectionAttempts - 1), MAX_RETRY_INTERVAL);
+    console.error(`❌ MongoDB Connection Error (Attempt ${connectionAttempts}): ${error.message}`);
+    console.log(`⏳ Retrying connection in ${retryDelay / 1000} seconds...`);
+    setTimeout(connectDB, retryDelay);
   }
-
-  // Handle connection events
-  mongoose.connection.on('error', (err) => {
-    console.error('❌ MongoDB connection error:', err.message);
-    isConnected = false;
-  });
-
-  mongoose.connection.on('disconnected', () => {
-    console.log('⚠️ MongoDB disconnected. Attempting to reconnect...');
-    isConnected = false;
-    // Attempt to reconnect
-    setTimeout(connectDB, RETRY_INTERVAL);
-  });
-
-  mongoose.connection.on('connected', () => {
-    console.log('✅ MongoDB reconnected');
-    isConnected = true;
-    connectionAttempts = 0;
-  });
 };
 
 // Function to check if database is connected
